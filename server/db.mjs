@@ -7,6 +7,9 @@ import { fileURLToPath } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export const DB_PATH = process.env.XP_DB_PATH || path.join(__dirname, "store.db");
+// Ensure the parent directory exists (DB lives on the mounted Railway volume at /data).
+// Prevents "Cannot open database because the directory does not exist" if the mount is missing/slow.
+fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
 export const db = new Database(DB_PATH);
 db.pragma("journal_mode = WAL");
 db.pragma("foreign_keys = ON");

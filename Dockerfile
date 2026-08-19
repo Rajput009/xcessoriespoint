@@ -13,6 +13,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
+# Ensure the DB mount point exists even if the volume isn't mounted yet
+RUN mkdir -p /data
+
 # NODE_ENV is deliberately NOT set to production here, otherwise `npm ci`
 # would skip devDependencies (vite, tailwind, etc.) and the build would fail.
 ENV XP_DB_PATH=/data/store.db \
