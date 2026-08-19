@@ -13,8 +13,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
-ENV NODE_ENV=production \
-    XP_DB_PATH=/data/store.db \
+# NODE_ENV is deliberately NOT set to production here, otherwise `npm ci`
+# would skip devDependencies (vite, tailwind, etc.) and the build would fail.
+ENV XP_DB_PATH=/data/store.db \
     PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
 
 COPY package.json package-lock.json ./
@@ -22,6 +23,11 @@ RUN npm ci
 
 COPY . .
 RUN npm run build
+
+# Drop dev dependencies (vite, tailwind, typescript, ...) from the final image
+RUN npm prune --omit=dev
+
+ENV NODE_ENV=production
 
 EXPOSE 4173
 CMD ["node", "server/index.mjs"]
