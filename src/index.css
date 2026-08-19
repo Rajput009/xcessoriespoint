@@ -1,0 +1,81 @@
+@import "tailwindcss";
+
+html { scroll-behavior: smooth; }
+body { @apply bg-[#eef6f1] text-slate-800 antialiased; }
+
+/* ambient neon blobs — gives frosted panels something to refract */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(640px circle at 12% 18%, rgba(16, 185, 129, 0.15), transparent 62%),
+    radial-gradient(720px circle at 88% 8%, rgba(139, 92, 246, 0.10), transparent 62%),
+    radial-gradient(560px circle at 42% 50%, rgba(251, 191, 36, 0.08), transparent 60%),
+    radial-gradient(600px circle at 8% 80%, rgba(244, 114, 182, 0.08), transparent 60%),
+    radial-gradient(820px circle at 82% 92%, rgba(34, 211, 238, 0.10), transparent 62%);
+}
+
+/* ---- glassmorphism tokens ---- */
+.glass {
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(20px) saturate(1.4);
+  -webkit-backdrop-filter: blur(20px) saturate(1.4);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  box-shadow: 0 8px 32px rgba(6, 78, 59, 0.08);
+}
+.glass-soft {
+  background: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(14px) saturate(1.3);
+  -webkit-backdrop-filter: blur(14px) saturate(1.3);
+  border: 1px solid rgba(255, 255, 255, 0.55);
+}
+.glass-dark {
+  background: rgba(2, 44, 34, 0.6);
+  backdrop-filter: blur(20px) saturate(1.3);
+  -webkit-backdrop-filter: blur(20px) saturate(1.3);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+.neon-glow { box-shadow: 0 8px 28px rgba(16, 185, 129, 0.4); }
+.neon-glow-soft { box-shadow: 0 6px 20px rgba(16, 185, 129, 0.22); }
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+@keyframes floatSlow {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-14px) rotate(1.2deg); }
+}
+.float-slow { animation: floatSlow 5.5s ease-in-out infinite; }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.fade-up { animation: fadeUp .5s ease both; }
+
+@keyframes slideIn {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+.slide-in { animation: slideIn .3s ease both; }
+
+
+/* ---- micro-interactions ---- */
+button:active { transform: scale(0.97); }
+
+@keyframes badgePop {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.45); }
+  100% { transform: scale(1); }
+}
+.badge-pop { animation: badgePop 0.35s ease; }
+
+/* accessibility: respect reduced-motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .float-slow, .fade-up, .slide-in, .badge-pop { animation: none !important; }
+  html { scroll-behavior: auto; }
+  button:active { transform: none; }
+}

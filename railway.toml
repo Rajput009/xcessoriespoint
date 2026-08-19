@@ -1,0 +1,18 @@
+[build]
+dockerfilePath = "Dockerfile"
+
+[deploy]
+healthcheckPath = "/health"
+healthcheckTimeout = 100
+restartPolicyType = "on_failure"
+numReplicas = 1
+
+[env]
+NODE_ENV = "production"
+XP_DB_PATH = "/data/store.db"
+# Set this to your assigned *.up.railway.app URL (or custom domain) after deploy
+XP_BASE_URL = "https://example.up.railway.app"
+
+[[volumes]]
+name = "data"
+mountPath = "/data"

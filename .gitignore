@@ -1,0 +1,21 @@
+node_modules/
+.local/
+.test-build/
+dist/
+
+# SQLite database (lives on the Railway volume, not in git)
+store.db
+store.db-shm
+store.db-wal
+*.db
+*.db-shm
+*.db-wal
+
+# Reference screenshots / backups (not part of the app)
+shots/
+backups/
+
+# Env / logs
+.env
+.env.*
+*.log
