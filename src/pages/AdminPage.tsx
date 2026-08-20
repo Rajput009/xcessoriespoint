@@ -1254,10 +1254,16 @@ function ReviewsSection() {
 }
 
 /* ================= returns ================= */
-interface ReturnReq { id: number; orderId: string; email: string; reason: string; status: string; createdAt: string }
+interface ReturnReq {
+  id: number; orderId: string; email: string; reason: string; status: string; createdAt: string;
+  order?: Order | null;
+}
 
 function ReturnsSection() {
   const [returns, setReturns] = useState<ReturnReq[]>([]);
+  const [open, setOpen] = useState<number | null>(null);
+  const [drafts, setDrafts] = useState<Record<number, string>>({});
+  const [savingId, setSavingId] = useState<number | null>(null);
   const { push } = useToast();
   const load = useCallback(() => {
     api<ReturnReq[]>("/api/returns").then(setReturns).catch(() => {});
@@ -1265,9 +1271,21 @@ function ReturnsSection() {
   useEffect(load, [load]);
 
   const setStatus = async (id: number, status: string) => {
-    await api(`/api/returns/${id}`, { method: "PUT", body: JSON.stringify({ status }) });
-    push(`Return #${id} → ${status}`);
-    load();
+    setSavingId(id);
+    try {
+      await api(`/api/returns/${id}`, { method: "PUT", body: JSON.stringify({ status }) });
+      push(`Return #${id} → ${status}`);
+      setDrafts((d) => {
+        const next = { ...d };
+        delete next[id];
+        return next;
+      });
+      load();
+    } catch (e) {
+      push(e instanceof Error ? e.message : "Failed", "error");
+    } finally {
+      setSavingId(null);
+    }
   };
 
   const refund = async (r: ReturnReq) => {
@@ -1300,27 +1318,66 @@ function ReturnsSection() {
             </tr>
           </thead>
           <tbody>
-            {returns.map((r) => (
-              <tr key={r.id} className="border-t border-slate-100">
-                <td className="px-4 py-3 font-bold text-slate-900">{r.orderId}</td>
-                <td className="px-4 py-3 text-slate-600">{r.reason}</td>
-                <td className="px-4 py-3 text-slate-500">{r.email || "—"}</td>
-                <td className="px-4 py-3">
-                  <select value={r.status} onChange={(e) => setStatus(r.id, e.target.value)}
-                    className="rounded-md border border-slate-200 px-2 py-1 text-xs font-semibold">
-                    {RETURN_STATUSES.map((s) => <option key={s}>{s}</option>)}
-                  </select>
-                </td>
-                <td className="px-4 py-3">
-                  {r.status === "Approved" && (
-                    <button onClick={() => refund(r)} className="text-xs font-bold text-emerald-600 hover:underline">
-                      💸 Issue refund
+            {returns.flatMap((r) => {
+              const draft = drafts[r.id];
+              const dirty = draft !== undefined && draft !== r.status;
+              const row = (
+                <tr key={r.id} className="border-t border-slate-100">
+                  <td className="px-4 py-3 font-bold text-slate-900">{r.orderId}</td>
+                  <td className="px-4 py-3 text-slate-600">{r.reason}</td>
+                  <td className="px-4 py-3 text-slate-500">{r.email || "—"}</td>
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    <select
+                      value={draft ?? r.status}
+                      onChange={(e) => setDrafts((d) => ({ ...d, [r.id]: e.target.value }))}
+                      className={`rounded-md border px-2 py-1 text-xs font-semibold ${dirty ? "border-amber-400 bg-amber-50" : "border-slate-200"}`}
+                    >
+                      {RETURN_STATUSES.map((s) => <option key={s}>{s}</option>)}
+                    </select>
+                    {dirty && draft && (
+                      <span className="ml-2">
+                        <button onClick={() => setStatus(r.id, draft)} disabled={savingId === r.id}
+                          className="text-xs font-bold text-emerald-600 hover:underline disabled:opacity-50">
+                          {savingId === r.id ? "Saving…" : "Save"}
+                        </button>
+                        <button onClick={() => setDrafts((d) => {
+                          const next = { ...d };
+                          delete next[r.id];
+                          return next;
+                        })} className="ml-1 text-xs font-semibold text-slate-400 hover:underline">
+                          Reset
+                        </button>
+                      </span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    <button onClick={() => setOpen(open === r.id ? null : r.id)}
+                      className="text-xs font-semibold text-violet-600 hover:underline">
+                      {open === r.id ? "Hide ▴" : "Details ▾"}
                     </button>
-                  )}
-                  {r.status === "Refunded" && pill("Refunded", "slate")}
-                </td>
-              </tr>
-            ))}
+                    {r.status === "Approved" && (
+                      <button onClick={() => refund(r)} className="ml-3 text-xs font-bold text-emerald-600 hover:underline">
+                        💸 Issue refund
+                      </button>
+                    )}
+                    {r.status === "Refunded" && <span className="ml-3">{pill("Refunded", "slate")}</span>}
+                  </td>
+                </tr>
+              );
+              if (open !== r.id) return [row];
+              return [
+                row,
+                <tr key={`${r.id}-detail`} className="bg-slate-50/70">
+                  <td colSpan={5} className="px-4 py-4">
+                    {r.order ? (
+                      <OrderDetails order={r.order} />
+                    ) : (
+                      <p className="text-sm text-slate-500">Order {r.orderId} not found.</p>
+                    )}
+                  </td>
+                </tr>,
+              ];
+            })}
           </tbody>
         </table>
       )}

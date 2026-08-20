@@ -1001,7 +1001,13 @@ route("POST", "/returns", (ctx) => {
 });
 route("GET", "/returns", (ctx) => {
   requireArea(ctx, "returns");
-  return db.prepare("SELECT * FROM returns ORDER BY createdAt DESC").all();
+  return db.prepare("SELECT * FROM returns ORDER BY createdAt DESC").all()
+    .map((r) => ({
+      ...r,
+      order: orderWithItems(
+        db.prepare("SELECT * FROM orders WHERE id = ? COLLATE NOCASE").get(r.orderId)
+      ),
+    }));
 });
 route("PUT", "/returns/:id", (ctx) => {
   const user = requireArea(ctx, "returns");
