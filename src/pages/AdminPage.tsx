@@ -845,6 +845,7 @@ function ProductsSection() {
 
 /* ================= orders ================= */
 function OrdersTable({ orders, onStatus }: { orders: Order[]; onStatus?: (id: string, s: string) => void }) {
+  const [open, setOpen] = useState<string | null>(null);
   if (orders.length === 0)
     return <p className="text-sm text-slate-500 py-4 text-center">No orders yet.</p>;
   return (
@@ -857,44 +858,129 @@ function OrdersTable({ orders, onStatus }: { orders: Order[]; onStatus?: (id: st
           <th className="py-2 pr-4">Payment</th>
           <th className="py-2 pr-4">Coupon</th>
           <th className="py-2 pr-4">Total</th>
-          <th className="py-2">Status</th>
+          <th className="py-2 pr-4">Status</th>
+          <th className="py-2"></th>
         </tr>
       </thead>
       <tbody>
-        {orders.map((o) => (
-          <tr key={o.id} className="border-t border-slate-100">
-            <td className="py-2.5 pr-4 font-bold text-slate-900">{o.id}</td>
-            <td className="py-2.5 pr-4 text-slate-500">{o.customer || o.email || "—"}</td>
-            <td className="py-2.5 pr-4 text-slate-500">{o.items.reduce((s, i) => s + i.qty, 0)}</td>
-            <td className="py-2.5 pr-4">
-              <span className="text-xs uppercase font-semibold text-slate-600">{o.paymentInfo?.method ?? o.payment ?? "—"}</span>{" "}
-              {o.paymentInfo &&
-                pill(
-                  o.paymentInfo.status,
-                  o.paymentInfo.status === "paid" ? "green" : o.paymentInfo.status === "refunded" ? "slate" : o.paymentInfo.status === "failed" ? "red" : "amber"
+        {orders.flatMap((o) => {
+          const row = (
+            <tr key={o.id} className="border-t border-slate-100">
+              <td className="py-2.5 pr-4 font-bold text-slate-900">{o.id}</td>
+              <td className="py-2.5 pr-4 text-slate-500">{o.customer || o.email || "—"}</td>
+              <td className="py-2.5 pr-4 text-slate-500">{o.items.reduce((s, i) => s + i.qty, 0)}</td>
+              <td className="py-2.5 pr-4">
+                <span className="text-xs uppercase font-semibold text-slate-600">{o.paymentInfo?.method ?? o.payment ?? "—"}</span>{" "}
+                {o.paymentInfo &&
+                  pill(
+                    o.paymentInfo.status,
+                    o.paymentInfo.status === "paid" ? "green" : o.paymentInfo.status === "refunded" ? "slate" : o.paymentInfo.status === "failed" ? "red" : "amber"
+                  )}
+              </td>
+              <td className="py-2.5 pr-4 text-slate-500">{o.couponCode || "—"}</td>
+              <td className="py-2.5 pr-4 font-semibold">{fmt(o.total)}</td>
+              <td className="py-2.5 pr-4">
+                {onStatus ? (
+                  <select
+                    value={o.status}
+                    onChange={(e) => onStatus(o.id, e.target.value)}
+                    className="rounded-md border border-slate-200 px-2 py-1 text-xs font-semibold"
+                  >
+                    {ORDER_STATUSES.map((s) => (
+                      <option key={s}>{s}</option>
+                    ))}
+                  </select>
+                ) : (
+                  pill(o.status, o.status === "Delivered" ? "green" : o.status === "Cancelled" ? "red" : "amber")
                 )}
-            </td>
-            <td className="py-2.5 pr-4 text-slate-500">{o.couponCode || "—"}</td>
-            <td className="py-2.5 pr-4 font-semibold">{fmt(o.total)}</td>
-            <td className="py-2.5">
-              {onStatus ? (
-                <select
-                  value={o.status}
-                  onChange={(e) => onStatus(o.id, e.target.value)}
-                  className="rounded-md border border-slate-200 px-2 py-1 text-xs font-semibold"
+              </td>
+              <td className="py-2.5 text-right">
+                <button
+                  onClick={() => setOpen(open === o.id ? null : o.id)}
+                  className="text-xs font-semibold text-violet-600 hover:underline whitespace-nowrap"
                 >
-                  {ORDER_STATUSES.map((s) => (
-                    <option key={s}>{s}</option>
-                  ))}
-                </select>
-              ) : (
-                pill(o.status, o.status === "Delivered" ? "green" : o.status === "Cancelled" ? "red" : "amber")
-              )}
-            </td>
-          </tr>
-        ))}
+                  {open === o.id ? "Hide ▴" : "Details ▾"}
+                </button>
+              </td>
+            </tr>
+          );
+          if (open !== o.id) return [row];
+          return [
+            row,
+            <tr key={`${o.id}-detail`} className="bg-slate-50/70">
+              <td colSpan={8} className="px-4 py-4">
+                <OrderDetails order={o} />
+              </td>
+            </tr>,
+          ];
+        })}
       </tbody>
     </table>
+  );
+}
+
+function OrderDetails({ order: o }: { order: Order }) {
+  const row = (label: string, value: string | undefined | null) => (
+    <div className="flex justify-between gap-4 py-1.5 border-b border-slate-100 last:border-0 text-sm">
+      <span className="text-slate-400 shrink-0">{label}</span>
+      <span className="text-slate-700 text-right break-words">{value?.trim() || "—"}</span>
+    </div>
+  );
+  return (
+    <div className="grid lg:grid-cols-2 gap-5">
+      <div>
+        <p className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-2">Products in order</p>
+        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+          {o.items.length === 0 && <p className="px-4 py-3 text-sm text-slate-500">No items.</p>}
+          {o.items.map((it, i) => (
+            <div key={i} className="flex items-center gap-3 px-4 py-2.5 border-b border-slate-100 last:border-0">
+              <div className="flex-1 min-w-0">
+                <p className="font-medium text-slate-900 truncate">{it.name}</p>
+                {it.variantLabel && (
+                  <p className="text-xs text-slate-400">
+                    {it.variantLabel}
+                    {it.sku ? ` · ${it.sku}` : ""}
+                  </p>
+                )}
+              </div>
+              <span className="text-slate-500 whitespace-nowrap">{it.qty} × {fmt(it.price)}</span>
+              <span className="font-semibold text-slate-900 whitespace-nowrap">{fmt(it.price * it.qty)}</span>
+            </div>
+          ))}
+        </div>
+        <div className="mt-3 bg-white rounded-xl border border-slate-200 px-4 py-2.5 text-sm">
+          <div className="flex justify-between py-1 text-slate-500">
+            <span>Subtotal</span><span>{fmt(o.subtotal ?? 0)}</span>
+          </div>
+          {o.discount ? (
+            <div className="flex justify-between py-1 text-emerald-600">
+              <span>Discount{o.couponCode ? ` (${o.couponCode})` : ""}</span><span>−{fmt(o.discount)}</span>
+            </div>
+          ) : null}
+          <div className="flex justify-between py-1 text-slate-500">
+            <span>Shipping</span><span>{o.shipping ? fmt(o.shipping) : "Free"}</span>
+          </div>
+          <div className="flex justify-between py-1 font-bold text-slate-900 border-t border-slate-100 mt-1">
+            <span>Total</span><span>{fmt(o.total)}</span>
+          </div>
+        </div>
+      </div>
+      <div>
+        <p className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-2">Customer</p>
+        <div className="bg-white rounded-xl border border-slate-200 px-4 py-2.5">
+          {row("Name", o.customer)}
+          {row("Email", o.email)}
+          {row("Phone", o.phone)}
+          {row("Order placed", o.createdAt)}
+          {row("Payment", o.paymentInfo ? `${o.paymentInfo.method.toUpperCase()} · ${o.paymentInfo.status}` : o.payment)}
+        </div>
+        <p className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-2 mt-4">Shipping address</p>
+        <div className="bg-white rounded-xl border border-slate-200 px-4 py-2.5">
+          {row("Address", o.address)}
+          {row("City", o.city)}
+        </div>
+      </div>
+    </div>
   );
 }
 
