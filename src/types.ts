@@ -53,7 +53,15 @@ export interface User {
 
 export interface Order {
   id: string;
-  items: { name: string; qty: number; price: number }[];
+  items: {
+    name: string;
+    qty: number;
+    price: number;
+    productId?: number | null;
+    variantId?: number | null;
+    variantLabel?: string | null;
+    sku?: string | null;
+  }[];
   subtotal?: number;
   shipping?: number;
   discount?: number;
@@ -62,6 +70,7 @@ export interface Order {
   status: string;
   createdAt: string;
   email?: string;
+  phone?: string;
   address?: string;
   customer?: string;
   city?: string;

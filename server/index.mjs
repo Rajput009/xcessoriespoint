@@ -1001,7 +1001,13 @@ route("POST", "/returns", (ctx) => {
 });
 route("GET", "/returns", (ctx) => {
   requireArea(ctx, "returns");
-  return db.prepare("SELECT * FROM returns ORDER BY createdAt DESC").all();
+  return db.prepare("SELECT * FROM returns ORDER BY createdAt DESC").all()
+    .map((r) => ({
+      ...r,
+      order: orderWithItems(
+        db.prepare("SELECT * FROM orders WHERE id = ? COLLATE NOCASE").get(r.orderId)
+      ),
+    }));
 });
 route("PUT", "/returns/:id", (ctx) => {
   const user = requireArea(ctx, "returns");
@@ -1164,10 +1170,32 @@ function serveStatic(req, res, urlPath) {
     if (!fs.existsSync(filePath)) return false;
   }
   const ext = path.extname(filePath);
+  const stat = fs.statSync(filePath);
   const immutable = urlPath.startsWith("/assets/");
+  const isMedia = /\.(png|jpe?g|webp|gif|svg|ico|woff2?)$/i.test(ext);
+  // Hashed /assets/* bundles are immutable (cached 1 year). Static media (un-hashed,
+  // e.g. /img/hero-1.png) is cached for a day and revalidated via ETag/Last-Modified.
+  // HTML stays no-cache so new releases and clean-URL fallbacks are always fresh.
+  const cacheControl = immutable
+    ? "public, max-age=31536000, immutable"
+    : isMedia
+    ? "public, max-age=86400"
+    : "no-cache";
+  const etag = `"${stat.size.toString(16)}-${Math.floor(stat.mtimeMs).toString(16)}"`;
+  const lastModified = stat.mtime.toUTCString();
+  const notModified =
+    req.headers["if-none-match"] === etag ||
+    (!immutable && req.headers["if-modified-since"] === lastModified);
+  if (notModified) {
+    res.writeHead(304, { "Cache-Control": cacheControl, ETag: etag, "Last-Modified": lastModified });
+    res.end();
+    return true;
+  }
   res.writeHead(200, {
     "Content-Type": MIME[ext] || "application/octet-stream",
-    "Cache-Control": immutable ? "public, max-age=31536000, immutable" : "no-cache",
+    "Cache-Control": cacheControl,
+    ETag: etag,
+    "Last-Modified": lastModified,
   });
   fs.createReadStream(filePath).pipe(res);
   return true;

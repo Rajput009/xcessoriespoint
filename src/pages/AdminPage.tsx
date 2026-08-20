@@ -210,6 +210,21 @@ interface AdminProduct {
   id: number; name: string; category: string; price: number; stock: number;
   rating: number; image: string; active: boolean; variants?: AdminVariant[];
   imageRecords?: { id: number; url: string }[];
+  compareAt?: number | null;
+  badge?: string | null;
+  description?: string;
+  featured?: boolean;
+  bestSeller?: boolean;
+  newArrival?: boolean;
+  dealOfDay?: boolean;
+}
+interface ProductFormState {
+  name: string; category: string; price: string; compareAt: string; stock: string;
+  image: string; badge: string; description: string;
+  featured: boolean; bestSeller: boolean; newArrival: boolean; dealOfDay: boolean;
+}
+interface NewVariant {
+  label: string; sku: string; priceDelta: number; stock: number; swatch: string;
 }
 
 function ProductsSection() {
@@ -217,11 +232,34 @@ function ProductsSection() {
   const [expanded, setExpanded] = useState<number | null>(null);
   const [vForm, setVForm] = useState({ label: "", sku: "", priceDelta: 0, stock: 0 });
   const [imgUrl, setImgUrl] = useState("");
+  const [showForm, setShowForm] = useState(false);
+  const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
+  const [nForm, setNForm] = useState<ProductFormState>({
+    name: "", category: "", price: "", compareAt: "", stock: "",
+    image: "/img/earbuds.jpg", badge: "", description: "",
+    featured: false, bestSeller: false, newArrival: false, dealOfDay: false,
+  });
+  const [nVariants, setNVariants] = useState<NewVariant[]>([]);
+  const [nVForm, setNVForm] = useState<NewVariant>({ label: "", sku: "", priceDelta: 0, stock: 0, swatch: "#10b981" });
+  const [nGallery, setNGallery] = useState<string[]>([]);
+  const [nGalleryInput, setNGalleryInput] = useState("");
+  const [edit, setEdit] = useState<AdminProduct | null>(null);
+  const [eForm, setEForm] = useState<ProductFormState>({ name: "", category: "", price: "", compareAt: "", stock: "", image: "", badge: "", description: "", featured: false, bestSeller: false, newArrival: false, dealOfDay: false });
+  const [rowDrafts, setRowDrafts] = useState<Record<number, { price: string; stock: string }>>({});
+  const [savingId, setSavingId] = useState<number | null>(null);
   const { push } = useToast();
   const load = useCallback(() => {
     api<AdminProduct[]>("/api/products?includeInactive=1").then(setProducts).catch(() => {});
   }, []);
   useEffect(load, [load]);
+  useEffect(() => {
+    api<{ id: string; name: string }[]>("/api/categories")
+      .then((c) => {
+        setCategories(c);
+        setNForm((f) => (f.category ? f : { ...f, category: c[0]?.id ?? "" }));
+      })
+      .catch(() => {});
+  }, []);
 
   const updateVariant = async (id: number, patch: Partial<AdminVariant>) => {
     try {
@@ -264,6 +302,15 @@ function ProductsSection() {
     push("Image removed", "info");
     load();
   };
+  const setCover = async (p: AdminProduct, url: string) => {
+    try {
+      await api(`/api/products/${p.id}`, { method: "PUT", body: JSON.stringify({ image: url }) });
+      push("Cover image updated");
+      load();
+    } catch (e) {
+      push(e instanceof Error ? e.message : "Failed to set cover", "error");
+    }
+  };
 
   const update = async (id: number, patch: Partial<AdminProduct>) => {
     try {
@@ -275,8 +322,291 @@ function ProductsSection() {
     }
   };
 
+  const saveRow = async (p: AdminProduct) => {
+    const d = rowDrafts[p.id] ?? { price: String(p.price), stock: String(p.stock) };
+    const price = parseInt(d.price, 10);
+    const stock = parseInt(d.stock, 10);
+    if (!price) return push("Price must be greater than 0", "error");
+    setSavingId(p.id);
+    try {
+      await api(`/api/products/${p.id}`, { method: "PUT", body: JSON.stringify({ price, stock: Number.isNaN(stock) ? p.stock : Math.max(0, stock) }) });
+      push("Product updated");
+      setRowDrafts((r) => {
+        const next = { ...r };
+        delete next[p.id];
+        return next;
+      });
+      load();
+    } catch (e) {
+      push(e instanceof Error ? e.message : "Update failed", "error");
+    } finally {
+      setSavingId(null);
+    }
+  };
+
+  const productBody = (f: ProductFormState) => ({
+    name: f.name.trim(),
+    category: f.category,
+    price: parseInt(f.price, 10),
+    compareAt: f.compareAt ? parseInt(f.compareAt, 10) : null,
+    stock: Math.max(0, parseInt(f.stock, 10) || 0),
+    image: f.image.trim() || "/img/earbuds.jpg",
+    badge: f.badge.trim() || null,
+    description: f.description.trim(),
+    featured: f.featured,
+    bestSeller: f.bestSeller,
+    newArrival: f.newArrival,
+    dealOfDay: f.dealOfDay,
+  });
+
+  const createProduct = async (e: FormEvent) => {
+    e.preventDefault();
+    const price = parseInt(nForm.price, 10);
+    if (!nForm.name.trim()) return push("Product name is required", "error");
+    if (!nForm.category) return push("Category is required", "error");
+    if (!price) return push("A price greater than 0 is required", "error");
+    try {
+      const created = await api<AdminProduct>("/api/products", { method: "POST", body: JSON.stringify(productBody(nForm)) });
+      for (const v of nVariants) {
+        try {
+          await api(`/api/products/${created.id}/variants`, { method: "POST", body: JSON.stringify(v) });
+        } catch (err) {
+          push(`Variant "${v.label}" failed: ${err instanceof Error ? err.message : "error"}`, "error");
+        }
+      }
+      for (const url of nGallery) {
+        try {
+          await api(`/api/products/${created.id}/images`, { method: "POST", body: JSON.stringify({ url }) });
+        } catch (err) {
+          push(`Image "${url}" failed: ${err instanceof Error ? err.message : "error"}`, "error");
+        }
+      }
+      push(`Product "${created.name}" added`);
+      setNForm({ name: "", category: categories[0]?.id ?? "", price: "", compareAt: "", stock: "", image: "/img/earbuds.jpg", badge: "", description: "", featured: false, bestSeller: false, newArrival: false, dealOfDay: false });
+      setNVariants([]);
+      setNVForm({ label: "", sku: "", priceDelta: 0, stock: 0, swatch: "#10b981" });
+      setNGallery([]);
+      setNGalleryInput("");
+      setShowForm(false);
+      load();
+    } catch (err) {
+      push(err instanceof Error ? err.message : "Failed to add product", "error");
+    }
+  };
+
+  const openEdit = (p: AdminProduct) => {
+    setEdit(p);
+    setEForm({
+      name: p.name,
+      category: p.category,
+      price: String(p.price),
+      compareAt: p.compareAt != null ? String(p.compareAt) : "",
+      stock: String(p.stock),
+      image: p.image || "",
+      badge: p.badge || "",
+      description: p.description || "",
+      featured: !!p.featured,
+      bestSeller: !!p.bestSeller,
+      newArrival: !!p.newArrival,
+      dealOfDay: !!p.dealOfDay,
+    });
+  };
+
+  const saveEdit = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!edit) return;
+    const price = parseInt(eForm.price, 10);
+    if (!eForm.name.trim()) return push("Product name is required", "error");
+    if (!price) return push("A price greater than 0 is required", "error");
+    try {
+      await api(`/api/products/${edit.id}`, { method: "PUT", body: JSON.stringify(productBody(eForm)) });
+      push("Product updated");
+      setEdit(null);
+      load();
+    } catch (err) {
+      push(err instanceof Error ? err.message : "Update failed", "error");
+    }
+  };
+
+  const deleteProduct = async (p: AdminProduct) => {
+    if (!window.confirm(`Delete "${p.name}"?\n\nThis hides it from the store (recoverable soft delete).`)) return;
+    try {
+      await api(`/api/products/${p.id}`, { method: "DELETE" });
+      push(`"${p.name}" hidden from store`, "info");
+      load();
+    } catch (err) {
+      push(err instanceof Error ? err.message : "Delete failed", "error");
+    }
+  };
+
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+    <>
+      {showForm && (
+        <form onSubmit={createProduct} className="bg-white rounded-2xl border border-slate-200 p-5 mb-5">
+          <p className="font-bold text-slate-900 text-sm mb-4">Add product</p>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            <div className="sm:col-span-2">
+              <label className="text-xs font-bold uppercase text-slate-400">Name</label>
+              <input value={nForm.name} onChange={(e) => setNForm({ ...nForm, name: e.target.value })}
+                className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" placeholder="e.g. AeroBuds Pro" required />
+            </div>
+            <div>
+              <label className="text-xs font-bold uppercase text-slate-400">Category</label>
+              <select value={nForm.category} onChange={(e) => setNForm({ ...nForm, category: e.target.value })}
+                className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm bg-white">
+                {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="text-xs font-bold uppercase text-slate-400">Price (Rs)</label>
+              <input type="number" min="1" value={nForm.price} onChange={(e) => setNForm({ ...nForm, price: e.target.value })}
+                className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" placeholder="4999" required />
+            </div>
+            <div>
+              <label className="text-xs font-bold uppercase text-slate-400">Compare-at (Rs)</label>
+              <input type="number" min="0" value={nForm.compareAt} onChange={(e) => setNForm({ ...nForm, compareAt: e.target.value })}
+                className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" placeholder="Optional" />
+            </div>
+            <div>
+              <label className="text-xs font-bold uppercase text-slate-400">Stock</label>
+              <input type="number" min="0" value={nForm.stock} onChange={(e) => setNForm({ ...nForm, stock: e.target.value })}
+                className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" placeholder="0" />
+            </div>
+            <div>
+              <label className="text-xs font-bold uppercase text-slate-400">Image URL</label>
+              <input value={nForm.image} onChange={(e) => setNForm({ ...nForm, image: e.target.value })}
+                className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" placeholder="/img/… or https://…" />
+            </div>
+            <div>
+              <label className="text-xs font-bold uppercase text-slate-400">Badge</label>
+              <input value={nForm.badge} onChange={(e) => setNForm({ ...nForm, badge: e.target.value })}
+                className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" placeholder='e.g. "-30%"' />
+            </div>
+            <div className="sm:col-span-2 lg:col-span-4">
+              <label className="text-xs font-bold uppercase text-slate-400">Description</label>
+              <input value={nForm.description} onChange={(e) => setNForm({ ...nForm, description: e.target.value })}
+                className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" placeholder="Short product description" />
+            </div>
+          </div>
+          <div className="mt-3 flex items-center gap-5 flex-wrap">
+            {(["featured", "bestSeller", "newArrival", "dealOfDay"] as const).map((k) => (
+              <label key={k} className="inline-flex items-center gap-1.5 text-sm text-slate-600 cursor-pointer">
+                <input type="checkbox" checked={nForm[k]} onChange={(e) => setNForm({ ...nForm, [k]: e.target.checked })}
+                  className="h-4 w-4 accent-emerald-600" />
+                {k === "bestSeller" ? "Best seller" : k === "newArrival" ? "New arrival" : k === "dealOfDay" ? "Deal of the day" : "Featured"}
+              </label>
+            ))}
+          </div>
+          <div className="mt-4 border-t border-slate-100 pt-4">
+            <p className="text-xs font-bold uppercase text-slate-400 mb-2">Variants (optional)</p>
+            {nVariants.length === 0 && <p className="text-xs text-slate-500 mb-2">No variants — this will be a simple product.</p>}
+            <div className="space-y-1.5 mb-2">
+              {nVariants.map((v, i) => (
+                <div key={i} className="flex items-center gap-3 text-sm bg-slate-50 rounded-lg px-3 py-1.5">
+                  {v.swatch && <span className="w-3.5 h-3.5 rounded-full border border-black/10 shrink-0" style={{ backgroundColor: v.swatch }} />}
+                  <span className="font-semibold text-slate-900 w-40 truncate">{v.label}</span>
+                  <span className="text-xs text-slate-400 w-24">{v.sku || "—"}</span>
+                  <span className="text-xs text-slate-500">Δ {v.priceDelta} · stock {v.stock}</span>
+                  <button type="button" onClick={() => setNVariants(nVariants.filter((_, j) => j !== i))}
+                    className="ml-auto text-xs font-semibold text-red-500 hover:underline">Remove</button>
+                </div>
+              ))}
+            </div>
+            <div className="flex items-end gap-2 flex-wrap">
+              <input placeholder="Label (e.g. Black)" value={nVForm.label}
+                onChange={(e) => setNVForm({ ...nVForm, label: e.target.value })}
+                className="w-36 rounded-md border border-slate-200 px-2 py-1.5 text-sm" />
+              <input placeholder="SKU" value={nVForm.sku}
+                onChange={(e) => setNVForm({ ...nVForm, sku: e.target.value })}
+                className="w-28 rounded-md border border-slate-200 px-2 py-1.5 text-sm" />
+              <label className="text-xs text-slate-500">Δ price
+                <input type="number" value={nVForm.priceDelta}
+                  onChange={(e) => setNVForm({ ...nVForm, priceDelta: +e.target.value })}
+                  className="ml-1.5 w-20 rounded-md border border-slate-200 px-2 py-1 text-sm" />
+              </label>
+              <label className="text-xs text-slate-500">Stock
+                <input type="number" value={nVForm.stock}
+                  onChange={(e) => setNVForm({ ...nVForm, stock: +e.target.value })}
+                  className="ml-1.5 w-20 rounded-md border border-slate-200 px-2 py-1 text-sm" />
+              </label>
+              <label className="text-xs text-slate-500 inline-flex items-center">Swatch
+                <input type="color" value={nVForm.swatch}
+                  onChange={(e) => setNVForm({ ...nVForm, swatch: e.target.value })}
+                  className="ml-1.5 w-8 h-7 rounded border border-slate-200 cursor-pointer" />
+              </label>
+              <button type="button"
+                onClick={() => {
+                  if (!nVForm.label.trim()) return push("Variant label required", "error");
+                  setNVariants([...nVariants, nVForm]);
+                  setNVForm({ label: "", sku: "", priceDelta: 0, stock: 0, swatch: "#10b981" });
+                }}
+                className="px-3 py-1.5 rounded-md bg-violet-600 text-white text-xs font-bold hover:bg-violet-700">
+                + Add variant
+              </button>
+            </div>
+            <p className="text-[11px] text-slate-400 mt-1.5">Product stock becomes the sum of its variants' stock.</p>
+          </div>
+          <div className="mt-4 border-t border-slate-100 pt-4">
+            <p className="text-xs font-bold uppercase text-slate-400 mb-2">Gallery images (optional) <span className="normal-case font-medium text-slate-400">(★ sets cover)</span></p>
+            {nGallery.length > 0 && (
+              <div className="flex items-center gap-2 flex-wrap mb-2">
+                {nGallery.map((url, i) => (
+                  <div key={i} className="relative group/img">
+                    <img src={url} alt="" className={`w-14 h-14 rounded-lg object-cover ${url === nForm.image ? "ring-2 ring-emerald-400" : ""}`} />
+                    <button type="button"
+                      onClick={() => setNForm({ ...nForm, image: url })}
+                      disabled={url === nForm.image}
+                      title={url === nForm.image ? "Current cover" : "Set as cover image"}
+                      className={`absolute -top-1.5 -left-1.5 w-[18px] h-[18px] rounded-full text-[10px] font-bold transition ${
+                        url === nForm.image
+                          ? "bg-emerald-600 text-white"
+                          : "bg-white text-slate-500 border border-slate-200 opacity-0 group-hover/img:opacity-100 hover:bg-emerald-50"
+                      }`}
+                      aria-label="Set as cover image">★</button>
+                    <button type="button" onClick={() => setNGallery(nGallery.filter((_, j) => j !== i))}
+                      className="absolute -top-1.5 -right-1.5 w-[18px] h-[18px] rounded-full bg-red-500 text-white text-[10px] font-bold opacity-0 group-hover/img:opacity-100 transition"
+                      aria-label="Remove image">✕</button>
+                  </div>
+                ))}
+              </div>
+            )}
+            <div className="flex items-center gap-2">
+              <input placeholder="/img/… or https://…" value={nGalleryInput}
+                onChange={(e) => setNGalleryInput(e.target.value)}
+                className="w-64 rounded-md border border-slate-200 px-2 py-1.5 text-xs" />
+              <button type="button"
+                onClick={() => {
+                  const u = nGalleryInput.trim();
+                  if (!u) return push("Image URL required", "error");
+                  setNGallery([...nGallery, u]);
+                  setNGalleryInput("");
+                }}
+                className="px-3 py-1.5 rounded-md bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-700">
+                + Add image
+              </button>
+            </div>
+          </div>
+          <div className="mt-4 flex items-center gap-3">
+            <button type="submit" className="px-5 py-2.5 rounded-lg bg-emerald-600 text-white text-sm font-bold hover:bg-emerald-700">
+              + Create product
+            </button>
+            <button type="button" onClick={() => setShowForm(false)} className="px-4 py-2.5 rounded-lg text-sm font-semibold text-slate-500 hover:bg-slate-100">
+              Cancel
+            </button>
+          </div>
+        </form>
+      )}
+      <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+        <div className="px-5 py-3.5 border-b border-slate-100 flex justify-between items-center">
+          <p className="font-bold text-slate-900 text-sm">{products.length} products</p>
+          <button
+            type="button"
+            onClick={() => setShowForm((v) => !v)}
+            className="px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-bold hover:bg-emerald-700"
+          >
+            {showForm ? "✕ Close" : "+ Add product"}
+          </button>
+        </div>
       <table className="w-full text-sm min-w-[680px]">
         <thead className="bg-slate-50 text-left text-xs uppercase text-slate-500">
           <tr>
@@ -289,7 +619,12 @@ function ProductsSection() {
           </tr>
         </thead>
         <tbody>
-          {products.map((p) => (
+          {products.map((p) => {
+            const draft = rowDrafts[p.id] ?? { price: String(p.price), stock: String(p.stock) };
+            const dirty = draft.price !== String(p.price) || draft.stock !== String(p.stock);
+            const setDraft = (patch: Partial<{ price: string; stock: string }>) =>
+              setRowDrafts((r) => ({ ...r, [p.id]: { ...(r[p.id] ?? { price: String(p.price), stock: String(p.stock) }), ...patch } }));
+            return (
             <tr key={p.id} className={`border-t border-slate-100 hover:bg-slate-50 ${!p.active ? "opacity-50" : ""}`}>
               <td className="px-4 py-2.5 flex items-center gap-3">
                 <img src={p.image} alt="" className="w-9 h-9 rounded-lg object-cover" />
@@ -299,27 +634,48 @@ function ProductsSection() {
               <td className="px-4 py-2.5">
                 <input
                   type="number"
-                  defaultValue={p.price}
-                  onBlur={(e) => {
-                    const v = parseInt(e.target.value, 10);
-                    if (v && v !== p.price) update(p.id, { price: v });
-                  }}
-                  className="w-24 rounded-md border border-slate-200 px-2 py-1 text-sm"
+                  value={draft.price}
+                  onChange={(e) => setDraft({ price: e.target.value })}
+                  className={`w-24 rounded-md border px-2 py-1 text-sm ${dirty && draft.price !== String(p.price) ? "border-amber-400 bg-amber-50" : "border-slate-200"}`}
                 />
               </td>
               <td className="px-4 py-2.5">
                 <input
                   type="number"
-                  defaultValue={p.stock}
-                  onBlur={(e) => {
-                    const v = parseInt(e.target.value, 10);
-                    if (!Number.isNaN(v) && v !== p.stock) update(p.id, { stock: v });
-                  }}
-                  className="w-20 rounded-md border border-slate-200 px-2 py-1 text-sm"
+                  value={draft.stock}
+                  onChange={(e) => setDraft({ stock: e.target.value })}
+                  className={`w-20 rounded-md border px-2 py-1 text-sm ${dirty && draft.stock !== String(p.stock) ? "border-amber-400 bg-amber-50" : "border-slate-200"}`}
                 />
               </td>
               <td className="px-4 py-2.5">{p.active ? pill("Active", "green") : pill("Hidden", "slate")}</td>
-              <td className="px-4 py-2.5 whitespace-nowrap space-x-3">
+              <td className="px-4 py-2.5 whitespace-nowrap space-x-2">
+                {dirty && (
+                  <>
+                    <button
+                      onClick={() => saveRow(p)}
+                      disabled={savingId === p.id}
+                      className="px-3 py-1.5 rounded-md bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-700 disabled:opacity-50"
+                    >
+                      {savingId === p.id ? "Saving…" : "Save"}
+                    </button>
+                    <button
+                      onClick={() => setRowDrafts((r) => {
+                        const next = { ...r };
+                        delete next[p.id];
+                        return next;
+                      })}
+                      className="text-xs font-semibold text-slate-400 hover:underline"
+                    >
+                      Reset
+                    </button>
+                  </>
+                )}
+                <button
+                  onClick={() => openEdit(p)}
+                  className="text-xs font-semibold text-slate-600 hover:underline"
+                >
+                  Edit
+                </button>
                 <button
                   onClick={() => setExpanded(expanded === p.id ? null : p.id)}
                   className="text-xs font-semibold text-violet-600 hover:underline"
@@ -332,15 +688,22 @@ function ProductsSection() {
                 >
                   {p.active ? "Hide" : "Show"}
                 </button>
+                <button
+                  onClick={() => deleteProduct(p)}
+                  className="text-xs font-semibold text-red-500 hover:underline"
+                >
+                  Delete
+                </button>
               </td>
             </tr>
-          )).flatMap((row, idx) => {
+            );
+          }).flatMap((row, idx) => {
             const p = products[idx];
             if (expanded !== p.id) return [row];
             return [row,
               <tr key={`v${p.id}`} className="bg-violet-50/50">
                 <td colSpan={6} className="px-6 py-4">
-                  <p className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-2">Gallery images</p>
+                  <p className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-2">Gallery images <span className="normal-case font-medium text-slate-400">(★ sets cover)</span></p>
                   <div className="flex items-center gap-2 flex-wrap mb-2">
                     <div className="relative">
                       <img src={p.image} alt="" className="w-14 h-14 rounded-lg object-cover ring-2 ring-emerald-400" />
@@ -348,7 +711,20 @@ function ProductsSection() {
                     </div>
                     {(p.imageRecords ?? []).map((im) => (
                       <div key={im.id} className="relative group/img">
-                        <img src={im.url} alt="" className="w-14 h-14 rounded-lg object-cover" />
+                        <img src={im.url} alt="" className={`w-14 h-14 rounded-lg object-cover ${im.url === p.image ? "ring-2 ring-emerald-400" : ""}`} />
+                        <button
+                          onClick={() => setCover(p, im.url)}
+                          disabled={im.url === p.image}
+                          title={im.url === p.image ? "Current cover" : "Set as cover image"}
+                          className={`absolute -top-1.5 -left-1.5 w-[18px] h-[18px] rounded-full text-[10px] font-bold transition ${
+                            im.url === p.image
+                              ? "bg-emerald-600 text-white"
+                              : "bg-white text-slate-500 border border-slate-200 opacity-0 group-hover/img:opacity-100 hover:bg-emerald-50"
+                          }`}
+                          aria-label="Set as cover image"
+                        >
+                          ★
+                        </button>
                         <button
                           onClick={() => deleteImage(im.id)}
                           className="absolute -top-1.5 -right-1.5 w-4.5 h-4.5 min-w-[18px] min-h-[18px] rounded-full bg-red-500 text-white text-[10px] font-bold opacity-0 group-hover/img:opacity-100 transition"
@@ -435,14 +811,86 @@ function ProductsSection() {
         </tbody>
       </table>
       <p className="px-4 py-3 text-xs text-slate-400 border-t border-slate-100">
-        Edit price/stock inline — saves on blur. "Variants" manages per-option stock & price differences; product stock becomes the variant total. "Hide" soft-deletes.
+        Edit price/stock inline — a "Save" button appears once you change a value. "Variants" manages per-option stock & price differences; product stock becomes the variant total. "Hide" and "Delete" both soft-delete.
       </p>
-    </div>
+      </div>
+
+      {edit && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-900/40" onClick={() => setEdit(null)} />
+          <form onSubmit={saveEdit} className="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl p-6 max-h-[90vh] overflow-y-auto">
+            <p className="font-bold text-slate-900 text-sm mb-4">Edit product #{edit.id}</p>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              <div className="sm:col-span-2">
+                <label className="text-xs font-bold uppercase text-slate-400">Name</label>
+                <input value={eForm.name} onChange={(e) => setEForm({ ...eForm, name: e.target.value })}
+                  className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" required />
+              </div>
+              <div>
+                <label className="text-xs font-bold uppercase text-slate-400">Category</label>
+                <select value={eForm.category} onChange={(e) => setEForm({ ...eForm, category: e.target.value })}
+                  className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm bg-white">
+                  {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="text-xs font-bold uppercase text-slate-400">Price (Rs)</label>
+                <input type="number" min="1" value={eForm.price} onChange={(e) => setEForm({ ...eForm, price: e.target.value })}
+                  className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" required />
+              </div>
+              <div>
+                <label className="text-xs font-bold uppercase text-slate-400">Compare-at (Rs)</label>
+                <input type="number" min="0" value={eForm.compareAt} onChange={(e) => setEForm({ ...eForm, compareAt: e.target.value })}
+                  className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" placeholder="Optional" />
+              </div>
+              <div>
+                <label className="text-xs font-bold uppercase text-slate-400">Stock</label>
+                <input type="number" min="0" value={eForm.stock} onChange={(e) => setEForm({ ...eForm, stock: e.target.value })}
+                  className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" />
+              </div>
+              <div>
+                <label className="text-xs font-bold uppercase text-slate-400">Cover image URL</label>
+                <input value={eForm.image} onChange={(e) => setEForm({ ...eForm, image: e.target.value })}
+                  className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" placeholder="/img/… or https://…" />
+              </div>
+              <div>
+                <label className="text-xs font-bold uppercase text-slate-400">Badge</label>
+                <input value={eForm.badge} onChange={(e) => setEForm({ ...eForm, badge: e.target.value })}
+                  className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" placeholder='e.g. "-30%"' />
+              </div>
+              <div className="sm:col-span-2 lg:col-span-4">
+                <label className="text-xs font-bold uppercase text-slate-400">Description</label>
+                <input value={eForm.description} onChange={(e) => setEForm({ ...eForm, description: e.target.value })}
+                  className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" placeholder="Short product description" />
+              </div>
+            </div>
+            <div className="mt-3 flex items-center gap-5 flex-wrap">
+              {(["featured", "bestSeller", "newArrival", "dealOfDay"] as const).map((k) => (
+                <label key={k} className="inline-flex items-center gap-1.5 text-sm text-slate-600 cursor-pointer">
+                  <input type="checkbox" checked={eForm[k]} onChange={(e) => setEForm({ ...eForm, [k]: e.target.checked })}
+                    className="h-4 w-4 accent-emerald-600" />
+                  {k === "bestSeller" ? "Best seller" : k === "newArrival" ? "New arrival" : k === "dealOfDay" ? "Deal of the day" : "Featured"}
+                </label>
+              ))}
+            </div>
+            <div className="mt-4 flex items-center gap-3">
+              <button type="submit" className="px-5 py-2.5 rounded-lg bg-emerald-600 text-white text-sm font-bold hover:bg-emerald-700">
+                Save changes
+              </button>
+              <button type="button" onClick={() => setEdit(null)} className="px-4 py-2.5 rounded-lg text-sm font-semibold text-slate-500 hover:bg-slate-100">
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+    </>
   );
 }
 
 /* ================= orders ================= */
 function OrdersTable({ orders, onStatus }: { orders: Order[]; onStatus?: (id: string, s: string) => void }) {
+  const [open, setOpen] = useState<string | null>(null);
   if (orders.length === 0)
     return <p className="text-sm text-slate-500 py-4 text-center">No orders yet.</p>;
   return (
@@ -455,44 +903,129 @@ function OrdersTable({ orders, onStatus }: { orders: Order[]; onStatus?: (id: st
           <th className="py-2 pr-4">Payment</th>
           <th className="py-2 pr-4">Coupon</th>
           <th className="py-2 pr-4">Total</th>
-          <th className="py-2">Status</th>
+          <th className="py-2 pr-4">Status</th>
+          <th className="py-2"></th>
         </tr>
       </thead>
       <tbody>
-        {orders.map((o) => (
-          <tr key={o.id} className="border-t border-slate-100">
-            <td className="py-2.5 pr-4 font-bold text-slate-900">{o.id}</td>
-            <td className="py-2.5 pr-4 text-slate-500">{o.customer || o.email || "—"}</td>
-            <td className="py-2.5 pr-4 text-slate-500">{o.items.reduce((s, i) => s + i.qty, 0)}</td>
-            <td className="py-2.5 pr-4">
-              <span className="text-xs uppercase font-semibold text-slate-600">{o.paymentInfo?.method ?? o.payment ?? "—"}</span>{" "}
-              {o.paymentInfo &&
-                pill(
-                  o.paymentInfo.status,
-                  o.paymentInfo.status === "paid" ? "green" : o.paymentInfo.status === "refunded" ? "slate" : o.paymentInfo.status === "failed" ? "red" : "amber"
+        {orders.flatMap((o) => {
+          const row = (
+            <tr key={o.id} className="border-t border-slate-100">
+              <td className="py-2.5 pr-4 font-bold text-slate-900">{o.id}</td>
+              <td className="py-2.5 pr-4 text-slate-500">{o.customer || o.email || "—"}</td>
+              <td className="py-2.5 pr-4 text-slate-500">{o.items.reduce((s, i) => s + i.qty, 0)}</td>
+              <td className="py-2.5 pr-4">
+                <span className="text-xs uppercase font-semibold text-slate-600">{o.paymentInfo?.method ?? o.payment ?? "—"}</span>{" "}
+                {o.paymentInfo &&
+                  pill(
+                    o.paymentInfo.status,
+                    o.paymentInfo.status === "paid" ? "green" : o.paymentInfo.status === "refunded" ? "slate" : o.paymentInfo.status === "failed" ? "red" : "amber"
+                  )}
+              </td>
+              <td className="py-2.5 pr-4 text-slate-500">{o.couponCode || "—"}</td>
+              <td className="py-2.5 pr-4 font-semibold">{fmt(o.total)}</td>
+              <td className="py-2.5 pr-4">
+                {onStatus ? (
+                  <select
+                    value={o.status}
+                    onChange={(e) => onStatus(o.id, e.target.value)}
+                    className="rounded-md border border-slate-200 px-2 py-1 text-xs font-semibold"
+                  >
+                    {ORDER_STATUSES.map((s) => (
+                      <option key={s}>{s}</option>
+                    ))}
+                  </select>
+                ) : (
+                  pill(o.status, o.status === "Delivered" ? "green" : o.status === "Cancelled" ? "red" : "amber")
                 )}
-            </td>
-            <td className="py-2.5 pr-4 text-slate-500">{o.couponCode || "—"}</td>
-            <td className="py-2.5 pr-4 font-semibold">{fmt(o.total)}</td>
-            <td className="py-2.5">
-              {onStatus ? (
-                <select
-                  value={o.status}
-                  onChange={(e) => onStatus(o.id, e.target.value)}
-                  className="rounded-md border border-slate-200 px-2 py-1 text-xs font-semibold"
+              </td>
+              <td className="py-2.5 text-right">
+                <button
+                  onClick={() => setOpen(open === o.id ? null : o.id)}
+                  className="text-xs font-semibold text-violet-600 hover:underline whitespace-nowrap"
                 >
-                  {ORDER_STATUSES.map((s) => (
-                    <option key={s}>{s}</option>
-                  ))}
-                </select>
-              ) : (
-                pill(o.status, o.status === "Delivered" ? "green" : o.status === "Cancelled" ? "red" : "amber")
-              )}
-            </td>
-          </tr>
-        ))}
+                  {open === o.id ? "Hide ▴" : "Details ▾"}
+                </button>
+              </td>
+            </tr>
+          );
+          if (open !== o.id) return [row];
+          return [
+            row,
+            <tr key={`${o.id}-detail`} className="bg-slate-50/70">
+              <td colSpan={8} className="px-4 py-4">
+                <OrderDetails order={o} />
+              </td>
+            </tr>,
+          ];
+        })}
       </tbody>
     </table>
+  );
+}
+
+function OrderDetails({ order: o }: { order: Order }) {
+  const row = (label: string, value: string | undefined | null) => (
+    <div className="flex justify-between gap-4 py-1.5 border-b border-slate-100 last:border-0 text-sm">
+      <span className="text-slate-400 shrink-0">{label}</span>
+      <span className="text-slate-700 text-right break-words">{value?.trim() || "—"}</span>
+    </div>
+  );
+  return (
+    <div className="grid lg:grid-cols-2 gap-5">
+      <div>
+        <p className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-2">Products in order</p>
+        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+          {o.items.length === 0 && <p className="px-4 py-3 text-sm text-slate-500">No items.</p>}
+          {o.items.map((it, i) => (
+            <div key={i} className="flex items-center gap-3 px-4 py-2.5 border-b border-slate-100 last:border-0">
+              <div className="flex-1 min-w-0">
+                <p className="font-medium text-slate-900 truncate">{it.name}</p>
+                {it.variantLabel && (
+                  <p className="text-xs text-slate-400">
+                    {it.variantLabel}
+                    {it.sku ? ` · ${it.sku}` : ""}
+                  </p>
+                )}
+              </div>
+              <span className="text-slate-500 whitespace-nowrap">{it.qty} × {fmt(it.price)}</span>
+              <span className="font-semibold text-slate-900 whitespace-nowrap">{fmt(it.price * it.qty)}</span>
+            </div>
+          ))}
+        </div>
+        <div className="mt-3 bg-white rounded-xl border border-slate-200 px-4 py-2.5 text-sm">
+          <div className="flex justify-between py-1 text-slate-500">
+            <span>Subtotal</span><span>{fmt(o.subtotal ?? 0)}</span>
+          </div>
+          {o.discount ? (
+            <div className="flex justify-between py-1 text-emerald-600">
+              <span>Discount{o.couponCode ? ` (${o.couponCode})` : ""}</span><span>−{fmt(o.discount)}</span>
+            </div>
+          ) : null}
+          <div className="flex justify-between py-1 text-slate-500">
+            <span>Shipping</span><span>{o.shipping ? fmt(o.shipping) : "Free"}</span>
+          </div>
+          <div className="flex justify-between py-1 font-bold text-slate-900 border-t border-slate-100 mt-1">
+            <span>Total</span><span>{fmt(o.total)}</span>
+          </div>
+        </div>
+      </div>
+      <div>
+        <p className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-2">Customer</p>
+        <div className="bg-white rounded-xl border border-slate-200 px-4 py-2.5">
+          {row("Name", o.customer)}
+          {row("Email", o.email)}
+          {row("Phone", o.phone)}
+          {row("Order placed", o.createdAt)}
+          {row("Payment", o.paymentInfo ? `${o.paymentInfo.method.toUpperCase()} · ${o.paymentInfo.status}` : o.payment)}
+        </div>
+        <p className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-2 mt-4">Shipping address</p>
+        <div className="bg-white rounded-xl border border-slate-200 px-4 py-2.5">
+          {row("Address", o.address)}
+          {row("City", o.city)}
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -721,10 +1254,16 @@ function ReviewsSection() {
 }
 
 /* ================= returns ================= */
-interface ReturnReq { id: number; orderId: string; email: string; reason: string; status: string; createdAt: string }
+interface ReturnReq {
+  id: number; orderId: string; email: string; reason: string; status: string; createdAt: string;
+  order?: Order | null;
+}
 
 function ReturnsSection() {
   const [returns, setReturns] = useState<ReturnReq[]>([]);
+  const [open, setOpen] = useState<number | null>(null);
+  const [drafts, setDrafts] = useState<Record<number, string>>({});
+  const [savingId, setSavingId] = useState<number | null>(null);
   const { push } = useToast();
   const load = useCallback(() => {
     api<ReturnReq[]>("/api/returns").then(setReturns).catch(() => {});
@@ -732,9 +1271,21 @@ function ReturnsSection() {
   useEffect(load, [load]);
 
   const setStatus = async (id: number, status: string) => {
-    await api(`/api/returns/${id}`, { method: "PUT", body: JSON.stringify({ status }) });
-    push(`Return #${id} → ${status}`);
-    load();
+    setSavingId(id);
+    try {
+      await api(`/api/returns/${id}`, { method: "PUT", body: JSON.stringify({ status }) });
+      push(`Return #${id} → ${status}`);
+      setDrafts((d) => {
+        const next = { ...d };
+        delete next[id];
+        return next;
+      });
+      load();
+    } catch (e) {
+      push(e instanceof Error ? e.message : "Failed", "error");
+    } finally {
+      setSavingId(null);
+    }
   };
 
   const refund = async (r: ReturnReq) => {
@@ -767,27 +1318,66 @@ function ReturnsSection() {
             </tr>
           </thead>
           <tbody>
-            {returns.map((r) => (
-              <tr key={r.id} className="border-t border-slate-100">
-                <td className="px-4 py-3 font-bold text-slate-900">{r.orderId}</td>
-                <td className="px-4 py-3 text-slate-600">{r.reason}</td>
-                <td className="px-4 py-3 text-slate-500">{r.email || "—"}</td>
-                <td className="px-4 py-3">
-                  <select value={r.status} onChange={(e) => setStatus(r.id, e.target.value)}
-                    className="rounded-md border border-slate-200 px-2 py-1 text-xs font-semibold">
-                    {RETURN_STATUSES.map((s) => <option key={s}>{s}</option>)}
-                  </select>
-                </td>
-                <td className="px-4 py-3">
-                  {r.status === "Approved" && (
-                    <button onClick={() => refund(r)} className="text-xs font-bold text-emerald-600 hover:underline">
-                      💸 Issue refund
+            {returns.flatMap((r) => {
+              const draft = drafts[r.id];
+              const dirty = draft !== undefined && draft !== r.status;
+              const row = (
+                <tr key={r.id} className="border-t border-slate-100">
+                  <td className="px-4 py-3 font-bold text-slate-900">{r.orderId}</td>
+                  <td className="px-4 py-3 text-slate-600">{r.reason}</td>
+                  <td className="px-4 py-3 text-slate-500">{r.email || "—"}</td>
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    <select
+                      value={draft ?? r.status}
+                      onChange={(e) => setDrafts((d) => ({ ...d, [r.id]: e.target.value }))}
+                      className={`rounded-md border px-2 py-1 text-xs font-semibold ${dirty ? "border-amber-400 bg-amber-50" : "border-slate-200"}`}
+                    >
+                      {RETURN_STATUSES.map((s) => <option key={s}>{s}</option>)}
+                    </select>
+                    {dirty && draft && (
+                      <span className="ml-2">
+                        <button onClick={() => setStatus(r.id, draft)} disabled={savingId === r.id}
+                          className="text-xs font-bold text-emerald-600 hover:underline disabled:opacity-50">
+                          {savingId === r.id ? "Saving…" : "Save"}
+                        </button>
+                        <button onClick={() => setDrafts((d) => {
+                          const next = { ...d };
+                          delete next[r.id];
+                          return next;
+                        })} className="ml-1 text-xs font-semibold text-slate-400 hover:underline">
+                          Reset
+                        </button>
+                      </span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    <button onClick={() => setOpen(open === r.id ? null : r.id)}
+                      className="text-xs font-semibold text-violet-600 hover:underline">
+                      {open === r.id ? "Hide ▴" : "Details ▾"}
                     </button>
-                  )}
-                  {r.status === "Refunded" && pill("Refunded", "slate")}
-                </td>
-              </tr>
-            ))}
+                    {r.status === "Approved" && (
+                      <button onClick={() => refund(r)} className="ml-3 text-xs font-bold text-emerald-600 hover:underline">
+                        💸 Issue refund
+                      </button>
+                    )}
+                    {r.status === "Refunded" && <span className="ml-3">{pill("Refunded", "slate")}</span>}
+                  </td>
+                </tr>
+              );
+              if (open !== r.id) return [row];
+              return [
+                row,
+                <tr key={`${r.id}-detail`} className="bg-slate-50/70">
+                  <td colSpan={5} className="px-4 py-4">
+                    {r.order ? (
+                      <OrderDetails order={r.order} />
+                    ) : (
+                      <p className="text-sm text-slate-500">Order {r.orderId} not found.</p>
+                    )}
+                  </td>
+                </tr>,
+              ];
+            })}
           </tbody>
         </table>
       )}

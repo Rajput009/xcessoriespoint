@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useRouter } from "../../router";
-import { useCart, useProducts, useUI, useWishlist, fmt } from "../../context/store";
+import { useCart, useProducts, useWishlist, fmt } from "../../context/store";
 import { Stars } from "../ProductCard";
 import ProductCard from "../ProductCard";
 
@@ -285,16 +285,13 @@ export function CategoryIcons() {
 /* ---------- 3. BestSelling ---------- */
 export function BestSelling() {
   const { products, categories } = useProducts();
-  const { searchQuery } = useUI();
   const [tab, setTab] = useState("all");
 
   const list = useMemo(() => {
     let l = products.filter((p) => p.bestSeller || p.rating >= 4.4);
     if (tab !== "all") l = l.filter((p) => p.category === tab);
-    if (searchQuery.trim())
-      l = l.filter((p) => p.name.toLowerCase().includes(searchQuery.toLowerCase()));
     return l.slice(0, 5);
-  }, [products, tab, searchQuery]);
+  }, [products, tab]);
 
   return (
     <section className="max-w-7xl mx-auto px-6 py-10">

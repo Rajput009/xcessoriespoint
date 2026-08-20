@@ -190,8 +190,10 @@ export default function Header() {
 
           {/* search row — hidden on scroll */}
           <div
-            className={`transition-all duration-300 overflow-hidden ${
-              scrolled ? "max-h-0 opacity-0" : "max-h-20 opacity-100 pb-3.5"
+            className={`transition-all duration-300 ${
+              scrolled
+                ? "max-h-0 opacity-0 overflow-hidden"
+                : `max-h-20 opacity-100 pb-3.5 ${showSug ? "overflow-visible" : "overflow-hidden"}`
             }`}
           >
             <div className="flex items-center gap-4">
