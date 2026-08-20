@@ -245,6 +245,8 @@ function ProductsSection() {
   const [nGalleryInput, setNGalleryInput] = useState("");
   const [edit, setEdit] = useState<AdminProduct | null>(null);
   const [eForm, setEForm] = useState<ProductFormState>({ name: "", category: "", price: "", compareAt: "", stock: "", image: "", badge: "", description: "", featured: false, bestSeller: false, newArrival: false, dealOfDay: false });
+  const [rowDrafts, setRowDrafts] = useState<Record<number, { price: string; stock: string }>>({});
+  const [savingId, setSavingId] = useState<number | null>(null);
   const { push } = useToast();
   const load = useCallback(() => {
     api<AdminProduct[]>("/api/products?includeInactive=1").then(setProducts).catch(() => {});
@@ -317,6 +319,28 @@ function ProductsSection() {
       load();
     } catch (e) {
       push(e instanceof Error ? e.message : "Update failed", "error");
+    }
+  };
+
+  const saveRow = async (p: AdminProduct) => {
+    const d = rowDrafts[p.id] ?? { price: String(p.price), stock: String(p.stock) };
+    const price = parseInt(d.price, 10);
+    const stock = parseInt(d.stock, 10);
+    if (!price) return push("Price must be greater than 0", "error");
+    setSavingId(p.id);
+    try {
+      await api(`/api/products/${p.id}`, { method: "PUT", body: JSON.stringify({ price, stock: Number.isNaN(stock) ? p.stock : Math.max(0, stock) }) });
+      push("Product updated");
+      setRowDrafts((r) => {
+        const next = { ...r };
+        delete next[p.id];
+        return next;
+      });
+      load();
+    } catch (e) {
+      push(e instanceof Error ? e.message : "Update failed", "error");
+    } finally {
+      setSavingId(null);
     }
   };
 
@@ -595,7 +619,12 @@ function ProductsSection() {
           </tr>
         </thead>
         <tbody>
-          {products.map((p) => (
+          {products.map((p) => {
+            const draft = rowDrafts[p.id] ?? { price: String(p.price), stock: String(p.stock) };
+            const dirty = draft.price !== String(p.price) || draft.stock !== String(p.stock);
+            const setDraft = (patch: Partial<{ price: string; stock: string }>) =>
+              setRowDrafts((r) => ({ ...r, [p.id]: { ...(r[p.id] ?? { price: String(p.price), stock: String(p.stock) }), ...patch } }));
+            return (
             <tr key={p.id} className={`border-t border-slate-100 hover:bg-slate-50 ${!p.active ? "opacity-50" : ""}`}>
               <td className="px-4 py-2.5 flex items-center gap-3">
                 <img src={p.image} alt="" className="w-9 h-9 rounded-lg object-cover" />
@@ -605,27 +634,42 @@ function ProductsSection() {
               <td className="px-4 py-2.5">
                 <input
                   type="number"
-                  defaultValue={p.price}
-                  onBlur={(e) => {
-                    const v = parseInt(e.target.value, 10);
-                    if (v && v !== p.price) update(p.id, { price: v });
-                  }}
-                  className="w-24 rounded-md border border-slate-200 px-2 py-1 text-sm"
+                  value={draft.price}
+                  onChange={(e) => setDraft({ price: e.target.value })}
+                  className={`w-24 rounded-md border px-2 py-1 text-sm ${dirty && draft.price !== String(p.price) ? "border-amber-400 bg-amber-50" : "border-slate-200"}`}
                 />
               </td>
               <td className="px-4 py-2.5">
                 <input
                   type="number"
-                  defaultValue={p.stock}
-                  onBlur={(e) => {
-                    const v = parseInt(e.target.value, 10);
-                    if (!Number.isNaN(v) && v !== p.stock) update(p.id, { stock: v });
-                  }}
-                  className="w-20 rounded-md border border-slate-200 px-2 py-1 text-sm"
+                  value={draft.stock}
+                  onChange={(e) => setDraft({ stock: e.target.value })}
+                  className={`w-20 rounded-md border px-2 py-1 text-sm ${dirty && draft.stock !== String(p.stock) ? "border-amber-400 bg-amber-50" : "border-slate-200"}`}
                 />
               </td>
               <td className="px-4 py-2.5">{p.active ? pill("Active", "green") : pill("Hidden", "slate")}</td>
-              <td className="px-4 py-2.5 whitespace-nowrap space-x-3">
+              <td className="px-4 py-2.5 whitespace-nowrap space-x-2">
+                {dirty && (
+                  <>
+                    <button
+                      onClick={() => saveRow(p)}
+                      disabled={savingId === p.id}
+                      className="px-3 py-1.5 rounded-md bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-700 disabled:opacity-50"
+                    >
+                      {savingId === p.id ? "Saving…" : "Save"}
+                    </button>
+                    <button
+                      onClick={() => setRowDrafts((r) => {
+                        const next = { ...r };
+                        delete next[p.id];
+                        return next;
+                      })}
+                      className="text-xs font-semibold text-slate-400 hover:underline"
+                    >
+                      Reset
+                    </button>
+                  </>
+                )}
                 <button
                   onClick={() => openEdit(p)}
                   className="text-xs font-semibold text-slate-600 hover:underline"
@@ -652,7 +696,8 @@ function ProductsSection() {
                 </button>
               </td>
             </tr>
-          )).flatMap((row, idx) => {
+            );
+          }).flatMap((row, idx) => {
             const p = products[idx];
             if (expanded !== p.id) return [row];
             return [row,
@@ -766,7 +811,7 @@ function ProductsSection() {
         </tbody>
       </table>
       <p className="px-4 py-3 text-xs text-slate-400 border-t border-slate-100">
-        Edit price/stock inline — saves on blur. "Variants" manages per-option stock & price differences; product stock becomes the variant total. "Hide" and "Delete" both soft-delete.
+        Edit price/stock inline — a "Save" button appears once you change a value. "Variants" manages per-option stock & price differences; product stock becomes the variant total. "Hide" and "Delete" both soft-delete.
       </p>
       </div>
 
