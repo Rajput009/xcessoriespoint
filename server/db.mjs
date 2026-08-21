@@ -318,6 +318,11 @@ if (!cartCols.includes("variantId")) {
 }
 
 try { db.exec("ALTER TABLE product_variants ADD COLUMN swatch TEXT"); } catch { /* exists */ }
+
+/* categories: tile image + manual ordering (admin-managed categories) */
+try { db.exec("ALTER TABLE categories ADD COLUMN image TEXT DEFAULT ''"); } catch { /* exists */ }
+try { db.exec("ALTER TABLE categories ADD COLUMN sortOrder INTEGER NOT NULL DEFAULT 0"); } catch { /* exists */ }
+db.exec("UPDATE categories SET sortOrder = rowid WHERE sortOrder = 0");
 // idempotent backfill: color swatches + per-color photos for seeded variants
 const swatchFill = db.prepare("UPDATE product_variants SET swatch = ? WHERE label = ? AND swatch IS NULL");
 for (const [label, hex] of [
@@ -345,8 +350,8 @@ export function seed() {
       ["cases", "Cases & Protection", "📱"],
       ["cables", "Cables & Hubs", "🔌"],
     ];
-    const ins = db.prepare("INSERT INTO categories (id, name, icon) VALUES (?,?,?)");
-    for (const c of cats) ins.run(...c);
+    const ins = db.prepare("INSERT INTO categories (id, name, icon, sortOrder) VALUES (?,?,?,?)");
+    cats.forEach((c, i) => ins.run(...c, i + 1));
   }
 
   const prodCount = db.prepare("SELECT COUNT(*) c FROM products").get().c;

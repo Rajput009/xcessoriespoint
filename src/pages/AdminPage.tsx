@@ -7,6 +7,7 @@ const SECTIONS = [
   { id: "dashboard", label: "Dashboard", icon: "📊" },
   { id: "analytics", label: "Analytics", icon: "📈" },
   { id: "products", label: "Products", icon: "📦" },
+  { id: "categories", label: "Categories", icon: "🗂" },
   { id: "inventory", label: "Inventory", icon: "🏷" },
   { id: "orders", label: "Orders", icon: "🧾" },
   { id: "customers", label: "Customers", icon: "👥" },
@@ -108,6 +109,7 @@ export default function AdminPage() {
         {section === "dashboard" && <Dashboard />}
         {section === "analytics" && <AnalyticsSection />}
         {section === "products" && <ProductsSection />}
+        {section === "categories" && <CategoriesSection />}
         {section === "inventory" && <InventorySection />}
         {section === "orders" && <OrdersSection />}
         {section === "customers" && <CustomersSection />}
@@ -225,6 +227,203 @@ interface ProductFormState {
 }
 interface NewVariant {
   label: string; sku: string; priceDelta: number; stock: number; swatch: string;
+}
+
+interface AdminCategory { id: string; name: string; icon: string; image?: string; sortOrder?: number }
+
+function CategoriesSection() {
+  const { push } = useToast();
+  const [cats, setCats] = useState<AdminCategory[]>([]);
+  const [counts, setCounts] = useState<Record<string, number>>({});
+  const [form, setForm] = useState({ name: "", icon: "", image: "" });
+  const [busy, setBusy] = useState(false);
+  const [editing, setEditing] = useState<string | null>(null);
+  const [eForm, setEForm] = useState({ name: "", icon: "", image: "" });
+
+  const load = useCallback(() => {
+    api<AdminCategory[]>("/api/categories").then(setCats).catch(() => {});
+    api<AdminProduct[]>("/api/products?includeInactive=1")
+      .then((ps) => {
+        const n: Record<string, number> = {};
+        ps.forEach((p) => { n[p.category] = (n[p.category] ?? 0) + 1; });
+        setCounts(n);
+      })
+      .catch(() => {});
+  }, []);
+  useEffect(load, [load]);
+
+  const slug = (v: string) => v.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 30);
+
+  const create = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!form.name.trim()) return push("Category name is required", "error");
+    setBusy(true);
+    try {
+      const c = await api<AdminCategory>("/api/categories", { method: "POST", body: JSON.stringify(form) });
+      push(`Category "${c.name}" created 🗂`);
+      setForm({ name: "", icon: "", image: "" });
+      load();
+    } catch (err) {
+      push(err instanceof Error ? err.message : "Could not create category", "error");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const save = async (id: string) => {
+    try {
+      await api<AdminCategory>(`/api/categories/${id}`, { method: "PUT", body: JSON.stringify(eForm) });
+      push("Category updated");
+      setEditing(null);
+      load();
+    } catch (err) {
+      push(err instanceof Error ? err.message : "Could not update category", "error");
+    }
+  };
+
+  const move = async (id: string, dir: -1 | 1) => {
+    const i = cats.findIndex((c) => c.id === id);
+    const j = i + dir;
+    if (i < 0 || j < 0 || j >= cats.length) return;
+    const a = cats[i], b = cats[j];
+    setCats((prev) => { const next = [...prev]; next[i] = b; next[j] = a; return next; });
+    try {
+      await Promise.all([
+        api(`/api/categories/${a.id}`, { method: "PUT", body: JSON.stringify({ sortOrder: b.sortOrder ?? j + 1 }) }),
+        api(`/api/categories/${b.id}`, { method: "PUT", body: JSON.stringify({ sortOrder: a.sortOrder ?? i + 1 }) }),
+      ]);
+      load();
+    } catch { load(); }
+  };
+
+  const remove = async (c: AdminCategory) => {
+    const used = counts[c.id] ?? 0;
+    if (used > 0) return push(`${used} product${used === 1 ? " still uses" : "s still use"} "${c.name}" — move ${used === 1 ? "it" : "them"} first`, "error");
+    if (!confirm(`Delete the "${c.name}" category?`)) return;
+    try {
+      await api(`/api/categories/${c.id}`, { method: "DELETE" });
+      push("Category deleted");
+      load();
+    } catch (err) {
+      push(err instanceof Error ? err.message : "Could not delete category", "error");
+    }
+  };
+
+  const inp = "rounded-lg border border-slate-200 px-3 py-2 text-sm";
+
+  return (
+    <>
+      <form onSubmit={create} className="bg-white rounded-2xl border border-slate-200 p-5 mb-5">
+        <p className="font-bold text-slate-900 text-sm mb-4">Add category</p>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="lg:col-span-2">
+            <label className="text-xs font-bold uppercase text-slate-400">Name</label>
+            <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })}
+              className={`mt-1 w-full ${inp}`} placeholder="e.g. Smart Home" required />
+            {form.name && <p className="text-[11px] text-slate-400 mt-1">URL id: <code>{slug(form.name) || "—"}</code></p>}
+          </div>
+          <div>
+            <label className="text-xs font-bold uppercase text-slate-400">Icon (emoji)</label>
+            <input value={form.icon} onChange={(e) => setForm({ ...form, icon: e.target.value })}
+              className={`mt-1 w-full ${inp}`} placeholder="🏠" maxLength={4} />
+          </div>
+          <div>
+            <label className="text-xs font-bold uppercase text-slate-400">Tile image</label>
+            <input value={form.image} onChange={(e) => setForm({ ...form, image: e.target.value })}
+              className={`mt-1 w-full ${inp}`} placeholder="/img/… or https://…" />
+          </div>
+        </div>
+        <p className="text-[11px] text-slate-400 mt-2">
+          The tile image shows on the homepage "Shop by Category" row. Leave it empty to fall back to the emoji.
+        </p>
+        <button type="submit" disabled={busy}
+          className="mt-4 px-5 py-2.5 rounded-lg bg-emerald-600 text-white text-sm font-bold hover:bg-emerald-700 disabled:opacity-50">
+          {busy ? "Creating…" : "+ Create category"}
+        </button>
+      </form>
+
+      <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+        <div className="px-5 py-3.5 border-b border-slate-100">
+          <p className="font-bold text-slate-900 text-sm">{cats.length} categories</p>
+        </div>
+        <table className="w-full text-sm">
+          <thead className="bg-slate-50 text-xs uppercase text-slate-400">
+            <tr>
+              <th className="px-4 py-2.5 text-left">Order</th>
+              <th className="px-4 py-2.5 text-left">Category</th>
+              <th className="px-4 py-2.5 text-left">Id</th>
+              <th className="px-4 py-2.5 text-left">Tile</th>
+              <th className="px-4 py-2.5 text-left">Products</th>
+              <th className="px-4 py-2.5 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {cats.map((c, i) => {
+              const used = counts[c.id] ?? 0;
+              const isEditing = editing === c.id;
+              return (
+                <tr key={c.id} className="border-t border-slate-100">
+                  <td className="px-4 py-2.5">
+                    <div className="flex gap-1">
+                      <button onClick={() => move(c.id, -1)} disabled={i === 0}
+                        aria-label={`Move ${c.name} up`}
+                        className="w-6 h-6 rounded border border-slate-200 text-slate-500 disabled:opacity-30">↑</button>
+                      <button onClick={() => move(c.id, 1)} disabled={i === cats.length - 1}
+                        aria-label={`Move ${c.name} down`}
+                        className="w-6 h-6 rounded border border-slate-200 text-slate-500 disabled:opacity-30">↓</button>
+                    </div>
+                  </td>
+                  <td className="px-4 py-2.5">
+                    {isEditing ? (
+                      <div className="flex gap-2">
+                        <input value={eForm.icon} onChange={(e) => setEForm({ ...eForm, icon: e.target.value })}
+                          className={`w-14 ${inp}`} maxLength={4} aria-label="Icon" />
+                        <input value={eForm.name} onChange={(e) => setEForm({ ...eForm, name: e.target.value })}
+                          className={`w-44 ${inp}`} aria-label="Name" />
+                      </div>
+                    ) : (
+                      <span className="font-semibold text-slate-900">{c.icon} {c.name}</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-2.5 text-slate-400"><code>{c.id}</code></td>
+                  <td className="px-4 py-2.5">
+                    {isEditing ? (
+                      <input value={eForm.image} onChange={(e) => setEForm({ ...eForm, image: e.target.value })}
+                        className={`w-56 ${inp}`} placeholder="/img/… or https://…" aria-label="Tile image" />
+                    ) : c.image ? (
+                      <img src={c.image} alt="" className="w-10 h-10 rounded-lg object-cover" />
+                    ) : (
+                      <span className="text-xs text-slate-400">emoji</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-2.5 text-slate-500">{used}</td>
+                  <td className="px-4 py-2.5 text-right whitespace-nowrap">
+                    {isEditing ? (
+                      <>
+                        <button onClick={() => save(c.id)} className="text-xs font-bold text-emerald-600 hover:underline mr-3">Save</button>
+                        <button onClick={() => setEditing(null)} className="text-xs font-semibold text-slate-400 hover:underline">Cancel</button>
+                      </>
+                    ) : (
+                      <>
+                        <button
+                          onClick={() => { setEditing(c.id); setEForm({ name: c.name, icon: c.icon ?? "", image: c.image ?? "" }); }}
+                          className="text-xs font-bold text-slate-600 hover:underline mr-3">Edit</button>
+                        <button onClick={() => remove(c)}
+                          title={used > 0 ? `${used} product${used === 1 ? " still uses" : "s still use"} this category` : "Delete category"}
+                          className={`text-xs font-bold ${used > 0 ? "text-slate-300 cursor-not-allowed" : "text-red-500 hover:underline"}`}>
+                          Delete
+                        </button>
+                      </>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </>
+  );
 }
 
 function ProductsSection() {

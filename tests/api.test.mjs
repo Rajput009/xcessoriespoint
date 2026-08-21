@@ -142,6 +142,59 @@ test("COD lifecycle: pending → delivered auto-pays", async () => {
   assert.equal(done.paymentInfo.status, "paid", "COD collected on delivery");
 });
 
+test("category CRUD: create, rename, reorder, delete-guard", async () => {
+  const auth = { "Content-Type": "application/json", Authorization: `Bearer ${adminToken}` };
+
+  // create — id is slugified from the name
+  const r = await fetch(B + "/categories", { method: "POST", headers: auth, body: JSON.stringify({ name: "Smart Home", icon: "🏠", image: "/img/cat-audio.png" }) });
+  assert.equal(r.status, 201);
+  const cat = await r.json();
+  assert.equal(cat.id, "smart-home");
+  assert.equal(cat.image, "/img/cat-audio.png");
+
+  // it shows up on the storefront endpoint
+  assert.ok((await get("/categories")).some((c) => c.id === "smart-home"));
+
+  // guards
+  assert.equal((await fetch(B + "/categories", { method: "POST", headers: auth, body: JSON.stringify({ name: "Smart Home" }) })).status, 400, "duplicate id rejected");
+  assert.equal((await fetch(B + "/categories", { method: "POST", headers: auth, body: JSON.stringify({ icon: "x" }) })).status, 400, "name required");
+  assert.equal((await fetch(B + "/categories", { method: "POST", headers: auth, body: JSON.stringify({ name: "Bad", image: "javascript:alert(1)" }) })).status, 400, "image must be a url/path");
+  const asCustomer = await fetch(B + "/categories", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${userToken}` },
+    body: JSON.stringify({ name: "Nope" }),
+  });
+  assert.ok([401, 403].includes(asCustomer.status), "customers cannot create categories");
+
+  // rename + reorder keep the id (so products stay attached)
+  const renamed = await (await fetch(B + `/categories/${cat.id}`, { method: "PUT", headers: auth, body: JSON.stringify({ name: "Smart Home & IoT", sortOrder: 0 }) })).json();
+  assert.equal(renamed.id, "smart-home");
+  assert.equal(renamed.name, "Smart Home & IoT");
+  assert.equal(renamed.sortOrder, 0, "sortOrder 0 pins it to the front");
+  assert.equal((await get("/categories"))[0].id, "smart-home", "sortOrder drives the storefront order");
+
+  // a product can be created in the new category
+  const prod = await (await fetch(B + "/products", { method: "POST", headers: auth, body: JSON.stringify({ name: "Smart Bulb", category: "smart-home", price: 1499 }) })).json();
+  assert.equal(prod.category, "smart-home");
+
+  // …and now the category cannot be deleted
+  const blocked = await fetch(B + `/categories/${cat.id}`, { method: "DELETE", headers: auth });
+  assert.equal(blocked.status, 400);
+  assert.match((await blocked.json()).error, /1 product still uses this category — move it first/);
+
+  // archiving the product is not enough — the foreign key still points here
+  await fetch(B + `/products/${prod.id}`, { method: "DELETE", headers: auth });
+  const stillBlocked = await fetch(B + `/categories/${cat.id}`, { method: "DELETE", headers: auth });
+  assert.equal(stillBlocked.status, 400);
+  assert.match((await stillBlocked.json()).error, /archived product/);
+
+  // move it to another category, then the delete goes through
+  await fetch(B + `/products/${prod.id}`, { method: "PUT", headers: auth, body: JSON.stringify({ category: "cables" }) });
+  assert.equal((await fetch(B + `/categories/${cat.id}`, { method: "DELETE", headers: auth })).status, 200);
+  assert.ok(!(await get("/categories")).some((c) => c.id === "smart-home"));
+  assert.equal((await fetch(B + "/categories/ghost", { method: "DELETE", headers: auth })).status, 404);
+});
+
 test("product creation + variant lifecycle (admin)", async () => {
   const auth = { "Content-Type": "application/json", Authorization: `Bearer ${adminToken}` };
   const post = (p, body) => fetch(B + p, { method: "POST", headers: auth, body: JSON.stringify(body) });

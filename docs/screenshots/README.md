@@ -14,6 +14,7 @@ Captured from the running app (Vite dev server + SQLite API) with headless Chrom
 | `08-admin-add-product.png` | Admin console — "Add product" form with staged variants + gallery |
 | `09-storefront-variant-picker.png` | Storefront card variant picker (colour swatches) |
 | `10-product-whatsapp-order.png` | Product detail page — "Order on WhatsApp" next to Add to Cart / Buy Now |
+| `11-admin-categories.png` | Admin console — Categories: add / rename / reorder / delete with product counts |
 
 Note: emoji render as empty boxes because the capture environment has no emoji font installed —
 they display normally in a real browser.

@@ -262,6 +262,8 @@ export function CategoryIcons() {
       >
         {categories.map((c) => {
           const meta = CAT_IMG[c.id];
+          // admin-set tile image wins, then the built-in art, else we render the emoji
+          const tile = c.image || meta?.img;
           return (
             <Link
               key={c.id}
@@ -269,18 +271,26 @@ export function CategoryIcons() {
               className="group snap-start shrink-0 w-36 md:w-44 flex flex-col rounded-2xl glass-soft overflow-hidden hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-500/15 hover:ring-2 hover:ring-emerald-400/50 transition-all"
             >
               <span className={`relative block aspect-square p-3 ${meta?.tint ?? "bg-white/60"}`}>
-                <img
-                  src={meta?.img}
-                  alt={c.name}
-                  loading="lazy"
-                  className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-500"
-                />
+                {tile ? (
+                  <img
+                    src={tile}
+                    alt={c.name}
+                    loading="lazy"
+                    className={`w-full h-full group-hover:scale-110 transition-transform duration-500 ${
+                      c.image && !meta ? "object-cover rounded-xl" : "object-contain"
+                    }`}
+                  />
+                ) : (
+                  <span className="w-full h-full flex items-center justify-center text-4xl group-hover:scale-110 transition-transform duration-500">
+                    {c.icon || "🗂"}
+                  </span>
+                )}
               </span>
               <span className="px-2 pt-2 pb-3 text-center border-t border-white/50">
                 <span className={`block text-xs font-black uppercase tracking-wide text-slate-900 transition-colors ${meta?.text ?? ""}`}>
                   {c.name}
                 </span>
-                <span className="block text-[10px] text-slate-400 mt-0.5">{meta?.count}</span>
+                <span className="block text-[10px] text-slate-400 mt-0.5">{meta?.count ?? "Shop the range"}</span>
               </span>
             </Link>
           );

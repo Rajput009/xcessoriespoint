@@ -34,6 +34,9 @@ export interface Category {
   id: string;
   name: string;
   icon: string;
+  /** Optional tile image set in the admin console (falls back to the built-in art, then the emoji). */
+  image?: string | null;
+  sortOrder?: number;
 }
 
 export interface CartItem {
