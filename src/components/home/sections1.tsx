@@ -48,7 +48,9 @@ const SLIDES = [
     headline: "AeroBuds Pro — Silence the Noise",
     price: 4999,
     compareAt: 7999,
-    image: "/img/hero-1.png",
+    image: "/img/hero-1.webp",
+    width: 800,
+    height: 523,
     gradient: "from-emerald-700 via-teal-600 to-emerald-500",
     cat: "audio",
   },
@@ -57,7 +59,9 @@ const SLIDES = [
     headline: "VitaFit S2 — Your Health, On Your Wrist",
     price: 6499,
     compareAt: 9499,
-    image: "/img/hero-2.png",
+    image: "/img/hero-2.webp",
+    width: 752,
+    height: 800,
     gradient: "from-violet-700 via-purple-600 to-fuchsia-500",
     cat: "wearables",
   },
@@ -66,7 +70,9 @@ const SLIDES = [
     headline: "VoltCore 20K — Never Hit 0% Again",
     price: 3499,
     compareAt: 4999,
-    image: "/img/hero-3.png",
+    image: "/img/hero-3.webp",
+    width: 567,
+    height: 800,
     gradient: "from-amber-600 via-orange-500 to-rose-500",
     cat: "power",
   },
@@ -91,6 +97,13 @@ function ArrowDoodle() {
 
 export function HeroSection() {
   const [slide, setSlide] = useState(0);
+  // only the visible slide (and the one queued next) is worth downloading — mounting all
+  // three <img src> at once pulled ~1.1 MB on first paint
+  const [loaded, setLoaded] = useState<number[]>([0]);
+  useEffect(() => {
+    const next = (slide + 1) % SLIDES.length;
+    setLoaded((prev) => (prev.includes(slide) && prev.includes(next) ? prev : [...new Set([...prev, slide, next])]));
+  }, [slide]);
   const { navigate } = useRouter();
   const { products } = useProducts();
 
@@ -163,12 +176,17 @@ export function HeroSection() {
                     cutouts (and slow image loads) can't resize the hero */}
                 <div className="order-1 lg:order-2 relative flex justify-center items-center h-[280px] md:h-[420px]">
                   <ArrowDoodle />
-                  <img
-                    src={sl.image}
-                    alt={active ? sl.headline : ""}
-                    loading={i === 0 ? "eager" : "lazy"}
-                    className="float-slow max-h-full w-auto max-w-[16rem] md:max-w-[400px] object-contain drop-shadow-[0_35px_45px_rgba(6,78,59,0.4)]"
-                  />
+                  {loaded.includes(i) && (
+                    <img
+                      src={sl.image}
+                      alt={active ? sl.headline : ""}
+                      width={sl.width}
+                      height={sl.height}
+                      fetchPriority={i === 0 ? "high" : "low"}
+                      decoding="async"
+                      className="float-slow max-h-full w-auto max-w-[16rem] md:max-w-[400px] object-contain drop-shadow-[0_35px_45px_rgba(6,78,59,0.4)]"
+                    />
+                  )}
                 </div>
               </div>
             );
@@ -216,11 +234,11 @@ export function HeroSection() {
 
 /* ---------- 2. CategoryIcons (compact scrollable image tiles) ---------- */
 const CAT_IMG: Record<string, { img: string; count: string; tint: string; text: string }> = {
-  audio: { img: "/img/cat-audio.png", count: "Earbuds & headphones", tint: "bg-violet-100/70", text: "group-hover:text-violet-700" },
-  wearables: { img: "/img/cat-wearables.png", count: "Watches & bands", tint: "bg-emerald-100/70", text: "group-hover:text-emerald-700" },
-  power: { img: "/img/cat-power.png", count: "Banks & chargers", tint: "bg-amber-100/70", text: "group-hover:text-amber-700" },
-  cases: { img: "/img/cat-cases.png", count: "Covers & protection", tint: "bg-rose-100/70", text: "group-hover:text-rose-700" },
-  cables: { img: "/img/cat-cables.png", count: "Cables & hubs", tint: "bg-cyan-100/70", text: "group-hover:text-cyan-700" },
+  audio: { img: "/img/cat-audio.webp", count: "Earbuds & headphones", tint: "bg-violet-100/70", text: "group-hover:text-violet-700" },
+  wearables: { img: "/img/cat-wearables.webp", count: "Watches & bands", tint: "bg-emerald-100/70", text: "group-hover:text-emerald-700" },
+  power: { img: "/img/cat-power.webp", count: "Banks & chargers", tint: "bg-amber-100/70", text: "group-hover:text-amber-700" },
+  cases: { img: "/img/cat-cases.webp", count: "Covers & protection", tint: "bg-rose-100/70", text: "group-hover:text-rose-700" },
+  cables: { img: "/img/cat-cables.webp", count: "Cables & hubs", tint: "bg-cyan-100/70", text: "group-hover:text-cyan-700" },
 };
 
 export function CategoryIcons() {
@@ -275,7 +293,10 @@ export function CategoryIcons() {
                   <img
                     src={tile}
                     alt={c.name}
+                    width={440}
+                    height={440}
                     loading="lazy"
+                    decoding="async"
                     className={`w-full h-full group-hover:scale-110 transition-transform duration-500 ${
                       c.image && !meta ? "object-cover rounded-xl" : "object-contain"
                     }`}
