@@ -321,8 +321,13 @@ try { db.exec("ALTER TABLE product_variants ADD COLUMN swatch TEXT"); } catch { 
 
 /* categories: tile image + manual ordering (admin-managed categories) */
 try { db.exec("ALTER TABLE categories ADD COLUMN image TEXT DEFAULT ''"); } catch { /* exists */ }
-try { db.exec("ALTER TABLE categories ADD COLUMN sortOrder INTEGER NOT NULL DEFAULT 0"); } catch { /* exists */ }
-db.exec("UPDATE categories SET sortOrder = rowid WHERE sortOrder = 0");
+const catCols = db.prepare("PRAGMA table_info(categories)").all().map((c) => c.name);
+if (!catCols.includes("sortOrder")) {
+  db.exec("ALTER TABLE categories ADD COLUMN sortOrder INTEGER NOT NULL DEFAULT 0");
+  // one-time backfill only: re-running this on every boot would undo any manual
+  // ordering an admin set (0 is a legitimate "pin to front" value)
+  db.exec("UPDATE categories SET sortOrder = rowid");
+}
 // idempotent backfill: color swatches + per-color photos for seeded variants
 const swatchFill = db.prepare("UPDATE product_variants SET swatch = ? WHERE label = ? AND swatch IS NULL");
 for (const [label, hex] of [

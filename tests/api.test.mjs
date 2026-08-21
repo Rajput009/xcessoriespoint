@@ -195,6 +195,32 @@ test("category CRUD: create, rename, reorder, delete-guard", async () => {
   assert.equal((await fetch(B + "/categories/ghost", { method: "DELETE", headers: auth })).status, 404);
 });
 
+test("manual category order survives a server restart", async () => {
+  const auth = { "Content-Type": "application/json", Authorization: `Bearer ${adminToken}` };
+  // 0 is a legitimate "pin to front" value — a boot-time backfill must not rewrite it
+  await fetch(B + "/categories/cables", { method: "PUT", headers: auth, body: JSON.stringify({ sortOrder: 0 }) });
+  assert.equal((await get("/categories"))[0].id, "cables");
+
+  const PORT2 = PORT + 1;
+  const second = spawn("node", ["server/index.mjs"], {
+    env: { ...process.env, PORT: String(PORT2), XP_DB_PATH: DB },
+    stdio: "ignore",
+  });
+  try {
+    for (let i = 0; i < 50; i++) {
+      try { if ((await fetch(`http://localhost:${PORT2}/api/health`)).ok) break; } catch { /* booting */ }
+      await new Promise((r) => setTimeout(r, 100));
+    }
+    const cats = await (await fetch(`http://localhost:${PORT2}/api/categories`)).json();
+    assert.equal(cats[0].id, "cables", "a second boot must not reset the admin's ordering");
+    assert.equal(cats[0].sortOrder, 0);
+  } finally {
+    second.kill();
+  }
+  // put it back so later assertions see the seeded order
+  await fetch(B + "/categories/cables", { method: "PUT", headers: auth, body: JSON.stringify({ sortOrder: 5 }) });
+});
+
 test("product creation + variant lifecycle (admin)", async () => {
   const auth = { "Content-Type": "application/json", Authorization: `Bearer ${adminToken}` };
   const post = (p, body) => fetch(B + p, { method: "POST", headers: auth, body: JSON.stringify(body) });
