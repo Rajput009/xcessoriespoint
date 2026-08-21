@@ -1,12 +1,70 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useRouter } from "../router";
 import { useAuth, useCart, useToast, fmt, placeOrderAPI, validateCouponAPI, authFetch } from "../context/store";
 import type { Order } from "../types";
 import { track } from "../lib/tracking";
 import { swatchFor, swatchStyle } from "../lib/swatch";
 import { pixelTrack } from "../lib/pixel";
+import { buildOrderMessage, openWhatsApp, paymentLabel, WHATSAPP_NUMBER } from "../lib/whatsapp";
 
-const STEPS = ["Cart", "Address", "Payment", "Done"];
+const CITIES = ["Lahore", "Karachi", "Islamabad", "Rawalpindi", "Faisalabad", "Multan", "Peshawar", "Quetta", "Sialkot", "Gujranwala", "Hyderabad", "Other"];
+
+const PAY_METHODS = [
+  { id: "cod", label: "Cash on Delivery (COD)", desc: "Pay the courier when your parcel arrives.", icon: "💵" },
+  { id: "whatsapp", label: "Order on WhatsApp (COD)", desc: "We open WhatsApp with your order ready to send — no card needed.", icon: "💬" },
+  { id: "card", label: "Debit / Credit Card", desc: "Visa, Mastercard — secure demo gateway.", icon: "💳" },
+  { id: "wallet", label: "JazzCash / Easypaisa", desc: "Mobile wallet transfer.", icon: "📲" },
+];
+
+/* Shopify-style field styling */
+const field =
+  "w-full rounded-md border border-slate-300 bg-white px-3.5 py-3 text-[15px] text-slate-900 placeholder:text-transparent outline-none transition focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/25";
+
+/** Floating-label input, the way Shopify checkout renders its fields. */
+function Field({
+  label,
+  value,
+  onChange,
+  type = "text",
+  inputMode,
+  error,
+  optional,
+  className = "",
+  autoComplete,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  type?: string;
+  inputMode?: "text" | "numeric" | "email" | "tel";
+  error?: string | null;
+  optional?: boolean;
+  className?: string;
+  autoComplete?: string;
+}) {
+  return (
+    <label className={`relative block ${className}`}>
+      <input
+        type={type}
+        inputMode={inputMode}
+        autoComplete={autoComplete}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={label}
+        className={`${field} peer focus:pt-6 focus:pb-1.5 ${error ? "border-red-500 focus:border-red-500 focus:ring-red-200" : ""} ${value ? "pt-6 pb-1.5" : ""}`}
+      />
+      <span
+        className={`pointer-events-none absolute left-3.5 text-slate-500 transition-all ${
+          value ? "top-1.5 text-[11px]" : "top-3.5 text-[15px] peer-focus:top-1.5 peer-focus:text-[11px]"
+        }`}
+      >
+        {label}
+        {optional && <span className="text-slate-400"> (optional)</span>}
+      </span>
+      {error && <span className="mt-1 block text-xs text-red-600">{error}</span>}
+    </label>
+  );
+}
 
 export default function CheckoutPage() {
   const { items, total, setQty, remove, clear } = useCart();
@@ -15,29 +73,44 @@ export default function CheckoutPage() {
   const { navigate } = useRouter();
 
   const saved = (() => {
-    try { return JSON.parse(localStorage.getItem("xp_checkout") || "{}"); } catch { return {}; }
+    try {
+      return JSON.parse(localStorage.getItem("xp_checkout") || "{}");
+    } catch {
+      return {};
+    }
   })();
-  const [step, setStep] = useState(0);
+
   const [name, setName] = useState(user?.name || saved.name || "");
   const [email, setEmail] = useState(user?.email || saved.email || "");
   const [phone, setPhone] = useState(saved.phone || "");
   const [address, setAddress] = useState(saved.address || "");
+  const [apartment, setApartment] = useState(saved.apartment || "");
   const [city, setCity] = useState(saved.city || "Lahore");
-  const [payment, setPayment] = useState(saved.payment || "cod");
+  const [postalCode, setPostalCode] = useState(saved.postalCode || "");
+  const [notes, setNotes] = useState(saved.notes || "");
+  // ?via=whatsapp deep-links straight to the WhatsApp option of the one checkout form
+  const [payment, setPayment] = useState(
+    new URLSearchParams(window.location.search).get("via") === "whatsapp" ? "whatsapp" : saved.payment || "cod"
+  );
+  const [saveInfo, setSaveInfo] = useState(saved.saveInfo ?? true);
+  const [newsletter, setNewsletter] = useState(saved.newsletter ?? false);
+  const [showErrors, setShowErrors] = useState(false);
 
-  // checkout error recovery: persist the form so an interrupted checkout resumes
-  useEffect(() => {
-    localStorage.setItem("xp_checkout", JSON.stringify({ name, email, phone, address, city, payment }));
-  }, [name, email, phone, address, city, payment]);
+  const [summaryOpen, setSummaryOpen] = useState(false);
 
-  // smooth step transitions
-  useEffect(() => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }, [step]);
   const [busy, setBusy] = useState(false);
   const [order, setOrder] = useState<Order | null>(null);
 
-  // saved addresses (logged-in users)
+  // persist the form so an interrupted checkout resumes
+  useEffect(() => {
+    if (!saveInfo) return;
+    localStorage.setItem(
+      "xp_checkout",
+      JSON.stringify({ name, email, phone, address, apartment, city, postalCode, notes, payment, saveInfo, newsletter })
+    );
+  }, [name, email, phone, address, apartment, city, postalCode, notes, payment, saveInfo, newsletter]);
+
+  /* saved addresses (logged-in users) */
   interface SavedAddress { id: number; name: string; phone: string; address: string; city: string }
   const [savedAddresses, setSavedAddresses] = useState<SavedAddress[]>([]);
   useEffect(() => {
@@ -55,12 +128,11 @@ export default function CheckoutPage() {
     setCity(a.city);
   };
 
-  // coupon state
+  /* coupon */
   const [couponInput, setCouponInput] = useState("");
   const [coupon, setCoupon] = useState<{ code: string; discount: number; freeShip: boolean } | null>(null);
   const [couponBusy, setCouponBusy] = useState(false);
 
-  // consent-gated funnel analytics
   useEffect(() => {
     if (items.length > 0) {
       track("checkout_start", { items: items.length, subtotal: total });
@@ -100,11 +172,7 @@ export default function CheckoutPage() {
     try {
       const c = await validateCouponAPI(couponInput.trim(), total);
       setCoupon(c);
-      push(
-        c.freeShip
-          ? `Coupon ${c.code} applied — free shipping!`
-          : `Coupon ${c.code} applied — you save ${fmt(c.discount)}`
-      );
+      push(c.freeShip ? `Coupon ${c.code} applied — free shipping!` : `Coupon ${c.code} applied — you save ${fmt(c.discount)}`);
     } catch (err) {
       setCoupon(null);
       push(err instanceof Error ? err.message : "Invalid coupon", "error");
@@ -113,10 +181,52 @@ export default function CheckoutPage() {
     }
   };
 
-  const input =
-    "w-full rounded-lg border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 bg-white";
+  /* ---------------- validation ---------------- */
+  const isWhatsApp = payment === "whatsapp";
+  const errors = {
+    name: !name.trim() ? "Enter a name" : null,
+    email: !email.trim() ? (isWhatsApp ? null : "Enter an email address") : /^\S+@\S+\.\S+$/.test(email) ? null : "Enter a valid email",
+    phone: !/^03[0-9]{9}$/.test(phone) ? "Enter a valid phone (03xxxxxxxxx)" : null,
+    address: !address.trim() ? "Enter an address" : null,
+  };
+  const valid = !Object.values(errors).some(Boolean);
 
-  const placeOrder = async () => {
+  const waMessage = useMemo(
+    () =>
+      buildOrderMessage({
+        lines: items.map((i) => ({
+          name: i.product.name,
+          variantLabel: i.variantLabel,
+          qty: i.qty,
+          price: i.product.price,
+        })),
+        subtotal: total,
+        discount,
+        couponCode: coupon?.code,
+        shipping,
+        total: grand,
+        name,
+        phone,
+        email,
+        address,
+        apartment,
+        city,
+        postalCode,
+        notes,
+        payment,
+      }),
+    [items, total, discount, coupon, shipping, grand, name, phone, email, address, apartment, city, postalCode, notes, payment]
+  );
+
+  /* ---------------- submit ---------------- */
+  const submit = async () => {
+    if (items.length === 0) return push("Your cart is empty", "error");
+    setShowErrors(true);
+    if (!valid) {
+      push(Object.values(errors).find(Boolean) as string, "error");
+      document.querySelector<HTMLInputElement>("input")?.focus();
+      return;
+    }
     setBusy(true);
     try {
       const o = await placeOrderAPI({
@@ -125,8 +235,8 @@ export default function CheckoutPage() {
         email,
         customer: name,
         phone,
-        address,
-        city,
+        address: [address, apartment].filter(Boolean).join(", "),
+        city: postalCode ? `${city} ${postalCode}` : city,
         payment,
       });
       setOrder(o);
@@ -138,357 +248,597 @@ export default function CheckoutPage() {
         content_ids: o.items.map((i) => String((i as { productId?: number }).productId ?? "")),
         num_items: o.items.reduce((s, i) => s + i.qty, 0),
       });
+      if (isWhatsApp) {
+        openWhatsApp(
+          buildOrderMessage({
+            orderId: o.id,
+            lines: o.items.map((i) => ({ name: i.name, qty: i.qty, price: i.price })),
+            subtotal: o.subtotal ?? total,
+            discount: o.discount,
+            couponCode: o.couponCode,
+            shipping: o.shipping ?? shipping,
+            total: o.total,
+            name,
+            phone,
+            email,
+            address,
+            apartment,
+            city,
+            postalCode,
+            notes,
+            payment,
+          })
+        );
+      }
       clear();
-      setStep(3);
       push(`Order ${o.id} placed! 🎉`);
+      window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (err) {
-      push(err instanceof Error ? err.message : "Could not place order — is the API running?", "error");
+      if (isWhatsApp) {
+        // API down? Still hand the order to WhatsApp so the sale isn't lost.
+        openWhatsApp(waMessage);
+        push("Sending your order on WhatsApp…", "info");
+      } else {
+        push(err instanceof Error ? err.message : "Could not place order — is the API running?", "error");
+      }
     } finally {
       setBusy(false);
     }
   };
 
-  // shared coupon UI for the order summary
-  const couponSlot = (
-    <div className="mt-3 pt-3 border-t border-slate-100">
-      {coupon ? (
-        <div className="flex items-center justify-between text-sm">
-          <span className="font-semibold text-emerald-700">🏷️ {coupon.code}</span>
-          <button
-            onClick={() => {
-              setCoupon(null);
-              setCouponInput("");
-            }}
-            className="text-xs text-red-500 hover:underline"
-          >
-            Remove
-          </button>
+  /* ---------------- confirmation ---------------- */
+  if (order) {
+    return (
+      <ThankYou
+        order={order}
+        meta={{ name, email, phone, address, apartment, city, postalCode, payment, notes }}
+        onHome={() => navigate("/")}
+        onShop={() => navigate("/shop")}
+        onCopy={() => {
+          navigator.clipboard?.writeText(order.id);
+          push("Order ID copied 📋");
+        }}
+      />
+    );
+  }
+
+  /* ---------------- summary panel (shared mobile + desktop) ---------------- */
+  const summary = (
+    <div>
+      <ul className="space-y-4">
+        {items.map(({ product, qty, variantId, variantLabel }) => (
+          <li key={`${product.id}:${variantId ?? 0}`} className="flex items-center gap-4">
+            <div className="relative shrink-0">
+              <img src={product.image} alt="" className="w-14 h-14 rounded-lg object-cover border border-slate-200 bg-white" />
+              <span className="absolute -top-2 -right-2 min-w-[20px] h-5 px-1 rounded-full bg-slate-500 text-white text-[11px] font-bold flex items-center justify-center">
+                {qty}
+              </span>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-[13px] font-semibold text-slate-900 leading-tight line-clamp-2">{product.name}</p>
+              {variantLabel && (
+                <span className="mt-0.5 inline-flex items-center gap-1 text-[11px] text-slate-500">
+                  {swatchFor({ label: variantLabel }) && (
+                    <span className="w-2.5 h-2.5 rounded-full border border-black/10" style={swatchStyle(swatchFor({ label: variantLabel })!)} />
+                  )}
+                  {variantLabel}
+                </span>
+              )}
+              <div className="mt-1 flex items-center gap-2">
+                <button onClick={() => setQty(product.id, qty - 1, variantId)} className="w-6 h-6 rounded border border-slate-300 text-slate-600 leading-none">
+                  −
+                </button>
+                <span className="text-xs font-semibold w-4 text-center">{qty}</span>
+                <button onClick={() => setQty(product.id, qty + 1, variantId)} className="w-6 h-6 rounded border border-slate-300 text-slate-600 leading-none">
+                  +
+                </button>
+                <button onClick={() => remove(product.id, variantId)} className="ml-1 text-[11px] text-slate-400 hover:text-red-500">
+                  Remove
+                </button>
+              </div>
+            </div>
+            <span className="text-[13px] font-semibold text-slate-900">{fmt(product.price * qty)}</span>
+          </li>
+        ))}
+      </ul>
+
+      {/* discount code */}
+      <div className="mt-6">
+        {coupon ? (
+          <div className="flex items-center justify-between rounded-md bg-emerald-50 border border-emerald-200 px-3 py-2">
+            <span className="text-[13px] font-semibold text-emerald-800">🏷️ {coupon.code} applied</span>
+            <button
+              onClick={() => {
+                setCoupon(null);
+                setCouponInput("");
+              }}
+              className="text-xs text-emerald-700 hover:underline"
+            >
+              Remove
+            </button>
+          </div>
+        ) : (
+          <div className="flex gap-2">
+            <input
+              value={couponInput}
+              onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
+              placeholder="Discount code"
+              className="flex-1 min-w-0 rounded-md border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20"
+            />
+            <button
+              onClick={applyCoupon}
+              disabled={couponBusy || !couponInput.trim()}
+              className="px-5 rounded-md border border-slate-300 bg-slate-100 text-sm font-semibold text-slate-600 hover:bg-slate-200 disabled:opacity-50"
+            >
+              {couponBusy ? "…" : "Apply"}
+            </button>
+          </div>
+        )}
+        <p className="mt-1.5 text-[11px] text-slate-400">Try WELCOME10 · XP500 · FREESHIP</p>
+      </div>
+
+      {/* totals */}
+      <div className="mt-6 space-y-2 border-t border-slate-200 pt-5 text-[14px]">
+        <Row label={`Subtotal · ${items.reduce((s, i) => s + i.qty, 0)} items`} value={fmt(total)} />
+        {discount > 0 && <Row label="Discount" value={`−${fmt(discount)}`} accent />}
+        <Row label="Shipping" value={shipping === 0 ? "FREE" : fmt(shipping)} />
+        <div className="flex items-center justify-between border-t border-slate-200 pt-3 mt-3">
+          <span className="text-base font-semibold text-slate-900">Total</span>
+          <span className="flex items-baseline gap-2">
+            <span className="text-xs text-slate-500">PKR</span>
+            <span className="text-2xl font-bold text-slate-900">{fmt(grand)}</span>
+          </span>
         </div>
-      ) : (
-        <div className="flex gap-2">
-          <input
-            value={couponInput}
-            onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
-            placeholder="Coupon code"
-            className="flex-1 min-w-0 rounded-lg border border-slate-200 px-3 py-2 text-xs outline-none focus:border-emerald-500"
-          />
-          <button
-            onClick={applyCoupon}
-            disabled={couponBusy}
-            className="px-3 py-2 rounded-lg bg-slate-900 text-white text-xs font-semibold hover:bg-emerald-600 disabled:opacity-50"
-          >
-            {couponBusy ? "…" : "Apply"}
-          </button>
-        </div>
-      )}
-      <p className="text-[10px] text-slate-400 mt-1.5">Try: WELCOME10 · XP500 · FREESHIP</p>
+        {shipping > 0 && <p className="text-[11px] text-slate-500">Free shipping on orders over Rs 5,000</p>}
+      </div>
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      {/* minimal checkout header */}
-      <header className="bg-white border-b border-slate-100">
-        <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link to="/" className="text-xl font-black text-slate-900">
+    <div className="min-h-screen bg-white text-slate-900">
+      {/* ---------- Shopify-style checkout header ---------- */}
+      <header className="border-b border-slate-200 bg-white">
+        <div className="max-w-[1180px] mx-auto px-5 lg:px-8 py-4 flex items-center justify-between">
+          <Link to="/" className="text-xl font-black tracking-tight">
             Xccessories<span className="text-emerald-600">Point</span>
           </Link>
-          <div className="flex items-center gap-4">
-            <Link to="/shop" className="text-xs font-semibold text-emerald-600 hover:underline">← Continue shopping</Link>
-            <span className="text-xs text-slate-400 flex items-center gap-1.5">🔒 Secure checkout</span>
-          </div>
+          <span className="hidden sm:flex items-center gap-1.5 text-xs text-slate-500">🔒 Secure checkout</span>
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto px-6 py-8">
-        {/* stepper */}
-        <div className="flex items-center mb-10 max-w-lg mx-auto">
-          {STEPS.map((s, i) => (
-            <div key={s} className="flex-1 flex flex-col items-center relative">
-              {i > 0 && (
-                <div className={`absolute top-4 right-1/2 w-full h-0.5 ${i <= step ? "bg-emerald-500" : "bg-slate-200"}`} />
-              )}
-              <div
-                className={`relative z-10 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-                  i < step ? "bg-emerald-600 text-white" : i === step ? "bg-slate-900 text-white" : "bg-slate-200 text-slate-500"
-                }`}
-              >
-                {i < step ? "✓" : i + 1}
-              </div>
-              <span className={`text-xs mt-1.5 font-medium ${i <= step ? "text-slate-900" : "text-slate-400"}`}>{s}</span>
-            </div>
-          ))}
-        </div>
+      {/* mobile order summary accordion */}
+      <div className="lg:hidden bg-[#fafafa] border-b border-slate-200">
+        <button onClick={() => setSummaryOpen((v) => !v)} className="w-full max-w-[560px] mx-auto flex items-center justify-between px-5 py-4">
+          <span className="flex items-center gap-2 text-sm text-emerald-700 font-medium">
+            🛒 {summaryOpen ? "Hide" : "Show"} order summary
+            <span className={`transition-transform ${summaryOpen ? "rotate-180" : ""}`}>▾</span>
+          </span>
+          <span className="text-lg font-bold">{fmt(grand)}</span>
+        </button>
+        {summaryOpen && <div className="px-5 pb-6 max-w-[560px] mx-auto">{summary}</div>}
+      </div>
 
-        {/* step 0: cart review */}
-        {step === 0 && (
-          <div className="fade-up">
-            <h1 className="text-2xl font-black text-slate-900 mb-5">Review your cart</h1>
+      <div className="lg:grid lg:grid-cols-2 lg:min-h-[calc(100vh-61px)]">
+        {/* ---------- right: order summary (desktop) ---------- */}
+        <aside className="hidden lg:block lg:order-2 bg-[#fafafa] border-l border-slate-200">
+          <div className="max-w-[430px] px-10 py-10 sticky top-0">
+            {items.length === 0 ? <p className="text-sm text-slate-500">Your cart is empty.</p> : summary}
+          </div>
+        </aside>
+
+        {/* ---------- left: the form ---------- */}
+        <main className="lg:order-1">
+          <div className="max-w-[560px] lg:ml-auto px-5 lg:px-10 py-8 lg:py-10">
+            {/* breadcrumb (single-page checkout — every step is on this page) */}
+            <nav className="flex flex-wrap items-center gap-2 text-[13px] text-slate-400 mb-6">
+              <Link to="/shop" className="text-emerald-700 hover:underline">Cart</Link>
+              <span>›</span>
+              <span className="text-slate-900 font-medium">Information</span>
+              <span>›</span>
+              <span className="text-slate-900 font-medium">Shipping</span>
+              <span>›</span>
+              <span className="text-slate-900 font-medium">Payment</span>
+            </nav>
+
             {items.length === 0 ? (
-              <div className="text-center py-16 bg-white rounded-2xl border border-slate-200">
+              <div className="rounded-lg border border-slate-200 p-10 text-center">
                 <div className="text-5xl mb-3">🛒</div>
-                <p className="font-bold text-slate-900 mb-4">Your cart is empty</p>
-                <Link to="/shop" className="px-6 py-2.5 rounded-lg bg-emerald-600 text-white font-semibold hover:bg-emerald-700">
+                <p className="font-bold mb-1">Your cart is empty</p>
+                <p className="text-sm text-slate-500 mb-5">Add a few accessories and come back.</p>
+                <Link to="/shop" className="inline-block px-6 py-3 rounded-md bg-emerald-600 text-white font-semibold hover:bg-emerald-700">
                   Continue shopping
                 </Link>
               </div>
             ) : (
-              <div className="grid md:grid-cols-[1fr_280px] gap-6">
-                <div className="space-y-3">
-                  {items.map(({ product, qty, variantId, variantLabel }) => (
-                    <div key={`${product.id}:${variantId ?? 0}`} className="bg-white rounded-xl border border-slate-200 p-4 flex gap-4 items-center">
-                      <img src={product.image} alt="" className="w-16 h-16 rounded-lg object-cover" />
-                      <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-slate-900 text-sm truncate">{product.name}</p>
-                        {variantLabel && (
-                          <span className="inline-flex items-center gap-1 text-[10px] font-bold bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded">
-                            {swatchFor({ label: variantLabel }) && (
-                              <span className="w-2.5 h-2.5 rounded-full border border-black/10" style={swatchStyle(swatchFor({ label: variantLabel })!)} />
-                            )}
-                            {variantLabel}
-                          </span>
-                        )}
-                        <p className="text-sm text-emerald-700 font-bold">{fmt(product.price)}</p>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <button onClick={() => setQty(product.id, qty - 1, variantId)} className="w-7 h-7 rounded-md border border-slate-200">−</button>
-                        <span className="w-6 text-center text-sm font-bold">{qty}</span>
-                        <button onClick={() => setQty(product.id, qty + 1, variantId)} className="w-7 h-7 rounded-md border border-slate-200">+</button>
-                      </div>
-                      <button onClick={() => remove(product.id, variantId)} className="text-slate-300 hover:text-red-500">✕</button>
-                    </div>
-                  ))}
-                </div>
-                <OrderSummary total={total} shipping={shipping} grand={grand} discount={discount} couponSlot={couponSlot}>
-                  <button onClick={() => setStep(1)} className="w-full py-3 rounded-lg bg-emerald-600 text-white font-bold hover:bg-emerald-700">
-                    Continue to Address →
-                  </button>
-                </OrderSummary>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* step 1: address */}
-        {step === 1 && (
-          <div className="fade-up grid md:grid-cols-[1fr_280px] gap-6">
-            <div className="bg-white rounded-2xl border border-slate-200 p-6">
-              <h1 className="text-xl font-black text-slate-900 mb-5">Delivery address</h1>
-              {savedAddresses.length > 0 && (
-                <div className="mb-4">
-                  <p className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-2">Saved addresses</p>
-                  <div className="flex gap-2 flex-wrap">
-                    {savedAddresses.map((a) => (
-                      <button
-                        key={a.id}
-                        type="button"
-                        onClick={() => applySaved(a)}
-                        className="px-3.5 py-2 rounded-xl glass-soft text-left text-xs hover:ring-2 hover:ring-emerald-300 transition"
-                      >
-                        <span className="block font-bold text-slate-900">{a.city}</span>
-                        <span className="block text-slate-500 max-w-[180px] truncate">{a.address}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-              <div className="grid sm:grid-cols-2 gap-3">
-                <input className={input} placeholder="Full name" value={name} onChange={(e) => setName(e.target.value)} />
-                <input className={input} type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
-                <div>
-                  <input
-                    className={input}
-                    placeholder="Phone (03xx…)"
-                    inputMode="numeric"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value.replace(/[^0-9]/g, "").slice(0, 11))}
-                  />
-                  {phone.length > 0 && !/^03[0-9]{9}$/.test(phone) && (
-                    <p className="text-[11px] text-amber-600 mt-1">Enter an 11-digit number starting with 03</p>
-                  )}
-                </div>
-                <select className={input} value={city} onChange={(e) => setCity(e.target.value)}>
-                  {["Lahore", "Karachi", "Islamabad", "Rawalpindi", "Faisalabad", "Multan", "Peshawar", "Quetta"].map((c) => (
-                    <option key={c}>{c}</option>
-                  ))}
-                </select>
-                <textarea
-                  className={`${input} sm:col-span-2`}
-                  rows={3}
-                  placeholder="Street address"
-                  value={address}
-                  onChange={(e) => setAddress(e.target.value)}
-                />
-              </div>
-              <div className="flex gap-3 mt-5">
-                <button onClick={() => setStep(0)} className="px-5 py-2.5 rounded-lg border border-slate-300 font-semibold text-sm">
-                  ← Back
-                </button>
-                <button
-                  onClick={() => {
-                    if (!name || !email || !phone || !address) return push("Please fill all address fields", "error");
-                    if (!/^03[0-9]{9}$/.test(phone)) return push("Please enter a valid phone number (03xxxxxxxxx)", "error");
-                    setStep(2);
-                  }}
-                  className="flex-1 py-2.5 rounded-lg bg-emerald-600 text-white font-bold hover:bg-emerald-700"
-                >
-                  Continue to Payment →
-                </button>
-              </div>
-            </div>
-            <OrderSummary total={total} shipping={shipping} grand={grand} discount={discount} couponSlot={couponSlot} />
-          </div>
-        )}
-
-        {/* step 2: payment */}
-        {step === 2 && (
-          <div className="fade-up grid md:grid-cols-[1fr_280px] gap-6">
-            <div className="bg-white rounded-2xl border border-slate-200 p-6">
-              <h1 className="text-xl font-black text-slate-900 mb-5">Payment method</h1>
-              <div className="space-y-3">
-                {[
-                  { id: "cod", label: "Cash on Delivery", desc: "Pay when your order arrives", icon: "💵" },
-                  { id: "card", label: "Debit / Credit Card", desc: "Visa, Mastercard (demo)", icon: "💳" },
-                  { id: "wallet", label: "Mobile Wallet", desc: "JazzCash / Easypaisa (demo)", icon: "📲" },
-                ].map((m) => (
-                  <label
-                    key={m.id}
-                    className={`flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition ${
-                      payment === m.id ? "border-emerald-500 bg-emerald-50" : "border-slate-200 hover:border-slate-300"
+              <>
+                {/* express checkout — same form, WhatsApp instead of paying online */}
+                <section className="mb-7">
+                  <p className="text-center text-xs uppercase tracking-wider text-slate-400 mb-3">Express checkout</p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPayment("whatsapp");
+                      document.getElementById("xp-payment")?.scrollIntoView?.({ behavior: "smooth", block: "center" });
+                    }}
+                    className={`w-full flex items-center justify-center gap-2.5 rounded-md py-3.5 font-bold text-white transition ${
+                      isWhatsApp ? "bg-[#128C7E]" : "bg-[#25D366] hover:brightness-95"
                     }`}
                   >
-                    <input type="radio" name="pay" checked={payment === m.id} onChange={() => setPayment(m.id)} className="accent-emerald-600" />
-                    <span className="text-2xl">{m.icon}</span>
-                    <span>
-                      <span className="block font-semibold text-slate-900 text-sm">{m.label}</span>
-                      <span className="block text-xs text-slate-500">{m.desc}</span>
-                    </span>
-                  </label>
-                ))}
-              </div>
-              <div className="flex gap-3 mt-6">
-                <button onClick={() => setStep(1)} className="px-5 py-2.5 rounded-lg border border-slate-300 font-semibold text-sm">
-                  ← Back
-                </button>
-                <button
-                  onClick={placeOrder}
-                  disabled={busy}
-                  className="flex-1 py-2.5 rounded-lg bg-emerald-600 text-white font-bold hover:bg-emerald-700 disabled:opacity-50"
-                >
-                  {busy ? "Placing order…" : `Place Order · ${fmt(grand)}`}
-                </button>
-              </div>
-              <div className="flex items-center justify-center gap-5 mt-5 text-[11px] text-slate-400">
-                <span>🔒 Secure checkout</span>
-                <span>↩ 7-day returns</span>
-                <span>💵 Pay on delivery</span>
-                <span>✓ No account needed</span>
-              </div>
-            </div>
-            <OrderSummary total={total} shipping={shipping} grand={grand} discount={discount} couponSlot={couponSlot} />
-          </div>
-        )}
+                    <WaIcon className="w-5 h-5" />
+                    {isWhatsApp ? "WhatsApp selected — fill the form below" : "Order on WhatsApp"}
+                  </button>
+                  <p className="mt-2 text-center text-[11px] text-slate-500">
+                    No card needed — we confirm your order on {"+" + WHATSAPP_NUMBER} in minutes.
+                  </p>
+                  <div className="flex items-center gap-3 mt-6">
+                    <span className="h-px flex-1 bg-slate-200" />
+                    <span className="text-xs text-slate-400">OR</span>
+                    <span className="h-px flex-1 bg-slate-200" />
+                  </div>
+                </section>
 
-        {/* step 3: done */}
-        {step === 3 && order && (
-          <div className="fade-up max-w-md mx-auto text-center bg-white rounded-2xl border border-slate-200 p-10">
-            <div className="text-6xl mb-4">🎉</div>
-            <h1 className="text-2xl font-black text-slate-900 mb-2">Order confirmed!</h1>
-            <p className="text-sm text-slate-500 mb-2">
-              Your order ID is{" "}
-              <span className="font-bold text-emerald-700 select-all">{order.id}</span>
-              <button
-                onClick={() => { navigator.clipboard?.writeText(order.id); push("Order ID copied 📋"); }}
-                className="ml-2 text-xs font-bold text-emerald-600 hover:underline"
-              >
-                Copy
-              </button>
-            </p>
-            <p className="text-xs text-slate-500 mb-4">
-              🚚 Estimated delivery:{" "}
-              <span className="font-semibold text-slate-700">
-                {new Date(Date.now() + 2 * 86400000).toLocaleDateString("en-PK", { weekday: "short", day: "numeric", month: "short" })}
-                {" – "}
-                {new Date(Date.now() + 4 * 86400000).toLocaleDateString("en-PK", { weekday: "short", day: "numeric", month: "short" })}
-              </span>
-            </p>
-            <p className="text-sm text-slate-500 mb-6">
-              Total paid: <span className="font-bold text-slate-900">{fmt(order.total)}</span>
-            </p>
-            <div className="flex gap-3 justify-center flex-wrap">
-              <button
-                onClick={() => printInvoice(order, { name, email, address, city, payment })}
-                className="px-6 py-2.5 rounded-lg bg-slate-900 text-white font-semibold hover:bg-slate-700"
-              >
-                🧾 Download invoice
-              </button>
-              <button
-                onClick={() => navigate("/")}
-                className="px-6 py-2.5 rounded-lg bg-emerald-600 text-white font-semibold hover:bg-emerald-700"
-              >
-                Back to store
-              </button>
-              <button
-                onClick={() => navigate("/shop")}
-                className="px-6 py-2.5 rounded-lg border border-slate-300 font-semibold"
-              >
-                Keep shopping
-              </button>
-            </div>
+                {/* contact */}
+                <section className="mb-8">
+                  <div className="flex items-baseline justify-between mb-3">
+                    <h2 className="text-[17px] font-semibold">Contact</h2>
+                    {!user && (
+                      <Link to="/" className="text-[13px] text-emerald-700 hover:underline">
+                        Have an account? Log in
+                      </Link>
+                    )}
+                  </div>
+                  <div className="space-y-3">
+                    <Field
+                      label="Email"
+                      type="email"
+                      inputMode="email"
+                      autoComplete="email"
+                      value={email}
+                      onChange={setEmail}
+                      optional={isWhatsApp}
+                      error={showErrors ? errors.email : null}
+                    />
+                    <Field
+                      label="Phone (03xxxxxxxxx)"
+                      inputMode="numeric"
+                      autoComplete="tel"
+                      value={phone}
+                      onChange={(v) => setPhone(v.replace(/[^0-9]/g, "").slice(0, 11))}
+                      error={showErrors ? errors.phone : null}
+                    />
+                    <label className="flex items-center gap-2.5 text-[13px] text-slate-600">
+                      <input type="checkbox" checked={newsletter} onChange={(e) => setNewsletter(e.target.checked)} className="w-4 h-4 accent-emerald-600" />
+                      Email me with news and offers
+                    </label>
+                  </div>
+                </section>
+
+                {/* delivery */}
+                <section className="mb-8">
+                  <h2 className="text-[17px] font-semibold mb-3">Delivery</h2>
+
+                  {savedAddresses.length > 0 && (
+                    <div className="mb-3 flex gap-2 flex-wrap">
+                      {savedAddresses.map((a) => (
+                        <button
+                          key={a.id}
+                          type="button"
+                          onClick={() => applySaved(a)}
+                          className="px-3 py-2 rounded-md border border-slate-300 text-left text-xs hover:border-emerald-500"
+                        >
+                          <span className="block font-bold text-slate-900">{a.city}</span>
+                          <span className="block text-slate-500 max-w-[180px] truncate">{a.address}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="space-y-3">
+                    <div className="relative">
+                      <select disabled className="w-full rounded-md border border-slate-300 bg-slate-50 px-3.5 pt-6 pb-1.5 text-[15px] text-slate-700">
+                        <option>Pakistan</option>
+                      </select>
+                      <span className="pointer-events-none absolute left-3.5 top-1.5 text-[11px] text-slate-500">Country / Region</span>
+                    </div>
+                    <Field label="Full name" autoComplete="name" value={name} onChange={setName} error={showErrors ? errors.name : null} />
+                    <Field label="Address (street, area)" autoComplete="street-address" value={address} onChange={setAddress} error={showErrors ? errors.address : null} />
+                    <Field label="Apartment / suite" value={apartment} onChange={setApartment} optional />
+                    <div className="grid grid-cols-2 gap-3">
+                      <label className="relative block">
+                        <select
+                          value={city}
+                          onChange={(e) => setCity(e.target.value)}
+                          className="w-full rounded-md border border-slate-300 bg-white px-3.5 pt-6 pb-1.5 text-[15px] outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/25"
+                        >
+                          {CITIES.map((c) => (
+                            <option key={c}>{c}</option>
+                          ))}
+                        </select>
+                        <span className="pointer-events-none absolute left-3.5 top-1.5 text-[11px] text-slate-500">City</span>
+                      </label>
+                      <Field label="Postal code" inputMode="numeric" value={postalCode} onChange={(v) => setPostalCode(v.replace(/[^0-9]/g, "").slice(0, 6))} />
+                    </div>
+                    <label className="relative block">
+                      <textarea
+                        rows={3}
+                        value={notes}
+                        onChange={(e) => setNotes(e.target.value)}
+                        placeholder="Order notes"
+                        className={`${field} pt-6 pb-2 resize-none`}
+                      />
+                      <span className="pointer-events-none absolute left-3.5 top-1.5 text-[11px] text-slate-500">
+                        Order notes / landmark <span className="text-slate-400">(optional)</span>
+                      </span>
+                    </label>
+                    <label className="flex items-center gap-2.5 text-[13px] text-slate-600">
+                      <input type="checkbox" checked={saveInfo} onChange={(e) => setSaveInfo(e.target.checked)} className="w-4 h-4 accent-emerald-600" />
+                      Save this information for next time
+                    </label>
+                  </div>
+                </section>
+
+                {/* shipping method */}
+                <section className="mb-8">
+                  <h2 className="text-[17px] font-semibold mb-3">Shipping method</h2>
+                  <div className="flex items-center justify-between rounded-md border-2 border-emerald-600 bg-emerald-50/60 px-4 py-3.5">
+                    <span className="text-sm">
+                      <span className="block font-semibold text-slate-900">Standard courier</span>
+                      <span className="block text-xs text-slate-500">TCS / Leopards · 2–4 working days</span>
+                    </span>
+                    <span className="text-sm font-semibold">{shipping === 0 ? "FREE" : fmt(shipping)}</span>
+                  </div>
+                </section>
+
+                {/* payment */}
+                <section className="mb-8" id="xp-payment">
+                  <h2 className="text-[17px] font-semibold">Payment</h2>
+                  <p className="text-[13px] text-slate-500 mb-3">All transactions are secure and encrypted.</p>
+                  <div className="rounded-md border border-slate-300 divide-y divide-slate-200 overflow-hidden">
+                    {PAY_METHODS.map((m) => (
+                      <div key={m.id}>
+                        <label
+                          className={`flex items-center gap-3 px-4 py-3.5 cursor-pointer transition ${
+                            payment === m.id ? "bg-emerald-50/70" : "hover:bg-slate-50"
+                          }`}
+                        >
+                          <input type="radio" name="pay" checked={payment === m.id} onChange={() => setPayment(m.id)} className="w-4 h-4 accent-emerald-600" />
+                          <span className="text-lg">{m.icon}</span>
+                          <span className="flex-1">
+                            <span className="block text-sm font-semibold text-slate-900">{m.label}</span>
+                            <span className="block text-xs text-slate-500">{m.desc}</span>
+                          </span>
+                        </label>
+                        {payment === m.id && m.id === "whatsapp" && (
+                          <div className="bg-[#f6fdf8] border-t border-emerald-100 px-4 py-4">
+                            <p className="text-[13px] text-slate-600 mb-2">
+                              Placing the order opens WhatsApp with everything below pre-written to{" "}
+                              <span className="font-semibold">+{WHATSAPP_NUMBER}</span> — just press send. Email is optional for this option.
+                            </p>
+                            <pre className="max-h-40 overflow-auto whitespace-pre-wrap rounded-md border border-emerald-100 bg-white p-3 text-[11px] leading-relaxed text-slate-600">
+                              {waMessage}
+                            </pre>
+                          </div>
+                        )}
+                        {payment === m.id && (m.id === "card" || m.id === "wallet") && (
+                          <div className="bg-slate-50 border-t border-slate-200 px-4 py-4 text-xs text-slate-500">
+                            Demo gateway — you'll be redirected to a secure page after placing the order.
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </section>
+
+                {/* submit */}
+                <button
+                  onClick={submit}
+                  disabled={busy}
+                  className={`w-full rounded-md py-4 text-[15px] font-bold text-white transition disabled:opacity-60 ${
+                    isWhatsApp ? "bg-[#25D366] hover:brightness-95" : "bg-slate-900 hover:bg-emerald-700"
+                  }`}
+                >
+                  {busy ? (
+                    "Placing your order…"
+                  ) : isWhatsApp ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <WaIcon className="w-5 h-5" />
+                      Complete order on WhatsApp · {fmt(grand)}
+                    </span>
+                  ) : (
+                    `Pay now · ${fmt(grand)}`
+                  )}
+                </button>
+
+                <div className="mt-4 flex flex-wrap items-center justify-center gap-4 text-[11px] text-slate-400">
+                  <span>🔒 Secure checkout</span>
+                  <span>↩ 7-day returns</span>
+                  <span>💵 Pay on delivery</span>
+                  <span>✓ No account needed</span>
+                </div>
+
+                <footer className="mt-8 border-t border-slate-200 pt-5 flex flex-wrap gap-4 text-[12px] text-emerald-700">
+                  <Link to="/returns" className="hover:underline">Refund policy</Link>
+                  <Link to="/privacy" className="hover:underline">Privacy policy</Link>
+                  <Link to="/terms" className="hover:underline">Terms of service</Link>
+                </footer>
+              </>
+            )}
           </div>
-        )}
-      </main>
+        </main>
+      </div>
     </div>
   );
 }
 
-function OrderSummary({
-  total,
-  shipping,
-  grand,
-  discount = 0,
-  couponSlot,
-  children,
-}: {
-  total: number;
-  shipping: number;
-  grand: number;
-  discount?: number;
-  couponSlot?: React.ReactNode;
-  children?: React.ReactNode;
-}) {
+function Row({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
   return (
-    <aside className="bg-white rounded-2xl border border-slate-200 p-5 h-fit">
-      <p className="font-bold text-slate-900 mb-3">Order summary</p>
-      <div className="space-y-2 text-sm">
-        <div className="flex justify-between text-slate-600">
-          <span>Subtotal</span>
-          <span>{fmt(total)}</span>
-        </div>
-        {discount > 0 && (
-          <div className="flex justify-between text-emerald-700 font-semibold">
-            <span>Discount</span>
-            <span>−{fmt(discount)}</span>
-          </div>
-        )}
-        <div className="flex justify-between text-slate-600">
-          <span>Shipping</span>
-          <span>{shipping === 0 ? <span className="text-emerald-600 font-semibold">FREE</span> : fmt(shipping)}</span>
-        </div>
-        <div className="flex justify-between font-black text-slate-900 border-t border-slate-100 pt-2 text-base">
-          <span>Total</span>
-          <span>{fmt(grand)}</span>
-        </div>
-      </div>
-      {shipping > 0 && (
-        <p className="text-xs text-slate-400 mt-2">Free shipping on orders over Rs 5,000</p>
-      )}
-      {couponSlot}
-      {children && <div className="mt-4">{children}</div>}
-    </aside>
+    <div className={`flex justify-between ${accent ? "text-emerald-700 font-semibold" : "text-slate-600"}`}>
+      <span>{label}</span>
+      <span className={accent ? "" : "text-slate-900"}>{value}</span>
+    </div>
   );
 }
 
+function WaIcon({ className = "" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden>
+      <path d="M17.47 14.38c-.3-.15-1.75-.86-2.02-.96-.27-.1-.47-.15-.67.15-.2.3-.77.96-.94 1.16-.17.2-.35.22-.65.08-.3-.15-1.25-.46-2.39-1.47-.88-.79-1.48-1.76-1.65-2.06-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.67-1.6-.92-2.2-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48s1.06 2.88 1.21 3.08c.15.2 2.1 3.2 5.08 4.49.71.3 1.26.49 1.69.63.71.22 1.36.19 1.87.12.57-.09 1.75-.72 2-1.41.25-.69.25-1.28.17-1.41-.07-.13-.27-.2-.57-.35z" />
+      <path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.46 1.32 4.96L2 22l5.25-1.38a9.86 9.86 0 0 0 4.79 1.22h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2zm0 18.02h-.01a8.2 8.2 0 0 1-4.18-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.17 8.17 0 0 1-1.25-4.35c0-4.53 3.7-8.22 8.24-8.22 2.2 0 4.27.86 5.82 2.41a8.18 8.18 0 0 1 2.41 5.82c0 4.54-3.7 8.2-8.24 8.2z" />
+    </svg>
+  );
+}
+
+/* ---------------- thank-you page (Shopify style) ---------------- */
+function ThankYou({
+  order,
+  meta,
+  onHome,
+  onShop,
+  onCopy,
+}: {
+  order: Order;
+  meta: { name: string; email: string; phone: string; address: string; apartment: string; city: string; postalCode: string; payment: string; notes: string };
+  onHome: () => void;
+  onShop: () => void;
+  onCopy: () => void;
+}) {
+  const eta = (d: number) =>
+    new Date(Date.now() + d * 86400000).toLocaleDateString("en-PK", { weekday: "short", day: "numeric", month: "short" });
+
+  return (
+    <div className="min-h-screen bg-white">
+      <header className="border-b border-slate-200">
+        <div className="max-w-[1180px] mx-auto px-5 lg:px-8 py-4">
+          <Link to="/" className="text-xl font-black tracking-tight">
+            Xccessories<span className="text-emerald-600">Point</span>
+          </Link>
+        </div>
+      </header>
+
+      <div className="lg:grid lg:grid-cols-2">
+        <aside className="hidden lg:block lg:order-2 bg-[#fafafa] border-l border-slate-200">
+          <div className="max-w-[430px] px-10 py-10 space-y-4">
+            {order.items.map((i, k) => (
+              <div key={k} className="flex items-center justify-between text-sm">
+                <span className="text-slate-700">
+                  {i.name} <span className="text-slate-400">× {i.qty}</span>
+                </span>
+                <span className="font-semibold">{fmt(i.price * i.qty)}</span>
+              </div>
+            ))}
+            <div className="border-t border-slate-200 pt-4 space-y-2 text-sm">
+              <Row label="Subtotal" value={fmt(order.subtotal ?? order.total)} />
+              {!!order.discount && <Row label={`Discount${order.couponCode ? ` (${order.couponCode})` : ""}`} value={`−${fmt(order.discount)}`} accent />}
+              <Row label="Shipping" value={order.shipping ? fmt(order.shipping) : "FREE"} />
+              <div className="flex justify-between border-t border-slate-200 pt-3 text-lg font-bold">
+                <span>Total</span>
+                <span>{fmt(order.total)}</span>
+              </div>
+            </div>
+          </div>
+        </aside>
+
+        <main className="lg:order-1">
+          <div className="max-w-[560px] lg:ml-auto px-5 lg:px-10 py-10 fade-up">
+            <div className="flex items-start gap-4">
+              <span className="w-11 h-11 rounded-full bg-emerald-600 text-white flex items-center justify-center text-xl shrink-0">✓</span>
+              <div>
+                <p className="text-sm text-slate-500">
+                  Order <span className="font-semibold text-slate-700 select-all">{order.id}</span>
+                  <button onClick={onCopy} className="ml-2 text-xs font-bold text-emerald-700 hover:underline">Copy</button>
+                </p>
+                <h1 className="text-2xl font-bold text-slate-900 mt-0.5">Thank you, {meta.name.split(" ")[0] || "friend"}!</h1>
+              </div>
+            </div>
+
+            <div className="mt-7 rounded-lg border border-slate-200 p-5">
+              <p className="font-semibold text-slate-900 mb-1">Your order is confirmed</p>
+              <p className="text-sm text-slate-500">
+                We'll send tracking details {meta.email ? `to ${meta.email}` : "on WhatsApp"}. Estimated delivery{" "}
+                <span className="font-semibold text-slate-700">{eta(2)} – {eta(4)}</span>.
+              </p>
+            </div>
+
+            <div className="mt-5 rounded-lg border border-slate-200 p-5">
+              <p className="font-semibold text-slate-900 mb-3">Order details</p>
+              <dl className="grid sm:grid-cols-2 gap-4 text-sm">
+                <div>
+                  <dt className="text-slate-500 text-xs mb-1">Contact</dt>
+                  <dd className="text-slate-800">{meta.email || meta.phone}</dd>
+                </div>
+                <div>
+                  <dt className="text-slate-500 text-xs mb-1">Payment</dt>
+                  <dd className="text-slate-800">{paymentLabel(meta.payment)} · {fmt(order.total)}</dd>
+                </div>
+                <div>
+                  <dt className="text-slate-500 text-xs mb-1">Shipping address</dt>
+                  <dd className="text-slate-800">
+                    {meta.name}
+                    <br />
+                    {[meta.address, meta.apartment].filter(Boolean).join(", ")}
+                    <br />
+                    {meta.city} {meta.postalCode}
+                    <br />
+                    {meta.phone}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-slate-500 text-xs mb-1">Shipping method</dt>
+                  <dd className="text-slate-800">Standard courier (2–4 days)</dd>
+                </div>
+              </dl>
+            </div>
+
+            <button
+              onClick={() =>
+                openWhatsApp(
+                  buildOrderMessage({
+                    orderId: order.id,
+                    lines: order.items.map((i) => ({ name: i.name, qty: i.qty, price: i.price })),
+                    subtotal: order.subtotal ?? order.total,
+                    discount: order.discount,
+                    couponCode: order.couponCode,
+                    shipping: order.shipping ?? 0,
+                    total: order.total,
+                    name: meta.name,
+                    phone: meta.phone,
+                    email: meta.email,
+                    address: meta.address,
+                    apartment: meta.apartment,
+                    city: meta.city,
+                    postalCode: meta.postalCode,
+                    notes: meta.notes,
+                    payment: meta.payment,
+                  })
+                )
+              }
+              className="mt-5 w-full flex items-center justify-center gap-2.5 rounded-md bg-[#25D366] py-3.5 font-bold text-white hover:brightness-95"
+            >
+              <WaIcon className="w-5 h-5" />
+              Send order details on WhatsApp
+            </button>
+
+            <div className="mt-4 flex flex-wrap gap-3">
+              <button onClick={() => printInvoice(order, meta)} className="flex-1 min-w-[160px] rounded-md border border-slate-300 py-3 text-sm font-semibold hover:bg-slate-50">
+                🧾 Download invoice
+              </button>
+              <button onClick={onShop} className="flex-1 min-w-[160px] rounded-md bg-slate-900 py-3 text-sm font-semibold text-white hover:bg-emerald-700">
+                Continue shopping
+              </button>
+            </div>
+
+            <p className="mt-6 text-sm text-slate-500">
+              Need help?{" "}
+              <button onClick={onHome} className="text-emerald-700 hover:underline">
+                Back to store
+              </button>
+            </p>
+          </div>
+        </main>
+      </div>
+    </div>
+  );
+}
 
 /* ---------- printable invoice (opens print dialog → save as PDF) ---------- */
 function printInvoice(

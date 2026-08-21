@@ -142,6 +142,180 @@ test("COD lifecycle: pending → delivered auto-pays", async () => {
   assert.equal(done.paymentInfo.status, "paid", "COD collected on delivery");
 });
 
+test("category CRUD: create, rename, reorder, delete-guard", async () => {
+  const auth = { "Content-Type": "application/json", Authorization: `Bearer ${adminToken}` };
+
+  // create — id is slugified from the name
+  const r = await fetch(B + "/categories", { method: "POST", headers: auth, body: JSON.stringify({ name: "Smart Home", icon: "🏠", image: "/img/cat-audio.png" }) });
+  assert.equal(r.status, 201);
+  const cat = await r.json();
+  assert.equal(cat.id, "smart-home");
+  assert.equal(cat.image, "/img/cat-audio.png");
+
+  // it shows up on the storefront endpoint
+  assert.ok((await get("/categories")).some((c) => c.id === "smart-home"));
+
+  // guards
+  assert.equal((await fetch(B + "/categories", { method: "POST", headers: auth, body: JSON.stringify({ name: "Smart Home" }) })).status, 400, "duplicate id rejected");
+  assert.equal((await fetch(B + "/categories", { method: "POST", headers: auth, body: JSON.stringify({ icon: "x" }) })).status, 400, "name required");
+  assert.equal((await fetch(B + "/categories", { method: "POST", headers: auth, body: JSON.stringify({ name: "Bad", image: "javascript:alert(1)" }) })).status, 400, "image must be a url/path");
+  const asCustomer = await fetch(B + "/categories", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${userToken}` },
+    body: JSON.stringify({ name: "Nope" }),
+  });
+  assert.ok([401, 403].includes(asCustomer.status), "customers cannot create categories");
+
+  // rename + reorder keep the id (so products stay attached)
+  const renamed = await (await fetch(B + `/categories/${cat.id}`, { method: "PUT", headers: auth, body: JSON.stringify({ name: "Smart Home & IoT", sortOrder: 0 }) })).json();
+  assert.equal(renamed.id, "smart-home");
+  assert.equal(renamed.name, "Smart Home & IoT");
+  assert.equal(renamed.sortOrder, 0, "sortOrder 0 pins it to the front");
+  assert.equal((await get("/categories"))[0].id, "smart-home", "sortOrder drives the storefront order");
+
+  // a product can be created in the new category
+  const prod = await (await fetch(B + "/products", { method: "POST", headers: auth, body: JSON.stringify({ name: "Smart Bulb", category: "smart-home", price: 1499 }) })).json();
+  assert.equal(prod.category, "smart-home");
+
+  // …and now the category cannot be deleted
+  const blocked = await fetch(B + `/categories/${cat.id}`, { method: "DELETE", headers: auth });
+  assert.equal(blocked.status, 400);
+  assert.match((await blocked.json()).error, /1 product still uses this category — move it first/);
+
+  // archiving the product is not enough — the foreign key still points here
+  await fetch(B + `/products/${prod.id}`, { method: "DELETE", headers: auth });
+  const stillBlocked = await fetch(B + `/categories/${cat.id}`, { method: "DELETE", headers: auth });
+  assert.equal(stillBlocked.status, 400);
+  assert.match((await stillBlocked.json()).error, /archived product/);
+
+  // move it to another category, then the delete goes through
+  await fetch(B + `/products/${prod.id}`, { method: "PUT", headers: auth, body: JSON.stringify({ category: "cables" }) });
+  assert.equal((await fetch(B + `/categories/${cat.id}`, { method: "DELETE", headers: auth })).status, 200);
+  assert.ok(!(await get("/categories")).some((c) => c.id === "smart-home"));
+  assert.equal((await fetch(B + "/categories/ghost", { method: "DELETE", headers: auth })).status, 404);
+});
+
+test("manual category order survives a server restart", async () => {
+  const auth = { "Content-Type": "application/json", Authorization: `Bearer ${adminToken}` };
+  // 0 is a legitimate "pin to front" value — a boot-time backfill must not rewrite it
+  await fetch(B + "/categories/cables", { method: "PUT", headers: auth, body: JSON.stringify({ sortOrder: 0 }) });
+  assert.equal((await get("/categories"))[0].id, "cables");
+
+  const PORT2 = PORT + 1;
+  const second = spawn("node", ["server/index.mjs"], {
+    env: { ...process.env, PORT: String(PORT2), XP_DB_PATH: DB },
+    stdio: "ignore",
+  });
+  try {
+    for (let i = 0; i < 50; i++) {
+      try { if ((await fetch(`http://localhost:${PORT2}/api/health`)).ok) break; } catch { /* booting */ }
+      await new Promise((r) => setTimeout(r, 100));
+    }
+    const cats = await (await fetch(`http://localhost:${PORT2}/api/categories`)).json();
+    assert.equal(cats[0].id, "cables", "a second boot must not reset the admin's ordering");
+    assert.equal(cats[0].sortOrder, 0);
+  } finally {
+    second.kill();
+  }
+  // put it back so later assertions see the seeded order
+  await fetch(B + "/categories/cables", { method: "PUT", headers: auth, body: JSON.stringify({ sortOrder: 5 }) });
+});
+
+test("product creation + variant lifecycle (admin)", async () => {
+  const auth = { "Content-Type": "application/json", Authorization: `Bearer ${adminToken}` };
+  const post = (p, body) => fetch(B + p, { method: "POST", headers: auth, body: JSON.stringify(body) });
+
+  // create
+  const cr = await post("/products", { name: "Test Lifecycle Hub", category: "cables", price: 2500, compareAt: 3200 });
+  assert.equal(cr.status, 201);
+  const prod = await cr.json();
+  assert.equal(prod.variants.length, 0, "a fresh product has no variants");
+
+  // validation + role wall
+  assert.equal((await post("/products", { category: "cables", price: 1 })).status, 400, "name is required");
+  const asCustomer = await fetch(B + "/products", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${userToken}` },
+    body: JSON.stringify({ name: "Nope", category: "cables", price: 1 }),
+  });
+  assert.ok([401, 403].includes(asCustomer.status), "customers cannot create products");
+
+  // variants → product stock is the aggregate
+  await post(`/products/${prod.id}/variants`, { label: "Grey", sku: "TL-GRY", priceDelta: 0, stock: 4, swatch: "#888888" });
+  const twoVariants = await (await post(`/products/${prod.id}/variants`, { label: "Blue", sku: "TL-BLU", priceDelta: 400, stock: 3, swatch: "#3b82f6" })).json();
+  assert.equal(twoVariants.variants.length, 2);
+  assert.equal(twoVariants.stock, 7, "product stock = 4 + 3");
+  assert.equal((await post(`/products/${prod.id}/variants`, { sku: "NO-LABEL" })).status, 400, "variant label is required");
+
+  // gallery
+  const withImg = await (await post(`/products/${prod.id}/images`, { url: "/img/cable.jpg" })).json();
+  assert.equal(withImg.imageRecords.length, 1);
+  assert.equal((await post(`/products/${prod.id}/images`, { url: "javascript:alert(1)" })).status, 400, "only paths/http(s) urls");
+
+  // edit a variant → stock recomputed
+  const blue = twoVariants.variants.find((v) => v.label === "Blue");
+  const edited = await (await fetch(B + `/variants/${blue.id}`, { method: "PUT", headers: auth, body: JSON.stringify({ stock: 10 }) })).json();
+  assert.equal(edited.stock, 14, "4 + 10");
+
+  // soft-delete a variant → gone from the storefront, stock recomputed
+  await fetch(B + `/variants/${blue.id}`, { method: "DELETE", headers: auth });
+  const afterDel = await get(`/products/${prod.id}`);
+  assert.equal(afterDel.variants.length, 1);
+  assert.equal(afterDel.stock, 4);
+
+  // ordering a variant product without picking one is refused
+  const noPick = await fetch(B + "/orders", j({
+    items: [{ id: prod.id, qty: 1 }], email: "x@t.pk", customer: "X", phone: "03001234567", address: "a", city: "Lahore", payment: "cod",
+  }));
+  assert.equal(noPick.status, 400);
+  assert.match((await noPick.json()).error, /choose an option/i);
+
+  // soft-delete the product → disappears from the catalog
+  await fetch(B + `/products/${prod.id}`, { method: "DELETE", headers: auth });
+  const catalog = await get("/products");
+  assert.ok(!catalog.some((p) => p.id === prod.id), "soft-deleted products leave the storefront");
+});
+
+test("guest cart merges into the user cart on login (variants preserved)", async () => {
+  // the user already has a cart of their own …
+  const own = await (await fetch(B + "/cart/items", {
+    ...j({ productId: 13, qty: 1 }),
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${userToken}` },
+  })).json();
+  // … and a guest cart exists in the browser with a variant + a plain item
+  const guest = await (await fetch(B + "/cart/items", j({ productId: 3, variantId: 5, qty: 1 }))).json();
+  await fetch(B + "/cart/items", {
+    ...j({ productId: 6, qty: 2 }),
+    headers: { "Content-Type": "application/json", "X-Cart-Id": guest.id },
+  });
+  // logging in sends both → the guest cart must merge, not blow up
+  const r = await fetch(B + "/cart", { headers: { Authorization: `Bearer ${userToken}`, "X-Cart-Id": guest.id } });
+  assert.equal(r.status, 200, "merging a guest cart must not 500");
+  const merged = await r.json();
+  assert.equal(merged.id, own.id, "guest items land in the user's existing cart");
+  assert.ok(merged.items.some((i) => i.productId === 3 && i.variantId === 5), "variant survives the merge");
+  assert.ok(merged.items.some((i) => i.productId === 6 && i.qty === 2), "plain item survives the merge");
+  assert.ok(merged.items.some((i) => i.productId === 13), "the user's own item is still there");
+});
+
+test("WhatsApp order: stays Pending and unpaid (like COD)", async () => {
+  const r = await fetch(
+    B + "/orders",
+    j({
+      items: [{ id: 6, qty: 2 }],
+      email: "wa@test.pk", customer: "WA Buyer", payment: "whatsapp",
+      address: "45-B Model Town", city: "Lahore 54000", phone: "03009876543",
+    })
+  );
+  assert.equal(r.status, 201);
+  const o = await r.json();
+  assert.equal(o.payment, "whatsapp");
+  assert.equal(o.status, "Pending", "WhatsApp orders are confirmed on chat, not auto-confirmed");
+  assert.equal(o.paymentInfo.status, "pending");
+  assert.equal(o.paymentInfo.txnRef, null, "no gateway transaction for a WhatsApp order");
+  assert.equal(o.items[0].qty, 2);
+});
+
 test("back-in-stock: subscribe → restock queues email", async () => {
   await fetch(B + "/stock-alerts", j({ productId: 13, email: "wait@test.pk" }));
   // drain stock to 0 then restock via admin adjust

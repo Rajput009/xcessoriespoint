@@ -209,10 +209,12 @@ function getOrCreateCart(ctx) {
       // merge a guest cart into the user's cart, then discard it
       const guest = db.prepare("SELECT * FROM carts WHERE id = ? AND userId IS NULL").get(headerId);
       if (guest) {
+        // NB: cart_items is keyed on (cartId, productId, variantId) — merging must carry
+        // the variant through, otherwise the upsert has no matching unique index (500).
         db.prepare(
-          `INSERT INTO cart_items (cartId, productId, qty)
-           SELECT ?, productId, qty FROM cart_items WHERE cartId = ?
-           ON CONFLICT(cartId, productId) DO UPDATE SET qty = qty + excluded.qty`
+          `INSERT INTO cart_items (cartId, productId, variantId, qty)
+           SELECT ?, productId, variantId, qty FROM cart_items WHERE cartId = ?
+           ON CONFLICT(cartId, productId, variantId) DO UPDATE SET qty = qty + excluded.qty`
         ).run(cart.id, guest.id);
         db.prepare("DELETE FROM carts WHERE id = ?").run(guest.id);
       }
@@ -294,8 +296,9 @@ const placeOrder = db.transaction((body, user, visitorId) => {
   const total = subtotal - discount + shipping;
 
   const method = String(body.payment || "cod");
-  // COD orders start Pending (need confirmation call); online payments are Confirmed
-  const initialStatus = method === "cod" ? "Pending" : "Confirmed";
+  // COD / WhatsApp orders start Pending (need confirmation); online payments are Confirmed
+  const payLater = method === "cod" || method === "whatsapp";
+  const initialStatus = payLater ? "Pending" : "Confirmed";
 
   let id;
   do {
@@ -313,8 +316,8 @@ const placeOrder = db.transaction((body, user, visitorId) => {
 
   // payment record — online methods are captured immediately (demo gateway)
   db.prepare("INSERT INTO payments (orderId, method, status, amount, txnRef) VALUES (?,?,?,?,?)").run(
-    id, method, method === "cod" ? "pending" : "paid", total,
-    method === "cod" ? null : "TXN-" + crypto.randomBytes(4).toString("hex").toUpperCase()
+    id, method, payLater ? "pending" : "paid", total,
+    payLater ? null : "TXN-" + crypto.randomBytes(4).toString("hex").toUpperCase()
   );
 
   const insItem = db.prepare(
@@ -384,8 +387,65 @@ route("GET", "/config", () => {
   return out;
 });
 
-/* ---- categories ---- */
-route("GET", "/categories", () => db.prepare("SELECT * FROM categories").all());
+/* ---- categories (admin CRUD) ---- */
+const slugify = (v) =>
+  String(v).toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 30);
+
+route("GET", "/categories", () =>
+  db.prepare("SELECT * FROM categories ORDER BY sortOrder, name").all()
+);
+route("POST", "/categories", (ctx) => {
+  const user = requireArea(ctx, "products");
+  const name = clamp(ctx.body.name ?? "", 60).trim();
+  if (!name) throw bad("name is required");
+  const id = slugify(ctx.body.id || name);
+  if (!id) throw bad("Could not derive an id from that name — use letters or numbers");
+  if (db.prepare("SELECT 1 FROM categories WHERE id = ?").get(id))
+    throw bad(`Category "${id}" already exists`);
+  const image = clamp(ctx.body.image ?? "", 300).trim();
+  if (image && !/^(\/|https?:\/\/)/.test(image)) throw bad("image must be a path (/img/…) or http(s) URL");
+  const next = db.prepare("SELECT COALESCE(MAX(sortOrder), 0) + 1 n FROM categories").get().n;
+  db.prepare("INSERT INTO categories (id, name, icon, image, sortOrder) VALUES (?,?,?,?,?)")
+    .run(id, name, clamp(ctx.body.icon ?? "", 8), image, next);
+  audit(user, "category.create", "category", id, name);
+  return db.prepare("SELECT * FROM categories WHERE id = ?").get(id);
+});
+route("PUT", "/categories/:id", (ctx) => {
+  const user = requireArea(ctx, "products");
+  const cat = db.prepare("SELECT * FROM categories WHERE id = ?").get(ctx.params.id);
+  if (!cat) throw new HttpError(404, "Category not found");
+  const b = { ...cat, ...ctx.body };
+  const name = clamp(b.name ?? "", 60).trim();
+  if (!name) throw bad("name is required");
+  const image = clamp(b.image ?? "", 300).trim();
+  if (image && !/^(\/|https?:\/\/)/.test(image)) throw bad("image must be a path (/img/…) or http(s) URL");
+  // NB: sortOrder 0 is legitimate ("pin to front"), so only fall back when it is absent
+  const rawOrder = ctx.body.sortOrder;
+  const sortOrder =
+    rawOrder === undefined || rawOrder === null || rawOrder === ""
+      ? cat.sortOrder
+      : parseInt(rawOrder, 10) || 0;
+  db.prepare("UPDATE categories SET name = ?, icon = ?, image = ?, sortOrder = ? WHERE id = ?")
+    .run(name, clamp(b.icon ?? "", 8), image, sortOrder, ctx.params.id);
+  audit(user, "category.update", "category", ctx.params.id, JSON.stringify(ctx.body).slice(0, 200));
+  return db.prepare("SELECT * FROM categories WHERE id = ?").get(ctx.params.id);
+});
+route("DELETE", "/categories/:id", (ctx) => {
+  const user = requireArea(ctx, "products");
+  const cat = db.prepare("SELECT * FROM categories WHERE id = ?").get(ctx.params.id);
+  if (!cat) throw new HttpError(404, "Category not found");
+  // products still reference it → refuse, so nothing is orphaned.
+  // (archived products keep the foreign key too, so they block the delete as well)
+  const live = db.prepare("SELECT COUNT(*) c FROM products WHERE category = ? AND active = 1").get(ctx.params.id).c;
+  const archived = db.prepare("SELECT COUNT(*) c FROM products WHERE category = ? AND active = 0").get(ctx.params.id).c;
+  if (live > 0)
+    throw bad(`${live} product${live === 1 ? " still uses" : "s still use"} this category — move ${live === 1 ? "it" : "them"} first`);
+  if (archived > 0)
+    throw bad(`${archived} archived product${archived === 1 ? "" : "s"} still reference this category — move ${archived === 1 ? "it" : "them"} to another category first`);
+  db.prepare("DELETE FROM categories WHERE id = ?").run(ctx.params.id);
+  audit(user, "category.delete", "category", ctx.params.id, cat.name);
+  return { ok: true };
+});
 
 /* ---- products (public) ---- */
 route("GET", "/products", (ctx) => {

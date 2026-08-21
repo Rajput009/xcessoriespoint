@@ -48,7 +48,9 @@ const SLIDES = [
     headline: "AeroBuds Pro — Silence the Noise",
     price: 4999,
     compareAt: 7999,
-    image: "/img/hero-1.png",
+    image: "/img/hero-1.webp",
+    width: 800,
+    height: 523,
     gradient: "from-emerald-700 via-teal-600 to-emerald-500",
     cat: "audio",
   },
@@ -57,7 +59,9 @@ const SLIDES = [
     headline: "VitaFit S2 — Your Health, On Your Wrist",
     price: 6499,
     compareAt: 9499,
-    image: "/img/hero-2.png",
+    image: "/img/hero-2.webp",
+    width: 752,
+    height: 800,
     gradient: "from-violet-700 via-purple-600 to-fuchsia-500",
     cat: "wearables",
   },
@@ -66,7 +70,9 @@ const SLIDES = [
     headline: "VoltCore 20K — Never Hit 0% Again",
     price: 3499,
     compareAt: 4999,
-    image: "/img/hero-3.png",
+    image: "/img/hero-3.webp",
+    width: 567,
+    height: 800,
     gradient: "from-amber-600 via-orange-500 to-rose-500",
     cat: "power",
   },
@@ -91,6 +97,13 @@ function ArrowDoodle() {
 
 export function HeroSection() {
   const [slide, setSlide] = useState(0);
+  // only the visible slide (and the one queued next) is worth downloading — mounting all
+  // three <img src> at once pulled ~1.1 MB on first paint
+  const [loaded, setLoaded] = useState<number[]>([0]);
+  useEffect(() => {
+    const next = (slide + 1) % SLIDES.length;
+    setLoaded((prev) => (prev.includes(slide) && prev.includes(next) ? prev : [...new Set([...prev, slide, next])]));
+  }, [slide]);
   const { navigate } = useRouter();
   const { products } = useProducts();
 
@@ -99,7 +112,6 @@ export function HeroSection() {
     return () => clearInterval(t);
   }, []);
 
-  const s = SLIDES[slide];
   const featured = products.filter((p) => [2, 6, 3].includes(p.id)).slice(0, 3);
 
   return (
@@ -122,38 +134,63 @@ export function HeroSection() {
       </div>
 
       <div className="relative max-w-7xl mx-auto px-6 pt-[130px] md:pt-[180px] pb-4">
-        <div className="grid lg:grid-cols-2 gap-8 items-center">
-          {/* text */}
-          <div className="text-center lg:text-left order-2 lg:order-1 fade-up" key={`t${slide}`}>
-            <p className="inline-block text-xs font-bold uppercase tracking-widest bg-black/25 backdrop-blur-md border border-white/25 text-white px-3.5 py-1.5 rounded-full mb-4">
-              ⚡ {s.tag}
-            </p>
-            <h1 className="text-3xl md:text-5xl font-black text-white leading-tight mb-4 drop-shadow-[0_3px_18px_rgba(0,0,0,0.45)]">
-              {s.headline}
-            </h1>
-            <p className="text-2xl font-bold text-white mb-5 drop-shadow-[0_2px_8px_rgba(0,0,0,0.35)]">
-              {fmt(s.price)}{" "}
-              <span className="text-base text-white/75 line-through font-medium">{fmt(s.compareAt)}</span>
-            </p>
-            <div className="mb-6">
-              <CountdownBoxes />
-            </div>
-            <button
-              onClick={() => navigate(`/shop?cat=${s.cat}`)}
-              className="px-8 py-3.5 rounded-full bg-white text-slate-900 font-bold hover:bg-slate-900 hover:text-white transition-colors shadow-xl shadow-black/25"
-            >
-              Shop Now →
-            </button>
-          </div>
-          {/* floating cutout product */}
-          <div className="order-1 lg:order-2 relative flex justify-center fade-up" key={`i${slide}`}>
-            <ArrowDoodle />
-            <img
-              src={s.image}
-              alt={s.headline}
-              className="float-slow w-64 md:w-[400px] max-h-[420px] object-contain drop-shadow-[0_35px_45px_rgba(6,78,59,0.4)]"
-            />
-          </div>
+        {/* All slides live in the SAME grid cell and are only faded in/out. The hero is
+            therefore always as tall as its tallest slide, so switching slides can never
+            reflow the page below it (no layout shift / CLS). */}
+        <div className="grid">
+          {SLIDES.map((sl, i) => {
+            const active = i === slide;
+            return (
+              <div
+                key={i}
+                aria-hidden={!active}
+                inert={!active ? true : undefined}
+                className={`col-start-1 row-start-1 grid lg:grid-cols-2 gap-8 items-center transition-opacity duration-700 ease-out ${
+                  active ? "opacity-100" : "opacity-0 pointer-events-none"
+                }`}
+              >
+                {/* text */}
+                <div className="text-center lg:text-left order-2 lg:order-1">
+                  <p className="inline-block text-xs font-bold uppercase tracking-widest bg-black/25 backdrop-blur-md border border-white/25 text-white px-3.5 py-1.5 rounded-full mb-4">
+                    ⚡ {sl.tag}
+                  </p>
+                  <h1 className="text-3xl md:text-5xl font-black text-white leading-tight mb-4 drop-shadow-[0_3px_18px_rgba(0,0,0,0.45)]">
+                    {sl.headline}
+                  </h1>
+                  <p className="text-2xl font-bold text-white mb-5 drop-shadow-[0_2px_8px_rgba(0,0,0,0.35)]">
+                    {fmt(sl.price)}{" "}
+                    <span className="text-base text-white/75 line-through font-medium">{fmt(sl.compareAt)}</span>
+                  </p>
+                  <div className="mb-6">
+                    <CountdownBoxes />
+                  </div>
+                  <button
+                    onClick={() => navigate(`/shop?cat=${sl.cat}`)}
+                    tabIndex={active ? 0 : -1}
+                    className="px-8 py-3.5 rounded-full bg-white text-slate-900 font-bold hover:bg-slate-900 hover:text-white transition-colors shadow-xl shadow-black/25"
+                  >
+                    Shop Now →
+                  </button>
+                </div>
+                {/* floating cutout product — fixed-height box so differently shaped
+                    cutouts (and slow image loads) can't resize the hero */}
+                <div className="order-1 lg:order-2 relative flex justify-center items-center h-[280px] md:h-[420px]">
+                  <ArrowDoodle />
+                  {loaded.includes(i) && (
+                    <img
+                      src={sl.image}
+                      alt={active ? sl.headline : ""}
+                      width={sl.width}
+                      height={sl.height}
+                      fetchPriority={i === 0 ? "high" : "low"}
+                      decoding="async"
+                      className="float-slow max-h-full w-auto max-w-[16rem] md:max-w-[400px] object-contain drop-shadow-[0_35px_45px_rgba(6,78,59,0.4)]"
+                    />
+                  )}
+                </div>
+              </div>
+            );
+          })}
         </div>
 
         {/* dots */}
@@ -197,11 +234,11 @@ export function HeroSection() {
 
 /* ---------- 2. CategoryIcons (compact scrollable image tiles) ---------- */
 const CAT_IMG: Record<string, { img: string; count: string; tint: string; text: string }> = {
-  audio: { img: "/img/cat-audio.png", count: "Earbuds & headphones", tint: "bg-violet-100/70", text: "group-hover:text-violet-700" },
-  wearables: { img: "/img/cat-wearables.png", count: "Watches & bands", tint: "bg-emerald-100/70", text: "group-hover:text-emerald-700" },
-  power: { img: "/img/cat-power.png", count: "Banks & chargers", tint: "bg-amber-100/70", text: "group-hover:text-amber-700" },
-  cases: { img: "/img/cat-cases.png", count: "Covers & protection", tint: "bg-rose-100/70", text: "group-hover:text-rose-700" },
-  cables: { img: "/img/cat-cables.png", count: "Cables & hubs", tint: "bg-cyan-100/70", text: "group-hover:text-cyan-700" },
+  audio: { img: "/img/cat-audio.webp", count: "Earbuds & headphones", tint: "bg-violet-100/70", text: "group-hover:text-violet-700" },
+  wearables: { img: "/img/cat-wearables.webp", count: "Watches & bands", tint: "bg-emerald-100/70", text: "group-hover:text-emerald-700" },
+  power: { img: "/img/cat-power.webp", count: "Banks & chargers", tint: "bg-amber-100/70", text: "group-hover:text-amber-700" },
+  cases: { img: "/img/cat-cases.webp", count: "Covers & protection", tint: "bg-rose-100/70", text: "group-hover:text-rose-700" },
+  cables: { img: "/img/cat-cables.webp", count: "Cables & hubs", tint: "bg-cyan-100/70", text: "group-hover:text-cyan-700" },
 };
 
 export function CategoryIcons() {
@@ -243,6 +280,8 @@ export function CategoryIcons() {
       >
         {categories.map((c) => {
           const meta = CAT_IMG[c.id];
+          // admin-set tile image wins, then the built-in art, else we render the emoji
+          const tile = c.image || meta?.img;
           return (
             <Link
               key={c.id}
@@ -250,18 +289,29 @@ export function CategoryIcons() {
               className="group snap-start shrink-0 w-36 md:w-44 flex flex-col rounded-2xl glass-soft overflow-hidden hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-500/15 hover:ring-2 hover:ring-emerald-400/50 transition-all"
             >
               <span className={`relative block aspect-square p-3 ${meta?.tint ?? "bg-white/60"}`}>
-                <img
-                  src={meta?.img}
-                  alt={c.name}
-                  loading="lazy"
-                  className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-500"
-                />
+                {tile ? (
+                  <img
+                    src={tile}
+                    alt={c.name}
+                    width={440}
+                    height={440}
+                    loading="lazy"
+                    decoding="async"
+                    className={`w-full h-full group-hover:scale-110 transition-transform duration-500 ${
+                      c.image && !meta ? "object-cover rounded-xl" : "object-contain"
+                    }`}
+                  />
+                ) : (
+                  <span className="w-full h-full flex items-center justify-center text-4xl group-hover:scale-110 transition-transform duration-500">
+                    {c.icon || "🗂"}
+                  </span>
+                )}
               </span>
               <span className="px-2 pt-2 pb-3 text-center border-t border-white/50">
                 <span className={`block text-xs font-black uppercase tracking-wide text-slate-900 transition-colors ${meta?.text ?? ""}`}>
                   {c.name}
                 </span>
-                <span className="block text-[10px] text-slate-400 mt-0.5">{meta?.count}</span>
+                <span className="block text-[10px] text-slate-400 mt-0.5">{meta?.count ?? "Shop the range"}</span>
               </span>
             </Link>
           );

@@ -9,7 +9,7 @@
     "build": "vite build",
     "start": "node server/index.mjs",
     "test:build": "esbuild src/lib/fuzzy.ts --format=esm --outfile=.test-build/fuzzy.mjs",
-    "test": "npm run test:build && node --test tests/",
+    "test": "npm run test:build && node --test tests/*.mjs",
     "backup": "node server/backup.mjs"
   },
   "dependencies": {
