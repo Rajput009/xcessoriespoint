@@ -6,6 +6,7 @@ import { track } from "../lib/tracking";
 import { swatchFor, swatchStyle } from "../lib/swatch";
 import { pixelTrack } from "../lib/pixel";
 import { buildOrderMessage, openWhatsApp, paymentLabel, WHATSAPP_NUMBER } from "../lib/whatsapp";
+import WhatsAppOrderForm from "../components/WhatsAppOrderForm";
 
 const CITIES = ["Lahore", "Karachi", "Islamabad", "Rawalpindi", "Faisalabad", "Multan", "Peshawar", "Quetta", "Sialkot", "Gujranwala", "Hyderabad", "Other"];
 
@@ -92,6 +93,10 @@ export default function CheckoutPage() {
   const [saveInfo, setSaveInfo] = useState(saved.saveInfo ?? true);
   const [newsletter, setNewsletter] = useState(saved.newsletter ?? false);
   const [showErrors, setShowErrors] = useState(false);
+  // "checkout" = Shopify-style single-page checkout, "whatsapp" = standalone WhatsApp order form
+  const [mode, setMode] = useState<"checkout" | "whatsapp">(
+    () => (new URLSearchParams(window.location.search).get("via") === "whatsapp" ? "whatsapp" : "checkout")
+  );
   const [summaryOpen, setSummaryOpen] = useState(false);
 
   const [busy, setBusy] = useState(false);
@@ -178,7 +183,7 @@ export default function CheckoutPage() {
   };
 
   /* ---------------- validation ---------------- */
-  const isWhatsApp = payment === "whatsapp";
+  const isWhatsApp = mode === "whatsapp" || payment === "whatsapp";
   const errors = {
     name: !name.trim() ? "Enter a name" : null,
     email: !email.trim() ? (isWhatsApp ? null : "Enter an email address") : /^\S+@\S+\.\S+$/.test(email) ? null : "Enter a valid email",
@@ -209,9 +214,9 @@ export default function CheckoutPage() {
         city,
         postalCode,
         notes,
-        payment,
+        payment: mode === "whatsapp" ? "whatsapp" : payment,
       }),
-    [items, total, discount, coupon, shipping, grand, name, phone, email, address, apartment, city, postalCode, notes, payment]
+    [mode, items, total, discount, coupon, shipping, grand, name, phone, email, address, apartment, city, postalCode, notes, payment]
   );
 
   /* ---------------- submit ---------------- */
@@ -233,7 +238,7 @@ export default function CheckoutPage() {
         phone,
         address: [address, apartment].filter(Boolean).join(", "),
         city: postalCode ? `${city} ${postalCode}` : city,
-        payment,
+        payment: mode === "whatsapp" ? "whatsapp" : payment,
       });
       setOrder(o);
       localStorage.removeItem("xp_checkout");
@@ -262,7 +267,7 @@ export default function CheckoutPage() {
             city,
             postalCode,
             notes,
-            payment,
+            payment: mode === "whatsapp" ? "whatsapp" : payment,
           })
         );
       }
@@ -287,7 +292,7 @@ export default function CheckoutPage() {
     return (
       <ThankYou
         order={order}
-        meta={{ name, email, phone, address, apartment, city, postalCode, payment, notes }}
+        meta={{ name, email, phone, address, apartment, city, postalCode, payment: mode === "whatsapp" ? "whatsapp" : payment, notes }}
         onHome={() => navigate("/")}
         onShop={() => navigate("/shop")}
         onCopy={() => {
@@ -425,16 +430,48 @@ export default function CheckoutPage() {
         {/* ---------- left: the form ---------- */}
         <main className="lg:order-1">
           <div className="max-w-[560px] lg:ml-auto px-5 lg:px-10 py-8 lg:py-10">
-            {/* breadcrumb */}
-            <nav className="flex flex-wrap items-center gap-2 text-[13px] text-slate-400 mb-7">
-              <Link to="/shop" className="text-emerald-700 hover:underline">Cart</Link>
-              <span>›</span>
-              <span className="text-slate-900 font-medium">Information</span>
-              <span>›</span>
-              <span>Shipping</span>
-              <span>›</span>
-              <span>Payment</span>
-            </nav>
+            {/* breadcrumb (single-page checkout — every step is on this page) */}
+            {mode === "checkout" && (
+              <nav className="flex flex-wrap items-center gap-2 text-[13px] text-slate-400 mb-5">
+                <Link to="/shop" className="text-emerald-700 hover:underline">Cart</Link>
+                <span>›</span>
+                <span className="text-slate-900 font-medium">Information</span>
+                <span>›</span>
+                <span className="text-slate-900 font-medium">Shipping</span>
+                <span>›</span>
+                <span className="text-slate-900 font-medium">Payment</span>
+              </nav>
+            )}
+
+            {/* how do you want to order? */}
+            {items.length > 0 && (
+              <div className="mb-7 grid grid-cols-2 gap-2 rounded-lg bg-slate-100 p-1">
+                {([
+                  { id: "checkout", label: "Checkout", sub: "Card · COD · Wallet" },
+                  { id: "whatsapp", label: "WhatsApp order", sub: "Quick form · COD" },
+                ] as const).map((t) => (
+                  <button
+                    key={t.id}
+                    type="button"
+                    onClick={() => {
+                      setMode(t.id);
+                      setShowErrors(false);
+                    }}
+                    className={`rounded-md px-3 py-2.5 text-center transition ${
+                      mode === t.id ? "bg-white shadow-sm" : "hover:bg-white/60"
+                    }`}
+                  >
+                    <span className={`flex items-center justify-center gap-1.5 text-[13px] font-semibold ${
+                      mode === t.id ? (t.id === "whatsapp" ? "text-[#128C7E]" : "text-slate-900") : "text-slate-500"
+                    }`}>
+                      {t.id === "whatsapp" && <WaIcon className="w-4 h-4" />}
+                      {t.label}
+                    </span>
+                    <span className="block text-[11px] text-slate-400">{t.sub}</span>
+                  </button>
+                ))}
+              </div>
+            )}
 
             {items.length === 0 ? (
               <div className="rounded-lg border border-slate-200 p-10 text-center">
@@ -445,16 +482,43 @@ export default function CheckoutPage() {
                   Continue shopping
                 </Link>
               </div>
+            ) : mode === "whatsapp" ? (
+              <WhatsAppOrderForm
+                values={{ name, phone, email, address, apartment, city, notes }}
+                set={{
+                  name: setName,
+                  phone: setPhone,
+                  email: setEmail,
+                  address: setAddress,
+                  apartment: setApartment,
+                  city: setCity,
+                  notes: setNotes,
+                }}
+                cities={CITIES}
+                errors={{ name: errors.name, phone: errors.phone, address: errors.address }}
+                showErrors={showErrors}
+                message={waMessage}
+                busy={busy}
+                itemCount={items.reduce((s, i) => s + i.qty, 0)}
+                totalLabel={fmt(grand)}
+                onSubmit={submit}
+                onSwitchToCheckout={() => {
+                  setMode("checkout");
+                  setShowErrors(false);
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                }}
+              />
             ) : (
               <>
-                {/* express checkout — WhatsApp */}
+                {/* express checkout — hand off to the WhatsApp order form */}
                 <section className="mb-7">
                   <p className="text-center text-xs uppercase tracking-wider text-slate-400 mb-3">Express checkout</p>
                   <button
                     type="button"
                     onClick={() => {
-                      setPayment("whatsapp");
-                      document.getElementById("xp-payment")?.scrollIntoView({ behavior: "smooth", block: "center" });
+                      setMode("whatsapp");
+                      setShowErrors(false);
+                      window.scrollTo({ top: 0, behavior: "smooth" });
                     }}
                     className="w-full flex items-center justify-center gap-2.5 rounded-md bg-[#25D366] py-3.5 font-bold text-white hover:brightness-95 transition"
                   >
@@ -462,7 +526,7 @@ export default function CheckoutPage() {
                     Order on WhatsApp
                   </button>
                   <p className="mt-2 text-center text-[11px] text-slate-500">
-                    Fill the form below, we send it to {"+" + WHATSAPP_NUMBER} and confirm in minutes.
+                    Short form, no card — we confirm on {"+" + WHATSAPP_NUMBER} in minutes.
                   </p>
                   <div className="flex items-center gap-3 mt-6">
                     <span className="h-px flex-1 bg-slate-200" />
