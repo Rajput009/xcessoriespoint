@@ -600,7 +600,7 @@ export default function CheckoutPage() {
                     </div>
                     <Field label="Full name" autoComplete="name" value={name} onChange={setName} error={showErrors ? errors.name : null} />
                     <Field label="Address (street, area)" autoComplete="street-address" value={address} onChange={setAddress} error={showErrors ? errors.address : null} />
-                    <Field label="Apartment, suite, etc." value={apartment} onChange={setApartment} optional />
+                    <Field label="Apartment / suite" value={apartment} onChange={setApartment} optional />
                     <div className="grid grid-cols-2 gap-3">
                       <label className="relative block">
                         <select
@@ -614,7 +614,7 @@ export default function CheckoutPage() {
                         </select>
                         <span className="pointer-events-none absolute left-3.5 top-1.5 text-[11px] text-slate-500">City</span>
                       </label>
-                      <Field label="Postal code" inputMode="numeric" value={postalCode} onChange={(v) => setPostalCode(v.replace(/[^0-9]/g, "").slice(0, 6))} optional />
+                      <Field label="Postal code" inputMode="numeric" value={postalCode} onChange={(v) => setPostalCode(v.replace(/[^0-9]/g, "").slice(0, 6))} />
                     </div>
                     <label className="relative block">
                       <textarea

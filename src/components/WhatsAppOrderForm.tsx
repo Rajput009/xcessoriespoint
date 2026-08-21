@@ -153,9 +153,9 @@ export default function WhatsAppOrderForm({
             </select>
             <span className="pointer-events-none absolute left-3.5 top-1.5 text-[11px] text-slate-500">City</span>
           </label>
-          <WaField label="Apartment / landmark" value={values.apartment} onChange={set.apartment} optional />
+          <WaField label="Landmark" value={values.apartment} onChange={set.apartment} optional />
         </div>
-        <WaField label="Message for us (size, colour, delivery time…)" value={values.notes} onChange={set.notes} optional textarea />
+        <WaField label="Message for us" value={values.notes} onChange={set.notes} optional textarea />
       </div>
 
       {/* message preview */}
