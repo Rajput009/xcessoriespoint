@@ -6,13 +6,12 @@ import { track } from "../lib/tracking";
 import { swatchFor, swatchStyle } from "../lib/swatch";
 import { pixelTrack } from "../lib/pixel";
 import { buildOrderMessage, openWhatsApp, paymentLabel, WHATSAPP_NUMBER } from "../lib/whatsapp";
-import WhatsAppOrderForm from "../components/WhatsAppOrderForm";
 
 const CITIES = ["Lahore", "Karachi", "Islamabad", "Rawalpindi", "Faisalabad", "Multan", "Peshawar", "Quetta", "Sialkot", "Gujranwala", "Hyderabad", "Other"];
 
 const PAY_METHODS = [
   { id: "cod", label: "Cash on Delivery (COD)", desc: "Pay the courier when your parcel arrives.", icon: "💵" },
-  { id: "whatsapp", label: "Confirm order on WhatsApp", desc: "We message you the details and confirm before dispatch.", icon: "💬" },
+  { id: "whatsapp", label: "Order on WhatsApp (COD)", desc: "We open WhatsApp with your order ready to send — no card needed.", icon: "💬" },
   { id: "card", label: "Debit / Credit Card", desc: "Visa, Mastercard — secure demo gateway.", icon: "💳" },
   { id: "wallet", label: "JazzCash / Easypaisa", desc: "Mobile wallet transfer.", icon: "📲" },
 ];
@@ -89,14 +88,14 @@ export default function CheckoutPage() {
   const [city, setCity] = useState(saved.city || "Lahore");
   const [postalCode, setPostalCode] = useState(saved.postalCode || "");
   const [notes, setNotes] = useState(saved.notes || "");
-  const [payment, setPayment] = useState(saved.payment || "cod");
+  // ?via=whatsapp deep-links straight to the WhatsApp option of the one checkout form
+  const [payment, setPayment] = useState(
+    new URLSearchParams(window.location.search).get("via") === "whatsapp" ? "whatsapp" : saved.payment || "cod"
+  );
   const [saveInfo, setSaveInfo] = useState(saved.saveInfo ?? true);
   const [newsletter, setNewsletter] = useState(saved.newsletter ?? false);
   const [showErrors, setShowErrors] = useState(false);
-  // "checkout" = Shopify-style single-page checkout, "whatsapp" = standalone WhatsApp order form
-  const [mode, setMode] = useState<"checkout" | "whatsapp">(
-    () => (new URLSearchParams(window.location.search).get("via") === "whatsapp" ? "whatsapp" : "checkout")
-  );
+
   const [summaryOpen, setSummaryOpen] = useState(false);
 
   const [busy, setBusy] = useState(false);
@@ -183,7 +182,7 @@ export default function CheckoutPage() {
   };
 
   /* ---------------- validation ---------------- */
-  const isWhatsApp = mode === "whatsapp" || payment === "whatsapp";
+  const isWhatsApp = payment === "whatsapp";
   const errors = {
     name: !name.trim() ? "Enter a name" : null,
     email: !email.trim() ? (isWhatsApp ? null : "Enter an email address") : /^\S+@\S+\.\S+$/.test(email) ? null : "Enter a valid email",
@@ -214,9 +213,9 @@ export default function CheckoutPage() {
         city,
         postalCode,
         notes,
-        payment: mode === "whatsapp" ? "whatsapp" : payment,
+        payment,
       }),
-    [mode, items, total, discount, coupon, shipping, grand, name, phone, email, address, apartment, city, postalCode, notes, payment]
+    [items, total, discount, coupon, shipping, grand, name, phone, email, address, apartment, city, postalCode, notes, payment]
   );
 
   /* ---------------- submit ---------------- */
@@ -238,7 +237,7 @@ export default function CheckoutPage() {
         phone,
         address: [address, apartment].filter(Boolean).join(", "),
         city: postalCode ? `${city} ${postalCode}` : city,
-        payment: mode === "whatsapp" ? "whatsapp" : payment,
+        payment,
       });
       setOrder(o);
       localStorage.removeItem("xp_checkout");
@@ -267,7 +266,7 @@ export default function CheckoutPage() {
             city,
             postalCode,
             notes,
-            payment: mode === "whatsapp" ? "whatsapp" : payment,
+            payment,
           })
         );
       }
@@ -292,7 +291,7 @@ export default function CheckoutPage() {
     return (
       <ThankYou
         order={order}
-        meta={{ name, email, phone, address, apartment, city, postalCode, payment: mode === "whatsapp" ? "whatsapp" : payment, notes }}
+        meta={{ name, email, phone, address, apartment, city, postalCode, payment, notes }}
         onHome={() => navigate("/")}
         onShop={() => navigate("/shop")}
         onCopy={() => {
@@ -431,47 +430,15 @@ export default function CheckoutPage() {
         <main className="lg:order-1">
           <div className="max-w-[560px] lg:ml-auto px-5 lg:px-10 py-8 lg:py-10">
             {/* breadcrumb (single-page checkout — every step is on this page) */}
-            {mode === "checkout" && (
-              <nav className="flex flex-wrap items-center gap-2 text-[13px] text-slate-400 mb-5">
-                <Link to="/shop" className="text-emerald-700 hover:underline">Cart</Link>
-                <span>›</span>
-                <span className="text-slate-900 font-medium">Information</span>
-                <span>›</span>
-                <span className="text-slate-900 font-medium">Shipping</span>
-                <span>›</span>
-                <span className="text-slate-900 font-medium">Payment</span>
-              </nav>
-            )}
-
-            {/* how do you want to order? */}
-            {items.length > 0 && (
-              <div className="mb-7 grid grid-cols-2 gap-2 rounded-lg bg-slate-100 p-1">
-                {([
-                  { id: "checkout", label: "Checkout", sub: "Card · COD · Wallet" },
-                  { id: "whatsapp", label: "WhatsApp order", sub: "Quick form · COD" },
-                ] as const).map((t) => (
-                  <button
-                    key={t.id}
-                    type="button"
-                    onClick={() => {
-                      setMode(t.id);
-                      setShowErrors(false);
-                    }}
-                    className={`rounded-md px-3 py-2.5 text-center transition ${
-                      mode === t.id ? "bg-white shadow-sm" : "hover:bg-white/60"
-                    }`}
-                  >
-                    <span className={`flex items-center justify-center gap-1.5 text-[13px] font-semibold ${
-                      mode === t.id ? (t.id === "whatsapp" ? "text-[#128C7E]" : "text-slate-900") : "text-slate-500"
-                    }`}>
-                      {t.id === "whatsapp" && <WaIcon className="w-4 h-4" />}
-                      {t.label}
-                    </span>
-                    <span className="block text-[11px] text-slate-400">{t.sub}</span>
-                  </button>
-                ))}
-              </div>
-            )}
+            <nav className="flex flex-wrap items-center gap-2 text-[13px] text-slate-400 mb-6">
+              <Link to="/shop" className="text-emerald-700 hover:underline">Cart</Link>
+              <span>›</span>
+              <span className="text-slate-900 font-medium">Information</span>
+              <span>›</span>
+              <span className="text-slate-900 font-medium">Shipping</span>
+              <span>›</span>
+              <span className="text-slate-900 font-medium">Payment</span>
+            </nav>
 
             {items.length === 0 ? (
               <div className="rounded-lg border border-slate-200 p-10 text-center">
@@ -482,51 +449,26 @@ export default function CheckoutPage() {
                   Continue shopping
                 </Link>
               </div>
-            ) : mode === "whatsapp" ? (
-              <WhatsAppOrderForm
-                values={{ name, phone, email, address, apartment, city, notes }}
-                set={{
-                  name: setName,
-                  phone: setPhone,
-                  email: setEmail,
-                  address: setAddress,
-                  apartment: setApartment,
-                  city: setCity,
-                  notes: setNotes,
-                }}
-                cities={CITIES}
-                errors={{ name: errors.name, phone: errors.phone, address: errors.address }}
-                showErrors={showErrors}
-                message={waMessage}
-                busy={busy}
-                itemCount={items.reduce((s, i) => s + i.qty, 0)}
-                totalLabel={fmt(grand)}
-                onSubmit={submit}
-                onSwitchToCheckout={() => {
-                  setMode("checkout");
-                  setShowErrors(false);
-                  window.scrollTo({ top: 0, behavior: "smooth" });
-                }}
-              />
             ) : (
               <>
-                {/* express checkout — hand off to the WhatsApp order form */}
+                {/* express checkout — same form, WhatsApp instead of paying online */}
                 <section className="mb-7">
                   <p className="text-center text-xs uppercase tracking-wider text-slate-400 mb-3">Express checkout</p>
                   <button
                     type="button"
                     onClick={() => {
-                      setMode("whatsapp");
-                      setShowErrors(false);
-                      window.scrollTo({ top: 0, behavior: "smooth" });
+                      setPayment("whatsapp");
+                      document.getElementById("xp-payment")?.scrollIntoView?.({ behavior: "smooth", block: "center" });
                     }}
-                    className="w-full flex items-center justify-center gap-2.5 rounded-md bg-[#25D366] py-3.5 font-bold text-white hover:brightness-95 transition"
+                    className={`w-full flex items-center justify-center gap-2.5 rounded-md py-3.5 font-bold text-white transition ${
+                      isWhatsApp ? "bg-[#128C7E]" : "bg-[#25D366] hover:brightness-95"
+                    }`}
                   >
                     <WaIcon className="w-5 h-5" />
-                    Order on WhatsApp
+                    {isWhatsApp ? "WhatsApp selected — fill the form below" : "Order on WhatsApp"}
                   </button>
                   <p className="mt-2 text-center text-[11px] text-slate-500">
-                    Short form, no card — we confirm on {"+" + WHATSAPP_NUMBER} in minutes.
+                    No card needed — we confirm your order on {"+" + WHATSAPP_NUMBER} in minutes.
                   </p>
                   <div className="flex items-center gap-3 mt-6">
                     <span className="h-px flex-1 bg-slate-200" />
@@ -668,7 +610,10 @@ export default function CheckoutPage() {
                         </label>
                         {payment === m.id && m.id === "whatsapp" && (
                           <div className="bg-[#f6fdf8] border-t border-emerald-100 px-4 py-4">
-                            <p className="text-[13px] font-semibold text-slate-800 mb-2">This message will be sent to our WhatsApp:</p>
+                            <p className="text-[13px] text-slate-600 mb-2">
+                              Placing the order opens WhatsApp with everything below pre-written to{" "}
+                              <span className="font-semibold">+{WHATSAPP_NUMBER}</span> — just press send. Email is optional for this option.
+                            </p>
                             <pre className="max-h-40 overflow-auto whitespace-pre-wrap rounded-md border border-emerald-100 bg-white p-3 text-[11px] leading-relaxed text-slate-600">
                               {waMessage}
                             </pre>
