@@ -294,8 +294,9 @@ const placeOrder = db.transaction((body, user, visitorId) => {
   const total = subtotal - discount + shipping;
 
   const method = String(body.payment || "cod");
-  // COD orders start Pending (need confirmation call); online payments are Confirmed
-  const initialStatus = method === "cod" ? "Pending" : "Confirmed";
+  // COD / WhatsApp orders start Pending (need confirmation); online payments are Confirmed
+  const payLater = method === "cod" || method === "whatsapp";
+  const initialStatus = payLater ? "Pending" : "Confirmed";
 
   let id;
   do {
@@ -313,8 +314,8 @@ const placeOrder = db.transaction((body, user, visitorId) => {
 
   // payment record — online methods are captured immediately (demo gateway)
   db.prepare("INSERT INTO payments (orderId, method, status, amount, txnRef) VALUES (?,?,?,?,?)").run(
-    id, method, method === "cod" ? "pending" : "paid", total,
-    method === "cod" ? null : "TXN-" + crypto.randomBytes(4).toString("hex").toUpperCase()
+    id, method, payLater ? "pending" : "paid", total,
+    payLater ? null : "TXN-" + crypto.randomBytes(4).toString("hex").toUpperCase()
   );
 
   const insItem = db.prepare(
