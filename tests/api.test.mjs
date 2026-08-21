@@ -142,6 +142,24 @@ test("COD lifecycle: pending → delivered auto-pays", async () => {
   assert.equal(done.paymentInfo.status, "paid", "COD collected on delivery");
 });
 
+test("WhatsApp order: stays Pending and unpaid (like COD)", async () => {
+  const r = await fetch(
+    B + "/orders",
+    j({
+      items: [{ id: 6, qty: 2 }],
+      email: "wa@test.pk", customer: "WA Buyer", payment: "whatsapp",
+      address: "45-B Model Town", city: "Lahore 54000", phone: "03009876543",
+    })
+  );
+  assert.equal(r.status, 201);
+  const o = await r.json();
+  assert.equal(o.payment, "whatsapp");
+  assert.equal(o.status, "Pending", "WhatsApp orders are confirmed on chat, not auto-confirmed");
+  assert.equal(o.paymentInfo.status, "pending");
+  assert.equal(o.paymentInfo.txnRef, null, "no gateway transaction for a WhatsApp order");
+  assert.equal(o.items[0].qty, 2);
+});
+
 test("back-in-stock: subscribe → restock queues email", async () => {
   await fetch(B + "/stock-alerts", j({ productId: 13, email: "wait@test.pk" }));
   // drain stock to 0 then restock via admin adjust
