@@ -209,10 +209,12 @@ function getOrCreateCart(ctx) {
       // merge a guest cart into the user's cart, then discard it
       const guest = db.prepare("SELECT * FROM carts WHERE id = ? AND userId IS NULL").get(headerId);
       if (guest) {
+        // NB: cart_items is keyed on (cartId, productId, variantId) — merging must carry
+        // the variant through, otherwise the upsert has no matching unique index (500).
         db.prepare(
-          `INSERT INTO cart_items (cartId, productId, qty)
-           SELECT ?, productId, qty FROM cart_items WHERE cartId = ?
-           ON CONFLICT(cartId, productId) DO UPDATE SET qty = qty + excluded.qty`
+          `INSERT INTO cart_items (cartId, productId, variantId, qty)
+           SELECT ?, productId, variantId, qty FROM cart_items WHERE cartId = ?
+           ON CONFLICT(cartId, productId, variantId) DO UPDATE SET qty = qty + excluded.qty`
         ).run(cart.id, guest.id);
         db.prepare("DELETE FROM carts WHERE id = ?").run(guest.id);
       }

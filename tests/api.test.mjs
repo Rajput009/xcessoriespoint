@@ -142,6 +142,83 @@ test("COD lifecycle: pending → delivered auto-pays", async () => {
   assert.equal(done.paymentInfo.status, "paid", "COD collected on delivery");
 });
 
+test("product creation + variant lifecycle (admin)", async () => {
+  const auth = { "Content-Type": "application/json", Authorization: `Bearer ${adminToken}` };
+  const post = (p, body) => fetch(B + p, { method: "POST", headers: auth, body: JSON.stringify(body) });
+
+  // create
+  const cr = await post("/products", { name: "Test Lifecycle Hub", category: "cables", price: 2500, compareAt: 3200 });
+  assert.equal(cr.status, 201);
+  const prod = await cr.json();
+  assert.equal(prod.variants.length, 0, "a fresh product has no variants");
+
+  // validation + role wall
+  assert.equal((await post("/products", { category: "cables", price: 1 })).status, 400, "name is required");
+  const asCustomer = await fetch(B + "/products", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${userToken}` },
+    body: JSON.stringify({ name: "Nope", category: "cables", price: 1 }),
+  });
+  assert.ok([401, 403].includes(asCustomer.status), "customers cannot create products");
+
+  // variants → product stock is the aggregate
+  await post(`/products/${prod.id}/variants`, { label: "Grey", sku: "TL-GRY", priceDelta: 0, stock: 4, swatch: "#888888" });
+  const twoVariants = await (await post(`/products/${prod.id}/variants`, { label: "Blue", sku: "TL-BLU", priceDelta: 400, stock: 3, swatch: "#3b82f6" })).json();
+  assert.equal(twoVariants.variants.length, 2);
+  assert.equal(twoVariants.stock, 7, "product stock = 4 + 3");
+  assert.equal((await post(`/products/${prod.id}/variants`, { sku: "NO-LABEL" })).status, 400, "variant label is required");
+
+  // gallery
+  const withImg = await (await post(`/products/${prod.id}/images`, { url: "/img/cable.jpg" })).json();
+  assert.equal(withImg.imageRecords.length, 1);
+  assert.equal((await post(`/products/${prod.id}/images`, { url: "javascript:alert(1)" })).status, 400, "only paths/http(s) urls");
+
+  // edit a variant → stock recomputed
+  const blue = twoVariants.variants.find((v) => v.label === "Blue");
+  const edited = await (await fetch(B + `/variants/${blue.id}`, { method: "PUT", headers: auth, body: JSON.stringify({ stock: 10 }) })).json();
+  assert.equal(edited.stock, 14, "4 + 10");
+
+  // soft-delete a variant → gone from the storefront, stock recomputed
+  await fetch(B + `/variants/${blue.id}`, { method: "DELETE", headers: auth });
+  const afterDel = await get(`/products/${prod.id}`);
+  assert.equal(afterDel.variants.length, 1);
+  assert.equal(afterDel.stock, 4);
+
+  // ordering a variant product without picking one is refused
+  const noPick = await fetch(B + "/orders", j({
+    items: [{ id: prod.id, qty: 1 }], email: "x@t.pk", customer: "X", phone: "03001234567", address: "a", city: "Lahore", payment: "cod",
+  }));
+  assert.equal(noPick.status, 400);
+  assert.match((await noPick.json()).error, /choose an option/i);
+
+  // soft-delete the product → disappears from the catalog
+  await fetch(B + `/products/${prod.id}`, { method: "DELETE", headers: auth });
+  const catalog = await get("/products");
+  assert.ok(!catalog.some((p) => p.id === prod.id), "soft-deleted products leave the storefront");
+});
+
+test("guest cart merges into the user cart on login (variants preserved)", async () => {
+  // the user already has a cart of their own …
+  const own = await (await fetch(B + "/cart/items", {
+    ...j({ productId: 13, qty: 1 }),
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${userToken}` },
+  })).json();
+  // … and a guest cart exists in the browser with a variant + a plain item
+  const guest = await (await fetch(B + "/cart/items", j({ productId: 3, variantId: 5, qty: 1 }))).json();
+  await fetch(B + "/cart/items", {
+    ...j({ productId: 6, qty: 2 }),
+    headers: { "Content-Type": "application/json", "X-Cart-Id": guest.id },
+  });
+  // logging in sends both → the guest cart must merge, not blow up
+  const r = await fetch(B + "/cart", { headers: { Authorization: `Bearer ${userToken}`, "X-Cart-Id": guest.id } });
+  assert.equal(r.status, 200, "merging a guest cart must not 500");
+  const merged = await r.json();
+  assert.equal(merged.id, own.id, "guest items land in the user's existing cart");
+  assert.ok(merged.items.some((i) => i.productId === 3 && i.variantId === 5), "variant survives the merge");
+  assert.ok(merged.items.some((i) => i.productId === 6 && i.qty === 2), "plain item survives the merge");
+  assert.ok(merged.items.some((i) => i.productId === 13), "the user's own item is still there");
+});
+
 test("WhatsApp order: stays Pending and unpaid (like COD)", async () => {
   const r = await fetch(
     B + "/orders",
