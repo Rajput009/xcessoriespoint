@@ -7,6 +7,7 @@ import RecentlyViewed from "../components/RecentlyViewed";
 import { swatchFor, allColorVariants, swatchStyle } from "../lib/swatch";
 import { track } from "../lib/tracking";
 import { pixelTrack } from "../lib/pixel";
+import { buildOrderMessage, openWhatsApp, WHATSAPP_NUMBER } from "../lib/whatsapp";
 
 interface Review {
   id: number;
@@ -146,6 +147,40 @@ export default function ProductPage({ id }: { id: number }) {
   const out = availableStock <= 0;
   const perks = CATEGORY_PERKS[product.category] ?? [];
 
+  /* ---- order this product straight on WhatsApp ---- */
+  const orderOnWhatsApp = () => {
+    const needsVariant = (product.variants?.length ?? 0) > 0 && !variant;
+    if (needsVariant) {
+      push("Please choose an option first", "error");
+      document.getElementById("xp-variants")?.scrollIntoView?.({ behavior: "smooth", block: "center" });
+      return;
+    }
+    // treated as a checkout start — it is one, just handed off to WhatsApp
+    track("checkout_start", { via: "whatsapp", productId: product.id, qty, variantId: variantId || null, value: unitPrice * qty });
+    pixelTrack("InitiateCheckout", {
+      content_ids: [String(product.id)],
+      num_items: qty,
+      value: unitPrice * qty,
+      currency: "PKR",
+    });
+    openWhatsApp(
+      buildOrderMessage({
+        lines: [{ name: product.name, variantLabel: variant?.label ?? null, qty, price: unitPrice }],
+        subtotal: unitPrice * qty,
+        shipping: unitPrice * qty >= 5000 ? 0 : 250,
+        total: unitPrice * qty + (unitPrice * qty >= 5000 ? 0 : 250),
+        name: user?.name ?? "",
+        phone: "",
+        email: user?.email ?? "",
+        address: "",
+        city: "",
+        notes: `Product link: ${location.href}`,
+        payment: "whatsapp",
+      })
+    );
+    push("Opening WhatsApp with your order 💬", "info");
+  };
+
   const submitReview = async (e: FormEvent) => {
     e.preventDefault();
     setRevBusy(true);
@@ -272,7 +307,7 @@ export default function ProductPage({ id }: { id: number }) {
           </p>
 
           {product.variants && product.variants.length > 0 && (
-            <div className="mb-6">
+            <div className="mb-6" id="xp-variants">
               <p className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-2.5">
                 {allColorVariants(product.variants) ? "Color" : "Choose option"}
                 {variant ? <span className="text-slate-800 normal-case"> — {variant.label}
@@ -451,10 +486,26 @@ export default function ProductPage({ id }: { id: number }) {
           <button
             disabled={out}
             onClick={() => { add(product, qty, variantId); navigate("/checkout"); }}
-            className="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold hover:from-emerald-700 hover:to-teal-700 neon-glow-soft transition-all mb-6 disabled:opacity-40"
+            className="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold hover:from-emerald-700 hover:to-teal-700 neon-glow-soft transition-all mb-3 disabled:opacity-40"
           >
             Buy Now →
           </button>
+
+          {/* order on WhatsApp */}
+          <button
+            disabled={out}
+            onClick={orderOnWhatsApp}
+            className="w-full py-3 rounded-xl bg-[#25D366] text-white font-bold hover:brightness-95 transition-all mb-2 disabled:opacity-40 flex items-center justify-center gap-2.5"
+          >
+            <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5" aria-hidden>
+              <path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.46 1.32 4.96L2 22l5.25-1.38a9.86 9.86 0 0 0 4.79 1.22h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2zm0 18.02h-.01a8.2 8.2 0 0 1-4.18-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.17 8.17 0 0 1-1.25-4.35c0-4.53 3.7-8.22 8.24-8.22 2.2 0 4.27.86 5.82 2.41a8.18 8.18 0 0 1 2.41 5.82c0 4.54-3.7 8.2-8.24 8.2z" />
+              <path d="M17.47 14.38c-.3-.15-1.75-.86-2.02-.96-.27-.1-.47-.15-.67.15-.2.3-.77.96-.94 1.16-.17.2-.35.22-.65.08-.3-.15-1.25-.46-2.39-1.47-.88-.79-1.48-1.76-1.65-2.06-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.67-1.6-.92-2.2-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48s1.06 2.88 1.21 3.08c.15.2 2.1 3.2 5.08 4.49.71.3 1.26.49 1.69.63.71.22 1.36.19 1.87.12.57-.09 1.75-.72 2-1.41.25-.69.25-1.28.17-1.41-.07-.13-.27-.2-.57-.35z" />
+            </svg>
+            Order on WhatsApp
+          </button>
+          <p className="text-center text-[11px] text-slate-400 mb-6">
+            No card, no account — we confirm on {"+" + WHATSAPP_NUMBER} in minutes.
+          </p>
 
           {/* share */}
           <div className="flex items-center gap-2 mb-5">
