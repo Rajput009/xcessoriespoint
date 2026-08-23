@@ -38,6 +38,8 @@ export default function ProductCard({ product }: { product: Product }) {
           src={product.image}
           alt={product.name}
           loading="lazy"
+          width={400}
+          height={400}
           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
         />
         <span className="absolute top-3 left-3 flex flex-col gap-1.5 items-start">

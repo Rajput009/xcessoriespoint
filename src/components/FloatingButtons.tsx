@@ -1,10 +1,9 @@
 import { useEffect, useState } from "react";
-import { useToast } from "../context/store";
+import { waLink } from "../lib/whatsapp";
 import { ArrowUpIcon, MessageIcon } from "./icons";
 
 export default function FloatingButtons() {
   const [visible, setVisible] = useState(false);
-  const { push } = useToast();
 
   useEffect(() => {
     const onScroll = () => setVisible(window.scrollY > 300);
@@ -18,8 +17,8 @@ export default function FloatingButtons() {
     <>
       <button
         onClick={() => {
-          window.open("https://wa.me/923000000000?text=" + encodeURIComponent("Hi! I need help with my XccessoriesPoint order."), "_blank");
-          push("Opening WhatsApp support 💬", "info");
+          // single source of truth: VITE_WHATSAPP_NUMBER via lib/whatsapp
+          window.open(waLink("Hi! I need help with my XccessoriesPoint order."), "_blank");
         }}
         className="fixed bottom-36 md:bottom-6 left-4 z-30 w-12 h-12 rounded-full bg-gradient-to-br from-emerald-500 to-teal-700 text-white shadow-lg shadow-emerald-600/30 hover:scale-105 transition-transform flex items-center justify-center fade-up"
         aria-label="WhatsApp support"

@@ -147,9 +147,6 @@ function AuthModal({ onClose }: { onClose: () => void }) {
           {busy ? "Please wait…" : mode === "login" ? "Sign in" : "Create account"}
         </button>
       </form>
-      <p className="mt-4 text-xs text-slate-400 text-center">
-        Admin demo: admin@xccessoriespoint.com / admin123
-      </p>
     </CenterModal>
   );
 }

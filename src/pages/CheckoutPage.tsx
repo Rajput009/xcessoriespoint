@@ -5,6 +5,7 @@ import type { Order } from "../types";
 import { track } from "../lib/tracking";
 import { swatchFor, swatchStyle } from "../lib/swatch";
 import { pixelTrack } from "../lib/pixel";
+import { useStoreConfig, cfgNum } from "../lib/config";
 import { buildOrderMessage, openWhatsApp, paymentLabel, WHATSAPP_NUMBER } from "../lib/whatsapp";
 
 const CITIES = ["Lahore", "Karachi", "Islamabad", "Rawalpindi", "Faisalabad", "Multan", "Peshawar", "Quetta", "Sialkot", "Gujranwala", "Hyderabad", "Other"];
@@ -147,7 +148,12 @@ export default function CheckoutPage() {
   }, []);
 
   const discount = coupon?.discount ?? 0;
-  const shipping = coupon?.freeShip || total >= 5000 || total === 0 ? 0 : 250;
+  // thresholds/fee come from Admin → Settings via /api/config — the server
+  // remains the source of truth at charge time, this only keeps the preview honest
+  const cfg = useStoreConfig();
+  const shipThreshold = cfgNum(cfg?.freeShippingThreshold, 5000);
+  const shipFee = cfgNum(cfg?.shippingFee, 250);
+  const shipping = coupon?.freeShip || total >= shipThreshold || total === 0 ? 0 : shipFee;
   const grand = Math.max(0, total - discount + shipping);
 
   // coupon prefilled by the exit-intent offer
@@ -183,14 +189,27 @@ export default function CheckoutPage() {
 
   /* ---------------- validation ---------------- */
   const isWhatsApp = payment === "whatsapp";
+  // accept how Pakistanis actually type numbers: +92 / 0092 / spaces / dashes.
+  // normalization lives HERE (single source of truth) so the stored value is
+  // always canonical and the validator below can't drift from the input mask
+  const normalizePhone = (v: string) => {
+    let d = v.replace(/[^0-9+]/g, "");
+    if (d.startsWith("+92")) d = "0" + d.slice(3);
+    else if (d.startsWith("0092")) d = "0" + d.slice(4);
+    else if (d.startsWith("92") && d.length >= 11) d = "0" + d.slice(2);
+    return d.replace(/[^0-9]/g, "").slice(0, 11);
+  };
+  const normalizedPhone = normalizePhone(phone);
   const errors = {
     name: !name.trim() ? "Enter a name" : null,
     email: !email.trim() ? (isWhatsApp ? null : "Enter an email address") : /^\S+@\S+\.\S+$/.test(email) ? null : "Enter a valid email",
-    phone: !/^03[0-9]{9}$/.test(phone) ? "Enter a valid phone (03xxxxxxxxx)" : null,
+    phone: !/^03[0-9]{9}$/.test(normalizedPhone) ? "Enter a valid phone (03xx xxxxxxx)" : null,
     address: !address.trim() ? "Enter an address" : null,
   };
   const valid = !Object.values(errors).some(Boolean);
 
+  /* WhatsApp pre-send preview (display only — the real message is rebuilt
+     server-side data after the order exists, never used to fake one) */
   const waMessage = useMemo(
     () =>
       buildOrderMessage({
@@ -206,7 +225,7 @@ export default function CheckoutPage() {
         shipping,
         total: grand,
         name,
-        phone,
+        phone: normalizedPhone,
         email,
         address,
         apartment,
@@ -215,7 +234,7 @@ export default function CheckoutPage() {
         notes,
         payment,
       }),
-    [items, total, discount, coupon, shipping, grand, name, phone, email, address, apartment, city, postalCode, notes, payment]
+    [items, total, discount, coupon, shipping, grand, name, normalizedPhone, email, address, apartment, city, postalCode, notes, payment]
   );
 
   /* ---------------- submit ---------------- */
@@ -229,15 +248,18 @@ export default function CheckoutPage() {
     }
     setBusy(true);
     try {
+      // one conversion: browser pixel + server CAPI share this ID for dedup
+      const eventId = crypto.randomUUID();
       const o = await placeOrderAPI({
         items: items.map((i) => ({ id: i.product.id, qty: i.qty, variantId: i.variantId || undefined })),
         coupon: coupon?.code,
         email,
         customer: name,
-        phone,
+        phone: normalizedPhone,
         address: [address, apartment].filter(Boolean).join(", "),
         city: postalCode ? `${city} ${postalCode}` : city,
         payment,
+        eventId,
       });
       setOrder(o);
       localStorage.removeItem("xp_checkout");
@@ -247,6 +269,7 @@ export default function CheckoutPage() {
         content_type: "product",
         content_ids: o.items.map((i) => String((i as { productId?: number }).productId ?? "")),
         num_items: o.items.reduce((s, i) => s + i.qty, 0),
+        eventID: eventId,
       });
       if (isWhatsApp) {
         openWhatsApp(
@@ -274,13 +297,12 @@ export default function CheckoutPage() {
       push(`Order ${o.id} placed! 🎉`);
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (err) {
-      if (isWhatsApp) {
-        // API down? Still hand the order to WhatsApp so the sale isn't lost.
-        openWhatsApp(waMessage);
-        push("Sending your order on WhatsApp…", "info");
-      } else {
-        push(err instanceof Error ? err.message : "Could not place order — is the API running?", "error");
-      }
+      // no fake success: if the API fails, NO order exists. Opening WhatsApp
+      // with client-computed totals would mislead the customer and create an
+      // order the store can't see — show the real error instead.
+      // also stop persisting their contact details after a failed attempt
+      localStorage.removeItem("xp_checkout");
+      push(err instanceof Error ? err.message : "Could not place order — please try again or contact us on WhatsApp.", "error");
     } finally {
       setBusy(false);
     }
@@ -499,11 +521,14 @@ export default function CheckoutPage() {
                       error={showErrors ? errors.email : null}
                     />
                     <Field
-                      label="Phone (03xxxxxxxxx)"
-                      inputMode="numeric"
+                      label="Phone (03xx xxxxxxx)"
+                      inputMode="tel"
                       autoComplete="tel"
                       value={phone}
-                      onChange={(v) => setPhone(v.replace(/[^0-9]/g, "").slice(0, 11))}
+                      // no mangling here — normalizePhone() owns the format;
+                      // stripping +92 prefixes in the mask used to cut the
+                      // last digit off pasted international numbers
+                      onChange={setPhone}
                       error={showErrors ? errors.phone : null}
                     />
                     <label className="flex items-center gap-2.5 text-[13px] text-slate-600">
@@ -583,7 +608,7 @@ export default function CheckoutPage() {
                   <div className="flex items-center justify-between rounded-md border-2 border-emerald-600 bg-emerald-50/60 px-4 py-3.5">
                     <span className="text-sm">
                       <span className="block font-semibold text-slate-900">Standard courier</span>
-                      <span className="block text-xs text-slate-500">TCS / Leopards · 2–4 working days</span>
+                      <span className="block text-xs text-slate-500">TCS / Leopards · {cfg?.deliveryDaysOther ?? "3-5"} working days</span>
                     </span>
                     <span className="text-sm font-semibold">{shipping === 0 ? "FREE" : fmt(shipping)}</span>
                   </div>
@@ -704,6 +729,37 @@ function ThankYou({
 }) {
   const eta = (d: number) =>
     new Date(Date.now() + d * 86400000).toLocaleDateString("en-PK", { weekday: "short", day: "numeric", month: "short" });
+  // city-aware ETA from the same settings the checkout copy and Terms use
+  const cfg = useStoreConfig();
+  const metro = /lahore|karachi/i.test(meta.city || "");
+  const [loDays, hiDays] = (metro ? cfg?.deliveryDaysCity ?? "2-3" : cfg?.deliveryDaysOther ?? "3-5")
+    .split("-").map((n) => parseInt(n, 10) || 0);
+  const etaRange = `${eta(loDays || 2)} – ${eta(hiDays || loDays + 1 || 4)}`;
+
+  /* guest → account upgrade (commitment & consistency: they just bought) */
+  const { user, register } = useAuth();
+  const { push } = useToast();
+  const [pwOpen, setPwOpen] = useState(false);
+  const [pw, setPw] = useState("");
+  const [pwBusy, setPwBusy] = useState(false);
+  const [acctDone, setAcctDone] = useState(false);
+  const showUpgrade = !user && !!meta.email;
+
+  const createAccount = async () => {
+    if (pw.length < 6) return push("Password must be at least 6 characters", "error");
+    setPwBusy(true);
+    try {
+      await register(meta.name || "Customer", meta.email, pw);
+      setAcctDone(true);
+      push("Account created — you're logged in 🎉");
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "";
+      if (/already exists/i.test(msg)) push("An account with this email already exists — log in from the menu to see this order.", "error");
+      else push(msg || "Could not create account", "error");
+    } finally {
+      setPwBusy(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-white">
@@ -755,8 +811,53 @@ function ThankYou({
               <p className="font-semibold text-slate-900 mb-1">Your order is confirmed</p>
               <p className="text-sm text-slate-500">
                 We'll send tracking details {meta.email ? `to ${meta.email}` : "on WhatsApp"}. Estimated delivery{" "}
-                <span className="font-semibold text-slate-700">{eta(2)} – {eta(4)}</span>.
+                <span className="font-semibold text-slate-700">{etaRange}</span>.
               </p>
+
+              {/* what happens next — sets expectations & builds anticipation */}
+              <div className="mt-5 pt-5 border-t border-slate-100">
+                <p className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-4">What happens next</p>
+                <ol>
+                  {(meta.payment === "cod" || meta.payment === "whatsapp"
+                    ? [
+                        { label: "Order placed", sub: `Reference ${order.id}`, done: true },
+                        { label: "Quick phone confirmation", sub: "We'll call you shortly to confirm — keep your phone nearby", done: false },
+                        { label: "Dispatched", sub: "Packed and handed to the courier", done: false },
+                        { label: "Delivered", sub: `Estimated ${etaRange} · pay cash on arrival`, done: false },
+                      ]
+                    : [
+                        { label: "Order placed", sub: `Reference ${order.id}`, done: true },
+                        { label: "Payment received", sub: "Paid online — nothing else needed from you", done: true },
+                        { label: "Dispatched", sub: "Packed and handed to the courier", done: false },
+                        { label: "Delivered", sub: `Estimated ${etaRange}`, done: false },
+                      ]
+                  ).map((s, i, arr) => (
+                    <li key={s.label} className="flex gap-3">
+                      <div className="flex flex-col items-center">
+                        <span
+                          className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 ${
+                            s.done ? "bg-emerald-600 text-white" : "border-2 border-slate-200 text-transparent"
+                          }`}
+                        >
+                          ✓
+                        </span>
+                        {i < arr.length - 1 && <span className="w-px flex-1 bg-slate-200 my-0.5" />}
+                      </div>
+                      <div className={i < arr.length - 1 ? "pb-4" : ""}>
+                        <p className={`text-sm font-semibold leading-5 ${s.done ? "text-emerald-700" : "text-slate-700"}`}>
+                          {s.label}
+                        </p>
+                        <p className="text-xs text-slate-400">{s.sub}</p>
+                      </div>
+                    </li>
+                  ))}
+                </ol>
+                {(meta.payment === "cod" || meta.payment === "whatsapp") && (
+                  <p className="mt-3 text-xs text-amber-700 bg-amber-50 border border-amber-100 rounded-md px-3 py-2">
+                    💡 Pay only when your order arrives — have {fmt(order.total)} ready for the courier.
+                  </p>
+                )}
+              </div>
             </div>
 
             <div className="mt-5 rounded-lg border border-slate-200 p-5">
@@ -819,13 +920,51 @@ function ThankYou({
             </button>
 
             <div className="mt-4 flex flex-wrap gap-3">
-              <button onClick={() => printInvoice(order, meta)} className="flex-1 min-w-[160px] rounded-md border border-slate-300 py-3 text-sm font-semibold hover:bg-slate-50">
+              <button onClick={() => printInvoice(order, meta, () => push("Popup blocked — allow popups to print the invoice", "error"))} className="flex-1 min-w-[160px] rounded-md border border-slate-300 py-3 text-sm font-semibold hover:bg-slate-50">
                 🧾 Download invoice
               </button>
               <button onClick={onShop} className="flex-1 min-w-[160px] rounded-md bg-slate-900 py-3 text-sm font-semibold text-white hover:bg-emerald-700">
                 Continue shopping
               </button>
             </div>
+
+            {/* one-click account upgrade — pre-filled with the details just used */}
+            {showUpgrade && !acctDone && (
+              <div className="mt-5 rounded-lg border border-emerald-200 bg-emerald-50/60 p-5">
+                <p className="font-semibold text-slate-900 text-sm">Save your details & track orders</p>
+                <p className="text-xs text-slate-500 mt-0.5 mb-3">
+                  Create a password for <span className="font-semibold text-slate-700">{meta.email}</span> — your
+                  address and this order are saved automatically.
+                </p>
+                {pwOpen ? (
+                  <div className="flex gap-2">
+                    <input
+                      type="password"
+                      value={pw}
+                      onChange={(e) => setPw(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && createAccount()}
+                      placeholder="Choose a password (6+ characters)"
+                      autoComplete="new-password"
+                      className="flex-1 rounded-md border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-emerald-500 bg-white"
+                    />
+                    <button
+                      onClick={createAccount}
+                      disabled={pwBusy}
+                      className="rounded-md bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-emerald-700 disabled:opacity-50 whitespace-nowrap"
+                    >
+                      {pwBusy ? "Creating…" : "Create account"}
+                    </button>
+                  </div>
+                ) : (
+                  <button onClick={() => setPwOpen(true)} className="text-sm font-bold text-emerald-700 hover:underline">
+                    Yes, save my details →
+                  </button>
+                )}
+              </div>
+            )}
+            {acctDone && (
+              <p className="mt-4 text-sm font-semibold text-emerald-700">✓ Account created — your address is saved for next time.</p>
+            )}
 
             <p className="mt-6 text-sm text-slate-500">
               Need help?{" "}
@@ -841,14 +980,18 @@ function ThankYou({
 }
 
 /* ---------- printable invoice (opens print dialog → save as PDF) ---------- */
+const escHtml = (s: unknown) =>
+  String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
 function printInvoice(
   order: Order,
-  meta: { name: string; email: string; address: string; city: string; payment: string }
+  meta: { name: string; email: string; address: string; city: string; payment: string },
+  onBlocked?: () => void
 ) {
   const rows = order.items
     .map(
       (i) =>
-        `<tr><td>${i.name}</td><td style="text-align:center">${i.qty}</td><td style="text-align:right">Rs ${i.price.toLocaleString()}</td><td style="text-align:right">Rs ${(i.price * i.qty).toLocaleString()}</td></tr>`
+        `<tr><td>${escHtml(i.name)}</td><td style="text-align:center">${i.qty}</td><td style="text-align:right">Rs ${i.price.toLocaleString()}</td><td style="text-align:right">Rs ${(i.price * i.qty).toLocaleString()}</td></tr>`
     )
     .join("");
   const html = `<!doctype html><html><head><title>Invoice ${order.id}</title><style>
@@ -860,14 +1003,14 @@ function printInvoice(
     .tot{font-weight:800} .brand{color:#059669}
   </style></head><body>
     <h1>Xccessories<span class="brand">Point</span> — Invoice</h1>
-    <p class="muted">Order <b>${order.id}</b> · ${new Date(order.createdAt ?? Date.now()).toLocaleDateString()} · Payment: ${meta.payment.toUpperCase()}</p>
-    <p class="muted">Bill to: ${meta.name} · ${meta.email}<br/>${meta.address}, ${meta.city}</p>
+    <p class="muted">Order <b>${escHtml(order.id)}</b> · ${new Date(order.createdAt ?? Date.now()).toLocaleDateString()} · Payment: ${escHtml(meta.payment.toUpperCase())}</p>
+    <p class="muted">Bill to: ${escHtml(meta.name)} · ${escHtml(meta.email)}<br/>${escHtml(meta.address)}, ${escHtml(meta.city)}</p>
     <table>
       <thead><tr><th>Item</th><th style="text-align:center">Qty</th><th style="text-align:right">Price</th><th style="text-align:right">Total</th></tr></thead>
       <tbody>${rows}</tbody>
       <tfoot>
         <tr><td colspan="3" style="text-align:right">Subtotal</td><td style="text-align:right">Rs ${(order.subtotal ?? 0).toLocaleString()}</td></tr>
-        ${order.discount ? `<tr><td colspan="3" style="text-align:right">Discount${order.couponCode ? ` (${order.couponCode})` : ""}</td><td style="text-align:right">−Rs ${order.discount.toLocaleString()}</td></tr>` : ""}
+        ${order.discount ? `<tr><td colspan="3" style="text-align:right">Discount${order.couponCode ? ` (${escHtml(order.couponCode)})` : ""}</td><td style="text-align:right">−Rs ${order.discount.toLocaleString()}</td></tr>` : ""}
         <tr><td colspan="3" style="text-align:right">Shipping</td><td style="text-align:right">${order.shipping ? "Rs " + order.shipping.toLocaleString() : "FREE"}</td></tr>
         <tr class="tot"><td colspan="3" style="text-align:right">Grand total</td><td style="text-align:right">Rs ${order.total.toLocaleString()}</td></tr>
       </tfoot>
@@ -879,5 +1022,7 @@ function printInvoice(
   if (w) {
     w.document.write(html);
     w.document.close();
+  } else if (onBlocked) {
+    onBlocked(); // popup blocker fired — tell the user instead of doing nothing
   }
 }

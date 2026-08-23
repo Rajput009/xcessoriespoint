@@ -165,10 +165,10 @@ export function NewArrivalsCarousel() {
 /* ---------- 8. CategoryBanners ---------- */
 export function CategoryBanners() {
   const tiles = [
-    { big: true, title: "Audio Week", copy: "Up to 40% off earbuds & headphones", img: "/img/headphones.jpg", to: "/shop?cat=audio", tint: "from-violet-950/85 via-violet-900/25" },
-    { title: "Wearables", copy: "From Rs 2,999", img: "/img/smartwatch.jpg", to: "/shop?cat=wearables", tint: "from-emerald-950/85 via-emerald-900/25" },
-    { title: "Power Up", copy: "Chargers & banks", img: "/img/powerbank.jpg", to: "/shop?cat=power", tint: "from-amber-950/85 via-amber-900/25" },
-    { title: "Protect It", copy: "Cases from Rs 999", img: "/img/case.jpg", to: "/shop?cat=cases", tint: "from-rose-950/85 via-rose-900/25" },
+    { big: true, title: "Audio Week", copy: "Up to 40% off earbuds & headphones", img: "/img/headphones.jpg", to: "/category/audio", tint: "from-violet-950/85 via-violet-900/25" },
+    { title: "Wearables", copy: "From Rs 2,999", img: "/img/smartwatch.jpg", to: "/category/wearables", tint: "from-emerald-950/85 via-emerald-900/25" },
+    { title: "Power Up", copy: "Chargers & banks", img: "/img/powerbank.jpg", to: "/category/power", tint: "from-amber-950/85 via-amber-900/25" },
+    { title: "Protect It", copy: "Cases from Rs 999", img: "/img/case.jpg", to: "/category/cases", tint: "from-rose-950/85 via-rose-900/25" },
   ];
   return (
     <section className="max-w-7xl mx-auto px-6 py-10">

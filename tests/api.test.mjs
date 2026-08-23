@@ -17,7 +17,13 @@ const get = async (p, headers = {}) => (await fetch(B + p, { headers })).json();
 before(async () => {
   for (const f of [DB, DB + "-wal", DB + "-shm"]) fs.rmSync(f, { force: true });
   child = spawn("node", ["server/index.mjs"], {
-    env: { ...process.env, PORT: String(PORT), XP_DB_PATH: DB },
+    env: {
+      ...process.env,
+      PORT: String(PORT),
+      XP_DB_PATH: DB,
+      XP_ADMIN_EMAIL: "admin@xccessoriespoint.com",
+      XP_ADMIN_PASSWORD: "admin123",
+    },
     stdio: "ignore",
   });
   // wait for the server to listen
@@ -203,7 +209,13 @@ test("manual category order survives a server restart", async () => {
 
   const PORT2 = PORT + 1;
   const second = spawn("node", ["server/index.mjs"], {
-    env: { ...process.env, PORT: String(PORT2), XP_DB_PATH: DB },
+    env: {
+      ...process.env,
+      PORT: String(PORT2),
+      XP_DB_PATH: DB,
+      XP_ADMIN_EMAIL: "admin@xccessoriespoint.com",
+      XP_ADMIN_PASSWORD: "admin123",
+    },
     stdio: "ignore",
   });
   try {

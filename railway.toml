@@ -10,8 +10,9 @@ numReplicas = 1
 [env]
 NODE_ENV = "production"
 XP_DB_PATH = "/data/store.db"
-# Set this to your assigned *.up.railway.app URL (or custom domain) after deploy
-XP_BASE_URL = "https://example.up.railway.app"
+# Set XP_BASE_URL to your real domain (or assigned *.up.railway.app URL) after
+# deploy — sitemap, OG tags and canonical URLs all derive from it. See DEPLOY.md.
+XP_BASE_URL = ""
 
 [[volumes]]
 name = "data"

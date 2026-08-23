@@ -33,4 +33,6 @@ RUN npm prune --omit=dev
 ENV NODE_ENV=production
 
 EXPOSE 4173
+# Run as the non-root node user — the app only writes to /data (volume) and tmp
+USER node
 CMD ["node", "server/index.mjs"]

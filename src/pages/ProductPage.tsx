@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { Link, useRouter } from "../router";
 import { useAuth, useCart, useProducts, useToast, useWishlist, fmt } from "../context/store";
 import ProductCard, { Stars } from "../components/ProductCard";
@@ -7,6 +7,7 @@ import RecentlyViewed from "../components/RecentlyViewed";
 import { swatchFor, allColorVariants, swatchStyle } from "../lib/swatch";
 import { track } from "../lib/tracking";
 import { pixelTrack } from "../lib/pixel";
+import { setMeta } from "../lib/seo";
 import { buildOrderMessage, openWhatsApp, WHATSAPP_NUMBER } from "../lib/whatsapp";
 
 interface Review {
@@ -40,6 +41,8 @@ export default function ProductPage({ id }: { id: number }) {
   const [revText, setRevText] = useState("");
   const [revBusy, setRevBusy] = useState(false);
   const [soldWeek, setSoldWeek] = useState(0);
+  const [topVariantId, setTopVariantId] = useState<number | null>(null);
+  const variantTouched = useRef(false);
   const [showSticky, setShowSticky] = useState(false);
   const [alertEmail, setAlertEmail] = useState("");
   const [alertDone, setAlertDone] = useState(false);
@@ -62,7 +65,45 @@ export default function ProductPage({ id }: { id: number }) {
     } else {
       setVariantId(0);
     }
-    document.title = `${product.name} — XccessoriesPoint`;
+    setMeta({
+      title: `${product.name} — XccessoriesPoint`,
+      description:
+        product.description?.slice(0, 160) ||
+        `Buy ${product.name} at XccessoriesPoint — Rs ${fmt(product.price)}. COD nationwide, 7-day returns.`,
+      image: product.image,
+      url: `/product/${product.id}`,
+      type: "product",
+      jsonLd: [
+        {
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          itemListElement: [
+            { "@type": "ListItem", position: 1, name: "Home", item: location.origin + "/" },
+            { "@type": "ListItem", position: 2, name: "Shop", item: location.origin + "/shop" },
+            { "@type": "ListItem", position: 3, name: catName ?? product.category, item: `${location.origin}/category/${product.category}` },
+            { "@type": "ListItem", position: 4, name: product.name, item: `${location.origin}/product/${product.id}` },
+          ],
+        },
+        {
+          "@context": "https://schema.org",
+          "@type": "Product",
+          name: product.name,
+          image: product.image ? location.origin + product.image : undefined,
+          description: product.description || undefined,
+          category: catName,
+          aggregateRating:
+            product.reviews > 0
+              ? { "@type": "AggregateRating", ratingValue: product.rating, reviewCount: product.reviews }
+              : undefined,
+          offers: {
+            "@type": "Offer",
+            priceCurrency: "PKR",
+            price: product.price,
+            availability: product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+          },
+        },
+      ],
+    });
     track("product_view", { id: product.id, name: product.name });
     pixelTrack("ViewContent", {
       content_ids: [String(product.id)],
@@ -76,8 +117,20 @@ export default function ProductPage({ id }: { id: number }) {
       .then(setReviews)
       .catch(() => {});
     fetch(`/api/products/${product.id}/stats`)
-      .then((r) => (r.ok ? r.json() : { soldThisWeek: 0 }))
-      .then((d) => setSoldWeek(d.soldThisWeek ?? 0))
+      .then((r) => (r.ok ? r.json() : { soldThisWeek: 0, topVariantId: null }))
+      .then((d) => {
+        setSoldWeek(d.soldThisWeek ?? 0);
+        const topId = d.topVariantId ?? null;
+        setTopVariantId(topId);
+        // pre-select the best-selling variant unless the shopper already chose one
+        if (topId && !variantTouched.current) {
+          const tv = product.variants?.find((v) => v.id === topId);
+          if (tv && tv.stock > 0) {
+            setVariantId(topId);
+            if (tv.image) { setImgIdx(0); }
+          }
+        }
+      })
       .catch(() => {});
     // recently-viewed history (functional storage, max 8)
     try {
@@ -86,27 +139,6 @@ export default function ProductPage({ id }: { id: number }) {
       localStorage.setItem("xp_recent", JSON.stringify(next));
     } catch { /* ignore */ }
     window.scrollTo({ top: 0 });
-    // SEO: Product structured data (JSON-LD)
-    const ld = document.createElement("script");
-    ld.type = "application/ld+json";
-    ld.id = "product-jsonld";
-    ld.textContent = JSON.stringify({
-      "@context": "https://schema.org",
-      "@type": "Product",
-      name: product.name,
-      image: location.origin + product.image,
-      description: product.description,
-      aggregateRating: { "@type": "AggregateRating", ratingValue: product.rating, reviewCount: product.reviews },
-      offers: {
-        "@type": "Offer",
-        priceCurrency: "PKR",
-        price: product.price,
-        availability: product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
-      },
-    });
-    document.getElementById("product-jsonld")?.remove();
-    document.head.appendChild(ld);
-    return () => document.getElementById("product-jsonld")?.remove();
   }, [product?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // sticky mobile CTA appears after scrolling past the fold
@@ -178,7 +210,6 @@ export default function ProductPage({ id }: { id: number }) {
         payment: "whatsapp",
       })
     );
-    push("Opening WhatsApp with your order 💬", "info");
   };
 
   const submitReview = async (e: FormEvent) => {
@@ -208,7 +239,7 @@ export default function ProductPage({ id }: { id: number }) {
         <span className="mx-1.5">/</span>
         <Link to="/shop" className="hover:text-emerald-600">Shop</Link>
         <span className="mx-1.5">/</span>
-        <Link to={`/shop?cat=${product.category}`} className="hover:text-emerald-600 capitalize">{catName}</Link>
+        <Link to={`/category/${product.category}`} className="hover:text-emerald-600 capitalize">{catName}</Link>
         <span className="mx-1.5">/</span>
         <span className="text-slate-600 font-medium">{product.name}</span>
       </nav>
@@ -248,6 +279,8 @@ export default function ProductPage({ id }: { id: number }) {
                 key={mainImage}
                 src={mainImage}
                 alt={product.name}
+                width={800}
+                height={800}
                 className="w-full aspect-square object-cover hover:scale-110 transition-transform duration-700 fade-up"
                 fetchPriority="high"
               />
@@ -266,7 +299,13 @@ export default function ProductPage({ id }: { id: number }) {
                       : "opacity-60 hover:opacity-100 glass-soft"
                   }`}
                 >
-                  <img src={src} alt="" className="w-full h-full object-cover" />
+                  <img
+                    src={src}
+                    alt={`${product.name} — image ${i + 1}`}
+                    width={160}
+                    height={160}
+                    className="w-full h-full object-cover"
+                  />
                 </button>
               ))}
             </div>
@@ -275,7 +314,7 @@ export default function ProductPage({ id }: { id: number }) {
 
         {/* details */}
         <div>
-          <Link to={`/shop?cat=${product.category}`} className="text-xs font-bold uppercase tracking-widest text-emerald-600 hover:underline">
+          <Link to={`/category/${product.category}`} className="text-xs font-bold uppercase tracking-widest text-emerald-600 hover:underline">
             {catName}
           </Link>
           <h1 className="text-3xl md:text-4xl font-black text-slate-900 mt-2 mb-3">{product.name}</h1>
@@ -315,6 +354,9 @@ export default function ProductPage({ id }: { id: number }) {
                     <span className="text-slate-400"> ({variant.priceDelta > 0 ? "+" : "−"}{fmt(Math.abs(variant.priceDelta))})</span>
                   )}
                 </span> : null}
+                {topVariantId !== null && variant?.id === topVariantId && (
+                  <span className="ml-2 normal-case bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">🔥 Most popular</span>
+                )}
               </p>
               {allColorVariants(product.variants) ? (
                 /* circle swatches for color options */
@@ -330,7 +372,7 @@ export default function ProductPage({ id }: { id: number }) {
                         disabled={out2}
                         title={`${v.label}${out2 ? " — sold out" : ""}`}
                         aria-label={v.label}
-                        onClick={() => { setVariantId(v.id); setQty(1); setImgIdx(0); setHoverPreview(null); }}
+                        onClick={() => { variantTouched.current = true; setVariantId(v.id); setQty(1); setImgIdx(0); setHoverPreview(null); }}
                         onMouseEnter={() => v.image && setHoverPreview(v.image)}
                         onMouseLeave={() => setHoverPreview(null)}
                         className={`relative w-11 h-11 rounded-full transition-all ${
@@ -369,7 +411,7 @@ export default function ProductPage({ id }: { id: number }) {
                         key={v.id}
                         type="button"
                         disabled={v.stock <= 0}
-                        onClick={() => { setVariantId(v.id); setQty(1); setImgIdx(0); }}
+                        onClick={() => { variantTouched.current = true; setVariantId(v.id); setQty(1); setImgIdx(0); }}
                         className={`px-4 py-2.5 rounded-xl text-sm font-semibold transition-all inline-flex items-center gap-2 ${
                           v.id === variantId
                             ? "bg-emerald-600 text-white neon-glow-soft"

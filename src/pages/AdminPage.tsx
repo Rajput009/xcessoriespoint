@@ -16,6 +16,9 @@ const SECTIONS = [
   { id: "returns", label: "Returns", icon: "↩️" },
   { id: "tickets", label: "Tickets", icon: "🎫" },
   { id: "notifications", label: "Notifications", icon: "🔔" },
+  { id: "seo", label: "SEO Pages", icon: "🔎" },
+  { id: "guides", label: "Guides", icon: "📖" },
+  { id: "policies", label: "Policies", icon: "📋" },
   { id: "staff", label: "Staff & Roles", icon: "🛡️" },
   { id: "audit", label: "Audit Log", icon: "📜" },
   { id: "settings", label: "Settings", icon: "⚙️" },
@@ -118,6 +121,9 @@ export default function AdminPage() {
         {section === "returns" && <ReturnsSection />}
         {section === "tickets" && <TicketsSection />}
         {section === "notifications" && <NotificationsSection />}
+        {section === "seo" && <SeoPagesSection />}
+        {section === "guides" && <GuidesSection />}
+        {section === "policies" && <PoliciesSection />}
         {section === "staff" && <StaffSection />}
         {section === "audit" && <AuditSection />}
         {section === "settings" && <SettingsSection />}
@@ -229,7 +235,7 @@ interface NewVariant {
   label: string; sku: string; priceDelta: number; stock: number; swatch: string;
 }
 
-interface AdminCategory { id: string; name: string; icon: string; image?: string; sortOrder?: number }
+interface AdminCategory { id: string; name: string; icon: string; image?: string; description?: string; sortOrder?: number }
 
 function CategoriesSection() {
   const { push } = useToast();
@@ -238,7 +244,7 @@ function CategoriesSection() {
   const [form, setForm] = useState({ name: "", icon: "", image: "" });
   const [busy, setBusy] = useState(false);
   const [editing, setEditing] = useState<string | null>(null);
-  const [eForm, setEForm] = useState({ name: "", icon: "", image: "" });
+  const [eForm, setEForm] = useState({ name: "", icon: "", image: "", description: "" });
 
   const load = useCallback(() => {
     api<AdminCategory[]>("/api/categories").then(setCats).catch(() => {});
@@ -384,6 +390,15 @@ function CategoriesSection() {
                     ) : (
                       <span className="font-semibold text-slate-900">{c.icon} {c.name}</span>
                     )}
+                    {isEditing && (
+                      <textarea
+                        value={eForm.description}
+                        onChange={(e) => setEForm({ ...eForm, description: e.target.value })}
+                        className={`mt-2 w-full min-h-[64px] ${inp}`}
+                        placeholder={`SEO intro copy shown on /category/${c.id} (what you sell, COD, delivery)`}
+                        aria-label="Category description"
+                      />
+                    )}
                   </td>
                   <td className="px-4 py-2.5 text-slate-400"><code>{c.id}</code></td>
                   <td className="px-4 py-2.5">
@@ -406,7 +421,7 @@ function CategoriesSection() {
                     ) : (
                       <>
                         <button
-                          onClick={() => { setEditing(c.id); setEForm({ name: c.name, icon: c.icon ?? "", image: c.image ?? "" }); }}
+                          onClick={() => { setEditing(c.id); setEForm({ name: c.name, icon: c.icon ?? "", image: c.image ?? "", description: c.description ?? "" }); }}
                           className="text-xs font-bold text-slate-600 hover:underline mr-3">Edit</button>
                         <button onClick={() => remove(c)}
                           title={used > 0 ? `${used} product${used === 1 ? " still uses" : "s still use"} this category` : "Delete category"}
@@ -1673,15 +1688,423 @@ function NotificationsSection() {
   );
 }
 
+/* ================= buying guides (AEO) ================= */
+interface GuideRow {
+  slug: string; title: string; tldr: string;
+  sections: { heading: string; body: string }[];
+  relatedCategory: string; relatedBand: string;
+  published: boolean; updatedAt: string;
+}
+
+function GuidesSection() {
+  const [rows, setRows] = useState<GuideRow[]>([]);
+  const [editing, setEditing] = useState<string | null>(null);
+  const [draft, setDraft] = useState<GuideRow | null>(null);
+  const [busy, setBusy] = useState(false);
+  const { push } = useToast();
+
+  const load = useCallback(() => {
+    api<GuideRow[]>("/api/guides").then(setRows).catch(() => {});
+  }, []);
+  useEffect(load, [load]);
+
+  const save = async () => {
+    if (!draft) return;
+    setBusy(true);
+    try {
+      await api(`/api/guides/${draft.slug}`, {
+        method: "PUT",
+        body: JSON.stringify({
+          title: draft.title,
+          tldr: draft.tldr,
+          sections: draft.sections.filter((s) => s.heading.trim()),
+          relatedCategory: draft.relatedCategory,
+          relatedBand: draft.relatedBand || null,
+          published: draft.published,
+        }),
+      });
+      push("Guide saved");
+      setEditing(null);
+      load();
+    } catch (e) {
+      push(e instanceof Error ? e.message : "Save failed", "error");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="space-y-4 max-w-3xl">
+      <div className="bg-white rounded-2xl border border-slate-200 p-5">
+        <p className="font-bold text-slate-900 text-sm">Buying guides</p>
+        <p className="text-xs text-slate-500 mt-1">
+          The TL;DR is the direct answer Google snippets and AI assistants quote — keep it under 60 words and
+          self-contained. Unpublishing hides the page immediately.
+        </p>
+      </div>
+      {rows.map((r) =>
+        editing === r.slug && draft ? (
+          <div key={r.slug} className="bg-white rounded-2xl border-2 border-emerald-300 p-5 space-y-3">
+            <input
+              value={draft.title}
+              onChange={(e) => setDraft({ ...draft, title: e.target.value })}
+              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm font-bold"
+              aria-label="Guide title"
+            />
+            <textarea
+              value={draft.tldr}
+              onChange={(e) => setDraft({ ...draft, tldr: e.target.value })}
+              className="w-full min-h-[80px] rounded-lg border border-emerald-200 bg-emerald-50/40 px-3 py-2 text-sm"
+              aria-label="TL;DR quick answer"
+              placeholder="TL;DR — the direct answer (under 60 words)"
+            />
+            {draft.sections.map((s, i) => (
+              <div key={i} className="rounded-xl bg-slate-50 p-3 space-y-2">
+                <div className="flex gap-2">
+                  <input
+                    value={s.heading}
+                    onChange={(e) => {
+                      const next = [...draft.sections];
+                      next[i] = { ...s, heading: e.target.value };
+                      setDraft({ ...draft, sections: next });
+                    }}
+                    className="flex-1 rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-semibold"
+                    aria-label={`Section ${i + 1} heading`}
+                  />
+                  <button
+                    onClick={() => setDraft({ ...draft, sections: draft.sections.filter((_, j) => j !== i) })}
+                    className="px-2 text-red-400 hover:text-red-600 text-xs font-bold"
+                  >
+                    ✕
+                  </button>
+                </div>
+                <textarea
+                  value={s.body}
+                  onChange={(e) => {
+                    const next = [...draft.sections];
+                    next[i] = { ...s, body: e.target.value };
+                    setDraft({ ...draft, sections: next });
+                  }}
+                  className="w-full min-h-[72px] rounded-lg border border-slate-200 px-3 py-1.5 text-sm"
+                  aria-label={`Section ${i + 1} body`}
+                />
+              </div>
+            ))}
+            <button
+              onClick={() => setDraft({ ...draft, sections: [...draft.sections, { heading: "", body: "" }] })}
+              className="text-xs font-bold text-emerald-600 hover:underline"
+            >
+              + Add section
+            </button>
+            <div className="grid sm:grid-cols-2 gap-3">
+              <label className="text-xs font-bold uppercase text-slate-400 space-y-1 block">
+                Related category id
+                <input
+                  value={draft.relatedCategory}
+                  onChange={(e) => setDraft({ ...draft, relatedCategory: e.target.value })}
+                  className={`mt-1 w-full ${"rounded-lg border border-slate-200 px-3 py-2 text-sm normal-case"}`}
+                  placeholder="audio / power / …"
+                />
+              </label>
+              <label className="text-xs font-bold uppercase text-slate-400 space-y-1 block">
+                Related band (optional)
+                <input
+                  value={draft.relatedBand}
+                  onChange={(e) => setDraft({ ...draft, relatedBand: e.target.value })}
+                  className={`mt-1 w-full ${"rounded-lg border border-slate-200 px-3 py-2 text-sm normal-case"}`}
+                  placeholder="under-5000 / best-premium / …"
+                />
+              </label>
+            </div>
+            <label className="flex items-center gap-2 text-sm text-slate-700">
+              <input
+                type="checkbox"
+                checked={draft.published}
+                onChange={(e) => setDraft({ ...draft, published: e.target.checked })}
+              />
+              Published
+            </label>
+            <div className="flex gap-3 pt-1">
+              <button
+                onClick={save}
+                disabled={busy}
+                className="px-5 py-2 rounded-lg bg-emerald-600 text-white text-sm font-bold hover:bg-emerald-700 disabled:opacity-50"
+              >
+                {busy ? "Saving…" : "Save guide"}
+              </button>
+              <button onClick={() => setEditing(null)} className="text-sm font-semibold text-slate-400 hover:text-slate-600">
+                Cancel
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div key={r.slug} className="bg-white rounded-2xl border border-slate-200 p-5 flex items-center justify-between gap-3 flex-wrap">
+            <div>
+              <p className="text-sm font-bold text-slate-900">{r.title}</p>
+              <p className="text-xs text-slate-400">
+                /guides/{r.slug} · {r.published ? "published" : "unpublished"} · updated {String(r.updatedAt || "").slice(0, 10)}
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <Link to={`/guides/${r.slug}`} className="text-xs font-semibold text-emerald-600 hover:underline">view ↗</Link>
+              <button
+                onClick={() => { setEditing(r.slug); setDraft(r); }}
+                className="text-xs font-bold text-slate-600 hover:underline"
+              >
+                Edit
+              </button>
+            </div>
+          </div>
+        )
+      )}
+      {rows.length === 0 && (
+        <div className="bg-white rounded-2xl border border-slate-200 p-6 text-sm text-slate-500">
+          Guides are seeded on first boot.
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ================= seo pages (programmatic band guides) ================= */
+interface PseoPage {
+  categoryId: string; categoryName: string; bandId: string; bandLabel: string;
+  url: string; productCount: number; intro: string; autoIntro: string;
+}
+
+function SeoPagesSection() {
+  const [pages, setPages] = useState<PseoPage[]>([]);
+  const [drafts, setDrafts] = useState<Record<string, string>>({});
+  const [busy, setBusy] = useState<string | null>(null);
+  const { push } = useToast();
+
+  const load = useCallback(() => {
+    api<PseoPage[]>("/api/pseo/pages").then(setPages).catch(() => {});
+  }, []);
+  useEffect(load, [load]);
+
+  const saveIntro = async (p: PseoPage) => {
+    setBusy(p.url);
+    try {
+      await api("/api/pseo/intro", {
+        method: "PUT",
+        body: JSON.stringify({ categoryId: p.categoryId, band: p.bandId, intro: drafts[p.url] ?? p.intro }),
+      });
+      push("Intro saved");
+      load();
+    } catch (e) {
+      push(e instanceof Error ? e.message : "Save failed", "error");
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  return (
+    <div className="space-y-4 max-w-3xl">
+      <div className="bg-white rounded-2xl border border-slate-200 p-5">
+        <p className="font-bold text-slate-900 text-sm">Programmatic buying guides</p>
+        <p className="text-xs text-slate-500 mt-1">
+          These pages go live automatically whenever at least 3 in-stock products fit a budget band.
+          Rankings update themselves from real weekly sales. Write custom intros below or leave blank
+          for auto-generated copy.
+        </p>
+      </div>
+      {pages.length === 0 && (
+        <div className="bg-white rounded-2xl border border-slate-200 p-6 text-sm text-slate-500">
+          No guide pages are live yet — they appear once a category has 3+ in-stock products in a budget band.
+        </div>
+      )}
+      {pages.map((p) => (
+        <div key={p.url} className="bg-white rounded-2xl border border-slate-200 p-5">
+          <div className="flex items-center justify-between gap-3 mb-1 flex-wrap">
+            <p className="text-sm font-bold text-slate-900">{p.categoryName} · {p.bandLabel}</p>
+            <Link to={p.url} className="text-xs font-semibold text-emerald-600 hover:underline">{p.url} ↗</Link>
+          </div>
+          <p className="text-xs text-slate-400 mb-3">{p.productCount} products currently qualify</p>
+          <textarea
+            value={drafts[p.url] ?? p.intro ?? ""}
+            onChange={(e) => setDrafts({ ...drafts, [p.url]: e.target.value })}
+            placeholder={p.autoIntro}
+            className="w-full min-h-[88px] rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-emerald-500"
+            aria-label={`Intro for ${p.categoryName} ${p.bandLabel}`}
+          />
+          <button
+            onClick={() => saveIntro(p)}
+            disabled={busy === p.url}
+            className="mt-3 px-5 py-2 rounded-lg bg-emerald-600 text-white text-sm font-bold hover:bg-emerald-700 disabled:opacity-50"
+          >
+            {busy === p.url ? "Saving…" : "Save intro"}
+          </button>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ================= policies ================= */
+interface PolicyRow {
+  path: string;
+  title: string;
+  updated: string;
+  sections: { heading: string; body: string }[];
+}
+
+function PoliciesSection() {
+  const [rows, setRows] = useState<PolicyRow[]>([]);
+  const [editing, setEditing] = useState<string | null>(null);
+  const [draft, setDraft] = useState<PolicyRow | null>(null);
+  const [busy, setBusy] = useState(false);
+  const { push } = useToast();
+
+  const load = useCallback(() => {
+    api<PolicyRow[]>("/api/policies")
+      .then((rs) => setRows(rs))
+      .catch(() => {});
+  }, []);
+  useEffect(load, [load]);
+
+  const startEdit = (r: PolicyRow) => {
+    setEditing(r.path);
+    setDraft({
+      ...r,
+      sections: r.sections.map((s) => ({ heading: s.heading ?? (s as unknown as [string, string])[0], body: s.body ?? (s as unknown as [string, string])[1] })),
+    });
+  };
+
+  const save = async () => {
+    if (!draft) return;
+    setBusy(true);
+    try {
+      await api(`/api/policies/${draft.path.slice(1)}`, {
+        method: "PUT",
+        body: JSON.stringify({ title: draft.title, updated: draft.updated, sections: draft.sections.filter((s) => s.heading.trim()) }),
+      });
+      push("Policy saved");
+      setEditing(null);
+      load();
+    } catch (e) {
+      push(e instanceof Error ? e.message : "Save failed", "error");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="space-y-4 max-w-3xl">
+      <div className="bg-white rounded-2xl border border-slate-200 p-5">
+        <p className="font-bold text-slate-900 text-sm">Store policies</p>
+        <p className="text-xs text-slate-500 mt-1">
+          Edits go live immediately — no redeploy needed. Keep the "Updated" date honest when you change legal text.
+        </p>
+      </div>
+      {rows.map((r) =>
+        editing === r.path && draft ? (
+          <div key={r.path} className="bg-white rounded-2xl border-2 border-emerald-300 p-5 space-y-3">
+            <input
+              value={draft.title}
+              onChange={(e) => setDraft({ ...draft, title: e.target.value })}
+              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm font-bold"
+              aria-label="Policy title"
+            />
+            <input
+              value={draft.updated}
+              onChange={(e) => setDraft({ ...draft, updated: e.target.value })}
+              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-xs text-slate-500"
+              aria-label="Last updated label"
+              placeholder="e.g. August 2026"
+            />
+            {draft.sections.map((s, i) => (
+              <div key={i} className="rounded-xl bg-slate-50 p-3 space-y-2">
+                <div className="flex gap-2">
+                  <input
+                    value={s.heading}
+                    onChange={(e) => {
+                      const next = [...draft.sections];
+                      next[i] = { ...s, heading: e.target.value };
+                      setDraft({ ...draft, sections: next });
+                    }}
+                    className="flex-1 rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-semibold"
+                    aria-label={`Section ${i + 1} heading`}
+                  />
+                  <button
+                    onClick={() => setDraft({ ...draft, sections: draft.sections.filter((_, j) => j !== i) })}
+                    className="px-2 text-red-400 hover:text-red-600 text-xs font-bold"
+                    title="Remove section"
+                  >
+                    ✕
+                  </button>
+                </div>
+                <textarea
+                  value={s.body}
+                  onChange={(e) => {
+                    const next = [...draft.sections];
+                    next[i] = { ...s, body: e.target.value };
+                    setDraft({ ...draft, sections: next });
+                  }}
+                  className="w-full min-h-[72px] rounded-lg border border-slate-200 px-3 py-1.5 text-sm"
+                  aria-label={`Section ${i + 1} body`}
+                />
+              </div>
+            ))}
+            <button
+              onClick={() => setDraft({ ...draft, sections: [...draft.sections, { heading: "", body: "" }] })}
+              className="text-xs font-bold text-emerald-600 hover:underline"
+            >
+              + Add section
+            </button>
+            <div className="flex gap-3 pt-1">
+              <button
+                onClick={save}
+                disabled={busy}
+                className="px-5 py-2 rounded-lg bg-emerald-600 text-white text-sm font-bold hover:bg-emerald-700 disabled:opacity-50"
+              >
+                {busy ? "Saving…" : "Save policy"}
+              </button>
+              <button onClick={() => setEditing(null)} className="text-sm font-semibold text-slate-400 hover:text-slate-600">
+                Cancel
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div key={r.path} className="bg-white rounded-2xl border border-slate-200 p-5 flex items-center justify-between gap-3 flex-wrap">
+            <div>
+              <p className="text-sm font-bold text-slate-900">{r.title}</p>
+              <p className="text-xs text-slate-400">{r.path} · updated {r.updated || "—"} · {r.sections.length} sections</p>
+            </div>
+            <button onClick={() => startEdit(r)} className="text-xs font-bold text-emerald-600 hover:underline">
+              Edit
+            </button>
+          </div>
+        )
+      )}
+      {rows.length === 0 && (
+        <div className="bg-white rounded-2xl border border-slate-200 p-6 text-sm text-slate-500">
+          Policies load from the server database once seeded on first boot.
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ================= settings ================= */
 const SETTING_LABELS: Record<string, string> = {
   storeName: "Store name",
   supportEmail: "Support email",
+  supportPhone: "Support phone (shown in header/policies)",
   currency: "Currency",
   freeShippingThreshold: "Free-shipping threshold (Rs)",
   shippingFee: "Shipping fee (Rs)",
   lowStockThreshold: "Low-stock alert threshold",
   facebookPixelId: "Facebook (Meta) Pixel ID",
+  metaCapiToken: "Meta Conversions API token (secret)",
+  saleEndsAt: "Sale ends at (e.g. 2026-09-01T23:59 — empty hides countdown)",
+  heroSlide1: "Hero slide 1 — product ID (empty = default)",
+  heroSlide2: "Hero slide 2 — product ID (empty = default)",
+  heroSlide3: "Hero slide 3 — product ID (empty = default)",
+  dealOfDay1: "Deal of the day #1 — product ID",
+  dealOfDay2: "Deal of the day #2 — product ID",
+  deliveryDaysCity: "Delivery days Lahore/Karachi (e.g. 2-3)",
+  deliveryDaysOther: "Delivery days rest of Pakistan (e.g. 3-5)",
 };
 
 function SettingsSection() {
@@ -1710,6 +2133,8 @@ function SettingsSection() {
         <div key={key}>
           <label className="text-xs font-bold uppercase tracking-wide text-slate-400">{label}</label>
           <input
+            type={/token|password|secret/i.test(key) ? "password" : "text"}
+            autoComplete="off"
             value={settings[key] ?? ""}
             onChange={(e) => setSettings({ ...settings, [key]: e.target.value })}
             className="mt-1 w-full rounded-lg border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-emerald-500"
@@ -2118,9 +2543,6 @@ function AdminGate({
             {busy ? "Signing in…" : "Sign in to Admin"}
           </button>
         </form>
-        <p className="mt-4 text-[11px] text-slate-400 text-center">
-          Demo: admin@xccessoriespoint.com / admin123
-        </p>
         <Link to="/" className="block mt-3 text-center text-sm text-emerald-600 hover:underline">
           ← Back to store
         </Link>

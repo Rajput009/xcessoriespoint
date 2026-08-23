@@ -36,6 +36,8 @@ export interface Category {
   icon: string;
   /** Optional tile image set in the admin console (falls back to the built-in art, then the emoji). */
   image?: string | null;
+  /** SEO/category-hub description, editable in Admin → Categories. */
+  description?: string | null;
   sortOrder?: number;
 }
 

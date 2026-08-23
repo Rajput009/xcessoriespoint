@@ -1,7 +1,9 @@
 import { Link, useRouter } from "../router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
-const POLICIES: Record<string, { title: string; updated: string; sections: [string, string][] }> = {
+/* Offline/fallback copy — the live source of truth is the policies table
+ * (Admin → Policies), served from GET /api/policies/:path. */
+const FALLBACK: Record<string, { title: string; updated: string; sections: [string, string][] }> = {
   "/privacy": {
     title: "Privacy & Cookie Policy",
     updated: "August 2026",
@@ -32,14 +34,39 @@ const POLICIES: Record<string, { title: string; updated: string; sections: [stri
       ["Cash on Delivery", "COD orders start as 'Pending' and are confirmed by phone before dispatch. Repeatedly refused COD deliveries may limit future COD availability."],
       ["Delivery", "Estimated delivery is 2–3 working days for Lahore & Karachi and 3–5 working days elsewhere. Estimates are not guarantees; couriers may face delays."],
       ["Accounts", "You are responsible for keeping your account credentials secure. We may suspend accounts engaged in fraud or abuse (rate limits protect the store automatically)."],
-      ["Contact", "XccessoriesPoint · support@xccessoriespoint.pk · +92 300 000 0000 · Lahore & Karachi, Pakistan."],
+      ["Contact", "XccessoriesPoint · support@xccessoriespoint.pk · +92 300 0000000 · Lahore & Karachi, Pakistan."],
     ],
   },
 };
 
+interface PolicyData {
+  path: string;
+  title: string;
+  updated: string;
+  sections: [string, string][] | { heading: string; body: string }[];
+}
+
+function normalizeSections(s: PolicyData["sections"]): [string, string][] {
+  return s.map((sec) =>
+    Array.isArray(sec) ? sec : [String((sec as { heading: string }).heading), String((sec as { body: string }).body)]
+  );
+}
+
 export default function PolicyPage() {
   const { path } = useRouter();
-  const policy = POLICIES[path];
+  const fallback = FALLBACK[path];
+  const [policy, setPolicy] = useState<PolicyData | null>(fallback ? { ...fallback, path: path.slice(1) } : null);
+
+  useEffect(() => {
+    // live copy overrides the bundled fallback when available
+    if (!FALLBACK[path]) return;
+    let dead = false;
+    fetch(`/api/policies/${path.slice(1)}`)
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then((d: PolicyData) => !dead && setPolicy({ ...d, sections: normalizeSections(d.sections) }))
+      .catch(() => {});
+    return () => { dead = true; };
+  }, [path]);
 
   useEffect(() => {
     if (policy) document.title = `${policy.title} — XccessoriesPoint`;
@@ -47,6 +74,8 @@ export default function PolicyPage() {
   }, [path, policy]);
 
   if (!policy) return null;
+
+  const sections = normalizeSections(policy.sections);
 
   return (
     <main className="pt-[120px] md:pt-44 max-w-3xl mx-auto px-6 pb-16">
@@ -58,7 +87,7 @@ export default function PolicyPage() {
       <h1 className="text-3xl md:text-4xl font-black text-slate-900 mb-1">{policy.title}</h1>
       <p className="text-xs text-slate-400 mb-8">Last updated: {policy.updated}</p>
       <div className="space-y-4">
-        {policy.sections.map(([h, body]) => (
+        {sections.map(([h, body]) => (
           <section key={h} className="glass rounded-2xl p-5">
             <h2 className="font-bold text-slate-900 mb-1.5">{h}</h2>
             <p className="text-sm text-slate-600 leading-relaxed">{body}</p>
@@ -66,7 +95,7 @@ export default function PolicyPage() {
         ))}
       </div>
       <div className="mt-8 flex gap-3 flex-wrap text-sm font-semibold">
-        {Object.entries(POLICIES)
+        {Object.entries(FALLBACK)
           .filter(([p]) => p !== path)
           .map(([p, pol]) => (
             <Link key={p} to={p} className="text-emerald-700 hover:underline">

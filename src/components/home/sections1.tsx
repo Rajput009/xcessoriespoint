@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useRouter } from "../../router";
 import { useCart, useProducts, useWishlist, fmt } from "../../context/store";
+import { useStoreConfig } from "../../lib/config";
 import { Stars } from "../ProductCard";
 import ProductCard from "../ProductCard";
 
@@ -17,13 +18,26 @@ export function useCountdown(target: number) {
     hours: Math.floor((diff / 3600000) % 24),
     mins: Math.floor((diff / 60000) % 60),
     secs: Math.floor((diff / 1000) % 60),
+    over: diff <= 0,
   };
 }
 
-const SALE_END = Date.now() + 2 * 86400000 + 11 * 3600000 + 26 * 60000;
+/**
+ * Real sale deadline from Admin → Settings (`saleEndsAt`). No fake urgency:
+ * when unset or expired there is simply no countdown.
+ */
+function useSaleEnd(): number | null {
+  const cfg = useStoreConfig();
+  const raw = cfg?.saleEndsAt;
+  if (!raw) return null;
+  const t = new Date(raw).getTime();
+  return Number.isFinite(t) && t > Date.now() ? t : null;
+}
 
 function CountdownBoxes() {
-  const { days, hours, mins, secs } = useCountdown(SALE_END);
+  const saleEnd = useSaleEnd();
+  const { days, hours, mins, secs } = useCountdown(saleEnd ?? Date.now());
+  if (saleEnd === null) return null;
   const box =
     "bg-black/20 backdrop-blur-md border border-white/25 rounded-xl px-2.5 py-1.5 min-w-[54px] text-center shadow-lg shadow-black/20";
   const items = [
@@ -42,6 +56,9 @@ function CountdownBoxes() {
 }
 
 /* ---------- 1. Hero ---------- */
+/* Design defaults (marketing copy + art direction). When Admin → Settings sets
+ * `heroSlide1..3` to product IDs, the price, image and link come from the LIVE
+ * catalog instead — the homepage can never advertise a stale price or a dead deal. */
 const SLIDES = [
   {
     tag: "Limited-time flash sale",
@@ -78,6 +95,33 @@ const SLIDES = [
   },
 ];
 
+type Slide = (typeof SLIDES)[number] & { productId?: number };
+
+/** merge admin-configured product IDs into the slide deck */
+function useSlides(): Slide[] {
+  const cfg = useStoreConfig();
+  const { products } = useProducts();
+  return useMemo(
+    () =>
+      SLIDES.map((sl, i) => {
+        const key = `heroSlide${i + 1}` as keyof NonNullable<ReturnType<typeof useStoreConfig>>;
+        const pid = parseInt((cfg?.[key] as string | null) ?? "", 10);
+        const p = products.find((x) => x.id === pid);
+        if (!p) return sl;
+        return {
+          ...sl,
+          productId: p.id,
+          headline: p.name,
+          price: p.price,
+          compareAt: p.compareAt ?? sl.compareAt,
+          image: p.image,
+          cat: p.category,
+        };
+      }),
+    [cfg, products]
+  );
+}
+
 /* hand-drawn dashed arrow doodle (amaze-style personality) */
 function ArrowDoodle() {
   return (
@@ -96,21 +140,22 @@ function ArrowDoodle() {
 }
 
 export function HeroSection() {
+  const slides = useSlides();
   const [slide, setSlide] = useState(0);
   // only the visible slide (and the one queued next) is worth downloading — mounting all
   // three <img src> at once pulled ~1.1 MB on first paint
   const [loaded, setLoaded] = useState<number[]>([0]);
   useEffect(() => {
-    const next = (slide + 1) % SLIDES.length;
+    const next = (slide + 1) % slides.length;
     setLoaded((prev) => (prev.includes(slide) && prev.includes(next) ? prev : [...new Set([...prev, slide, next])]));
-  }, [slide]);
+  }, [slide, slides.length]);
   const { navigate } = useRouter();
   const { products } = useProducts();
 
   useEffect(() => {
-    const t = setInterval(() => setSlide((s) => (s + 1) % SLIDES.length), 6000);
+    const t = setInterval(() => setSlide((s) => (s + 1) % slides.length), 6000);
     return () => clearInterval(t);
-  }, []);
+  }, [slides.length]);
 
   const featured = products.filter((p) => [2, 6, 3].includes(p.id)).slice(0, 3);
 
@@ -118,7 +163,7 @@ export function HeroSection() {
     <section className="relative">
       {/* full-bleed cross-fading gradients — run up behind the glass header */}
       <div className="absolute inset-0 overflow-hidden">
-        {SLIDES.map((sl, i) => (
+        {slides.map((sl, i) => (
           <div
             key={i}
             className={`absolute inset-0 bg-gradient-to-br ${sl.gradient} transition-opacity duration-1000 ${
@@ -138,7 +183,7 @@ export function HeroSection() {
             therefore always as tall as its tallest slide, so switching slides can never
             reflow the page below it (no layout shift / CLS). */}
         <div className="grid">
-          {SLIDES.map((sl, i) => {
+          {slides.map((sl, i) => {
             const active = i === slide;
             return (
               <div
@@ -165,7 +210,7 @@ export function HeroSection() {
                     <CountdownBoxes />
                   </div>
                   <button
-                    onClick={() => navigate(`/shop?cat=${sl.cat}`)}
+                    onClick={() => navigate(sl.productId ? `/product/${sl.productId}` : `/category/${sl.cat}`)}
                     tabIndex={active ? 0 : -1}
                     className="px-8 py-3.5 rounded-full bg-white text-slate-900 font-bold hover:bg-slate-900 hover:text-white transition-colors shadow-xl shadow-black/25"
                   >
@@ -195,7 +240,7 @@ export function HeroSection() {
 
         {/* dots */}
         <div className="flex justify-center gap-2 mt-8">
-          {SLIDES.map((_, i) => (
+          {slides.map((_, i) => (
             <button
               key={i}
               onClick={() => setSlide(i)}
@@ -285,7 +330,7 @@ export function CategoryIcons() {
           return (
             <Link
               key={c.id}
-              to={`/shop?cat=${c.id}`}
+              to={`/category/${c.id}`}
               className="group snap-start shrink-0 w-36 md:w-44 flex flex-col rounded-2xl glass-soft overflow-hidden hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-500/15 hover:ring-2 hover:ring-emerald-400/50 transition-all"
             >
               <span className={`relative block aspect-square p-3 ${meta?.tint ?? "bg-white/60"}`}>
@@ -444,7 +489,8 @@ function DealCard({ id }: { id: number }) {
   const { products } = useProducts();
   const { add } = useCart();
   const { toggle, has } = useWishlist();
-  const { days, hours, mins, secs } = useCountdown(SALE_END);
+  const saleEnd = useSaleEnd();
+  const { days, hours, mins, secs } = useCountdown(saleEnd ?? Date.now());
   const p = products.find((x) => x.id === id);
   if (!p) return null;
   const soldPct = Math.min(92, 100 - p.stock);
@@ -468,9 +514,11 @@ function DealCard({ id }: { id: number }) {
             <div className="h-full bg-lime-300" style={{ width: `${soldPct}%` }} />
           </div>
         </div>
-        <p className="text-xs text-white/70 mt-2 tabular-nums">
-          ⏱ Ends in {days}d {String(hours).padStart(2, "0")}:{String(mins).padStart(2, "0")}:{String(secs).padStart(2, "0")}
-        </p>
+        {saleEnd !== null && (
+          <p className="text-xs text-white/70 mt-2 tabular-nums">
+            ⏱ Ends in {days}d {String(hours).padStart(2, "0")}:{String(mins).padStart(2, "0")}:{String(secs).padStart(2, "0")}
+          </p>
+        )}
         <div className="flex gap-2 mt-3">
           <button
             onClick={() => add(p)}
@@ -497,6 +545,13 @@ function DealCard({ id }: { id: number }) {
 
 export function DealsOfDay() {
   const { navigate } = useRouter();
+  // deal products come from Admin → Settings (`dealOfDay1/2`), defaulting to
+  // the original picks until configured — never hardcoded stale IDs
+  const cfg = useStoreConfig();
+  const dealIds = [
+    parseInt(cfg?.dealOfDay1 ?? "", 10) || 1,
+    parseInt(cfg?.dealOfDay2 ?? "", 10) || 3,
+  ];
   return (
     <section className="max-w-7xl mx-auto px-6 py-10">
       <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-emerald-600 via-teal-600 to-emerald-800 p-5 md:p-8">
@@ -519,8 +574,8 @@ export function DealsOfDay() {
               View All Offers →
             </button>
           </div>
-          <DealCard id={1} />
-          <DealCard id={3} />
+          <DealCard id={dealIds[0]} />
+          <DealCard id={dealIds[1]} />
         </div>
       </div>
     </section>
