@@ -1818,6 +1818,12 @@ const server = http.createServer(async (req, res) => {
       `User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /checkout\nSitemap: ${base}/sitemap.xml\n`
     );
   }
+  // health probe — handled before static serving so bare /health works in
+  // production too (dist/ present would otherwise shadow the API route)
+  if (url.pathname === "/health") {
+    res.writeHead(200, { "Content-Type": "application/json" });
+    return res.end(JSON.stringify({ ok: true, engine: "sqlite", time: new Date().toISOString() }));
+  }
   // static site in production (dist/ present)
   if (req.method === "GET" && !url.pathname.startsWith("/api")) {
     if (serveStatic(req, res, url.pathname)) return;

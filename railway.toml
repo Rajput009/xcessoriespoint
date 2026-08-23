@@ -2,7 +2,9 @@
 dockerfilePath = "Dockerfile"
 
 [deploy]
-healthcheckPath = "/health"
+# must be /api/health — bare /health is served by the static handler in
+# production (dist/ present) and returns 404 to the healthcheck
+healthcheckPath = "/api/health"
 healthcheckTimeout = 100
 restartPolicyType = "on_failure"
 numReplicas = 1

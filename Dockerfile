@@ -13,8 +13,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
-# Ensure the DB mount point exists even if the volume isn't mounted yet
-RUN mkdir -p /data
+# Ensure the DB mount point exists AND is writable by the runtime user —
+# Railway mounts volumes root-owned, and the non-root `node` user needs to
+# create/write store.db inside it
+RUN mkdir -p /data && chown -R node:node /data
 
 # NODE_ENV is deliberately NOT set to production here, otherwise `npm ci`
 # would skip devDependencies (vite, tailwind, etc.) and the build would fail.
