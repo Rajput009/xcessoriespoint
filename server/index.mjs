@@ -8,6 +8,7 @@ import {
   db, seed, notify, getSetting, hashPassword, verifyPassword,
   audit, moveStock, latestConsent, sendEmail,
 } from "./db.mjs";
+import { PSEO_BANDS, resolveBand, liveBandPages, siblingBands, bandIntro } from "./pseo.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -87,16 +88,22 @@ function orderWithItems(o) {
   return { ...o, items, paymentInfo: payment ?? null };
 }
 
+function sha256Hex(v) {
+  return crypto.createHash("sha256").update(String(v)).digest("hex");
+}
+
 function sessionUser(req) {
   const auth = req.headers.authorization || "";
   const token = auth.startsWith("Bearer ") ? auth.slice(7) : null;
   if (!token) return null;
+  // tokens are stored hashed; the plaintext fallback covers sessions created
+  // before hashing was introduced (they expire naturally)
   const row = db
     .prepare(
       `SELECT u.* FROM sessions s JOIN users u ON u.id = s.userId
-       WHERE s.token = ? AND (s.expiresAt IS NULL OR s.expiresAt > datetime('now'))`
+       WHERE s.token IN (?, ?) AND (s.expiresAt IS NULL OR s.expiresAt > datetime('now'))`
     )
-    .get(token);
+    .get(sha256Hex(token), token);
   return row || null;
 }
 
@@ -104,8 +111,9 @@ function createSession(userId) {
   // opportunistic cleanup of expired sessions
   db.prepare("DELETE FROM sessions WHERE expiresAt IS NOT NULL AND expiresAt <= datetime('now')").run();
   const token = crypto.randomBytes(32).toString("hex");
+  // store only the hash — a DB leak no longer yields usable sessions
   db.prepare("INSERT INTO sessions (token, userId, expiresAt) VALUES (?,?,datetime('now','+30 days'))")
-    .run(token, userId);
+    .run(sha256Hex(token), userId);
   return token;
 }
 
@@ -141,7 +149,7 @@ const requireSuper = (ctx) => {
 const RATE_LIMITS = {
   global:     { windowMs: 60_000,      max: 100 }, // everything, per IP
   auth:       { windowMs: 5 * 60_000,  max: 10 },  // login/register brute force
-  orders:     { windowMs: 10 * 60_000, max: 5 },   // checkout spam / stock exhaustion
+  orders:     { windowMs: 10 * 60_000, max: 10 },  // checkout spam / stock exhaustion
   couponTry:  { windowMs: 5 * 60_000,  max: 20 },  // coupon-code brute forcing
   reviews:    { windowMs: 10 * 60_000, max: 3 },   // review flooding
   returns:    { windowMs: 10 * 60_000, max: 3 },
@@ -154,8 +162,14 @@ const RATE_LIMITS = {
 const rateBuckets = new Map(); // "bucket:ip" -> { count, resetAt }
 
 function clientIp(req) {
-  const xff = req.headers["x-forwarded-for"];
-  if (xff) return String(xff).split(",")[0].trim();
+  // Production (Railway, and Cloudflare in front of it) always sits behind a
+  // proxy, so X-Forwarded-For is trusted BY DEFAULT. Set XP_TRUST_PROXY=0 only
+  // when exposing the server directly to the internet — otherwise clients
+  // could spoof the header to rotate identities past every rate limit.
+  if (process.env.XP_TRUST_PROXY !== "0") {
+    const xff = req.headers["x-forwarded-for"];
+    if (xff) return String(xff).split(",")[0].trim();
+  }
   return req.socket.remoteAddress || "unknown";
 }
 
@@ -187,25 +201,32 @@ setInterval(() => {
 /* input sanitizer — clamp string length to stop payload stuffing */
 const clamp = (v, n = 200) => String(v ?? "").slice(0, n);
 
+/* numeric coercion for admin input — SQLite's dynamic typing will happily
+ * store "abc" in an INTEGER column otherwise, corrupting all downstream math */
+const toInt = (v, fallback = 0) => {
+  const n = parseInt(v, 10);
+  return Number.isFinite(n) ? n : fallback;
+};
+const clampInt = (v, min, max, fallback = min) => Math.min(max, Math.max(min, toInt(v, fallback)));
+
+/* escape LIKE wildcards so user input like "50%" matches literally */
+const likeEsc = (v) => String(v).replace(/[\\%_]/g, (m) => "\\" + m);
+
 /* ================= cart helpers ================= */
-function getOrCreateCart(ctx) {
+/* locate the caller's cart WITHOUT creating one: logged-in user's cart
+   (adopting/merging any guest cart sent in X-Cart-Id), else the guest cart */
+function findCart(ctx) {
   const headerId = ctx.req.headers["x-cart-id"];
-  // Priority: logged-in user's cart (merging any guest cart), else X-Cart-Id, else new guest cart
   if (ctx.user) {
     let cart = db.prepare("SELECT * FROM carts WHERE userId = ?").get(ctx.user.id);
-    if (!cart) {
+    if (!cart && headerId) {
       // adopt the guest cart directly if one was sent
-      if (headerId) {
-        const guest = db.prepare("SELECT * FROM carts WHERE id = ? AND userId IS NULL").get(headerId);
-        if (guest) {
-          db.prepare("UPDATE carts SET userId = ? WHERE id = ?").run(ctx.user.id, guest.id);
-          return { ...guest, userId: ctx.user.id };
-        }
+      const guest = db.prepare("SELECT * FROM carts WHERE id = ? AND userId IS NULL").get(headerId);
+      if (guest) {
+        db.prepare("UPDATE carts SET userId = ? WHERE id = ?").run(ctx.user.id, guest.id);
+        return { ...guest, userId: ctx.user.id };
       }
-      const id = "cart_" + crypto.randomBytes(8).toString("hex");
-      db.prepare("INSERT INTO carts (id, userId) VALUES (?,?)").run(id, ctx.user.id);
-      cart = { id, userId: ctx.user.id };
-    } else if (headerId && headerId !== cart.id) {
+    } else if (cart && headerId && headerId !== cart.id) {
       // merge a guest cart into the user's cart, then discard it
       const guest = db.prepare("SELECT * FROM carts WHERE id = ? AND userId IS NULL").get(headerId);
       if (guest) {
@@ -219,16 +240,22 @@ function getOrCreateCart(ctx) {
         db.prepare("DELETE FROM carts WHERE id = ?").run(guest.id);
       }
     }
-    return cart;
+    return cart ?? null;
   }
   if (headerId) {
     // guests can only access carts that still belong to no one
     const cart = db.prepare("SELECT * FROM carts WHERE id = ? AND userId IS NULL").get(headerId);
     if (cart) return cart;
   }
-  const id = "cart_" + crypto.randomBytes(8).toString("hex");
-  db.prepare("INSERT INTO carts (id) VALUES (?)").run(id);
-  return { id, userId: null };
+  return null;
+}
+
+function getOrCreateCart(ctx) {
+  return findCart(ctx) ?? (() => {
+    const id = "cart_" + crypto.randomBytes(8).toString("hex");
+    db.prepare("INSERT INTO carts (id, userId) VALUES (?,?)").run(id, ctx.user?.id ?? null);
+    return { id, userId: ctx.user?.id ?? null };
+  })();
 }
 
 function cartPayload(cart) {
@@ -273,19 +300,34 @@ const placeOrder = db.transaction((body, user, visitorId) => {
   if (rawItems.length === 0) throw bad("Order must contain at least one item");
   if (rawItems.length > 30) throw bad("Too many distinct items in one order (max 30)");
 
-  // Validate items against catalog; server-side pricing (variant-aware)
-  const items = rawItems.map((it) => {
+  // Validate items against catalog; server-side pricing (variant-aware).
+  // Duplicate lines of the same product+variant are merged FIRST so their
+  // combined quantity is checked against stock once (two lines ×5 with 6
+  // in stock must fail, not both pass a per-line check).
+  const merged = new Map(); // key -> { product, variant, qty, ... }
+  for (const it of rawItems) {
     const p = db.prepare("SELECT * FROM products WHERE id = ? AND active = 1").get(it.id ?? it.productId);
     if (!p) throw bad(`Product ${it.id ?? it.productId} not found`);
     const variant = resolveVariant(p, parseInt(it.variantId, 10) || 0);
     const hasVariants = db.prepare("SELECT 1 FROM product_variants WHERE productId = ? AND active = 1").get(p.id);
     if (hasVariants && !variant) throw bad(`Please choose an option for "${p.name}"`);
     const qty = Math.max(1, Math.min(99, parseInt(it.qty, 10) || 1));
-    const available = variant ? variant.stock : p.stock;
-    const displayName = variant ? `${p.name} — ${variant.label}` : p.name;
-    if (available < qty) throw bad(`Only ${available} left in stock for "${displayName}"`);
-    return { product: p, variant, qty, unitPrice: p.price + (variant?.priceDelta ?? 0), displayName };
-  });
+    const key = `${p.id}:${variant?.id ?? 0}`;
+    const prev = merged.get(key);
+    const combined = (prev?.qty ?? 0) + qty;
+    if (combined > 99) throw bad(`Maximum 99 units of "${p.name}" per order`);
+    merged.set(key, {
+      product: p, variant,
+      qty: combined,
+      unitPrice: p.price + (variant?.priceDelta ?? 0),
+      displayName: variant ? `${p.name} — ${variant.label}` : p.name,
+    });
+  }
+  const items = [...merged.values()];
+  for (const it of items) {
+    const available = it.variant ? it.variant.stock : it.product.stock;
+    if (available < it.qty) throw bad(`Only ${Math.max(0, available)} left in stock for "${it.displayName}"`);
+  }
 
   const subtotal = items.reduce((s, i) => s + i.unitPrice * i.qty, 0);
   const { discount, freeShip, coupon } = computeCoupon(body.coupon, subtotal);
@@ -302,7 +344,8 @@ const placeOrder = db.transaction((body, user, visitorId) => {
 
   let id;
   do {
-    id = "XP-" + crypto.randomBytes(3).toString("hex").toUpperCase();
+    // 6 random bytes (≈2.8e14 space) — public order tracking must resist brute force
+    id = "XP-" + crypto.randomBytes(6).toString("hex").toUpperCase();
   } while (db.prepare("SELECT 1 FROM orders WHERE id = ?").get(id));
   db.prepare(
     `INSERT INTO orders (id, userId, email, customer, phone, address, city, payment, subtotal, shipping, discount, couponCode, total, status)
@@ -336,12 +379,13 @@ const placeOrder = db.transaction((body, user, visitorId) => {
 
   // save address book entry for logged-in customers
   if (user && body.address && body.city) {
+    const addr = clamp(body.address, 300), city = clamp(body.city, 60);
     const exists = db
       .prepare("SELECT 1 FROM addresses WHERE userId = ? AND address = ? AND city = ?")
-      .get(user.id, body.address, body.city);
+      .get(user.id, addr, city);
     if (!exists)
       db.prepare("INSERT INTO addresses (userId, name, phone, address, city) VALUES (?,?,?,?,?)")
-        .run(user.id, String(body.customer || user.name), String(body.phone || ""), String(body.address), String(body.city));
+        .run(user.id, clamp(body.customer || user.name, 80), clamp(body.phone || "", 30), addr, city);
   }
 
   // consent-aware purchase analytics
@@ -380,7 +424,13 @@ const route = (method, pattern, handler) => {
 route("GET", "/health", () => ({ ok: true, engine: "sqlite", time: new Date().toISOString() }));
 
 /* ---- public storefront config (non-sensitive settings only) ---- */
-const PUBLIC_SETTINGS = ["storeName", "currency", "freeShippingThreshold", "shippingFee", "facebookPixelId"];
+const PUBLIC_SETTINGS = [
+  "storeName", "supportEmail", "supportPhone", "currency", "freeShippingThreshold", "shippingFee", "facebookPixelId",
+  // merchandising: sale deadline + which products power hero/deal sections
+  "saleEndsAt", "heroSlide1", "heroSlide2", "heroSlide3", "dealOfDay1", "dealOfDay2",
+  // delivery estimates shown at checkout / thank-you
+  "deliveryDaysCity", "deliveryDaysOther",
+];
 route("GET", "/config", () => {
   const out = {};
   for (const k of PUBLIC_SETTINGS) out[k] = getSetting(k, null);
@@ -405,8 +455,8 @@ route("POST", "/categories", (ctx) => {
   const image = clamp(ctx.body.image ?? "", 300).trim();
   if (image && !/^(\/|https?:\/\/)/.test(image)) throw bad("image must be a path (/img/…) or http(s) URL");
   const next = db.prepare("SELECT COALESCE(MAX(sortOrder), 0) + 1 n FROM categories").get().n;
-  db.prepare("INSERT INTO categories (id, name, icon, image, sortOrder) VALUES (?,?,?,?,?)")
-    .run(id, name, clamp(ctx.body.icon ?? "", 8), image, next);
+  db.prepare("INSERT INTO categories (id, name, icon, image, description, sortOrder) VALUES (?,?,?,?,?,?)")
+    .run(id, name, clamp(ctx.body.icon ?? "", 8), image, clamp(ctx.body.description ?? "", 600), next);
   audit(user, "category.create", "category", id, name);
   return db.prepare("SELECT * FROM categories WHERE id = ?").get(id);
 });
@@ -419,14 +469,15 @@ route("PUT", "/categories/:id", (ctx) => {
   if (!name) throw bad("name is required");
   const image = clamp(b.image ?? "", 300).trim();
   if (image && !/^(\/|https?:\/\/)/.test(image)) throw bad("image must be a path (/img/…) or http(s) URL");
+  const description = clamp(b.description ?? "", 600);
   // NB: sortOrder 0 is legitimate ("pin to front"), so only fall back when it is absent
   const rawOrder = ctx.body.sortOrder;
   const sortOrder =
     rawOrder === undefined || rawOrder === null || rawOrder === ""
       ? cat.sortOrder
       : parseInt(rawOrder, 10) || 0;
-  db.prepare("UPDATE categories SET name = ?, icon = ?, image = ?, sortOrder = ? WHERE id = ?")
-    .run(name, clamp(b.icon ?? "", 8), image, sortOrder, ctx.params.id);
+  db.prepare("UPDATE categories SET name = ?, icon = ?, image = ?, description = ?, sortOrder = ? WHERE id = ?")
+    .run(name, clamp(b.icon ?? "", 8), image, description, sortOrder, ctx.params.id);
   audit(user, "category.update", "category", ctx.params.id, JSON.stringify(ctx.body).slice(0, 200));
   return db.prepare("SELECT * FROM categories WHERE id = ?").get(ctx.params.id);
 });
@@ -447,6 +498,124 @@ route("DELETE", "/categories/:id", (ctx) => {
   return { ok: true };
 });
 
+/* ---- programmatic SEO band pages (/category/:id/:band) ---- */
+const POLICY_PATHS = ["/privacy", "/returns", "/terms"];
+
+/* hub → spoke links: which bands are live for a category */
+route("GET", "/categories/:id/bands", (ctx) =>
+  siblingBands(ctx.params.id).map((b) => ({ ...b, url: `/category/${b.categoryId}/${b.bandId}` }))
+);
+
+/* spoke page data — 404 when the quality gate fails (never publish thin pages) */
+route("GET", "/categories/:id/bands/:band", (ctx) => {
+  const r = resolveBand(ctx.params.id, ctx.params.band);
+  if (!r) throw new HttpError(404, "No curation page for that category/budget yet");
+  return {
+    categoryId: r.category.id,
+    categoryName: r.category.name,
+    bandId: r.band.id,
+    bandLabel: r.band.label,
+    intro: bandIntro(r.category.id, r.band.id, r.category, r.band, r.total),
+    total: r.total,
+    items: r.items,
+    siblings: siblingBands(r.category.id, r.band.id).map((b) => ({ ...b, url: `/category/${b.categoryId}/${b.bandId}` })),
+  };
+});
+
+/* admin: list live pages + editable intros */
+route("GET", "/pseo/pages", (ctx) => {
+  requireArea(ctx, "settings");
+  return liveBandPages().map((p) => ({
+    ...p,
+    url: `/category/${p.categoryId}/${p.bandId}`,
+    intro: getSetting(`pseo_intro_${p.categoryId}_${p.bandId}`, ""),
+    autoIntro: bandIntro(
+      p.categoryId, p.bandId,
+      db.prepare("SELECT name FROM categories WHERE id = ?").get(p.categoryId),
+      PSEO_BANDS.find((b) => b.id === p.bandId), p.productCount
+    ),
+  }));
+});
+route("PUT", "/pseo/intro", (ctx) => {
+  const user = requireArea(ctx, "settings");
+  const { categoryId, band, intro } = ctx.body;
+  if (!PSEO_BANDS.some((b) => b.id === band)) throw bad("invalid band");
+  if (!db.prepare("SELECT 1 FROM categories WHERE id = ?").get(categoryId)) throw bad("unknown category");
+  const key = `pseo_intro_${categoryId}_${band}`;
+  db.prepare("INSERT INTO settings (key, value) VALUES (?,?) ON CONFLICT(key) DO UPDATE SET value = excluded.value")
+    .run(key, clamp(intro ?? "", 600));
+  audit(user, "pseo.intro", "category", `${categoryId}/${band}`, String(intro || "").slice(0, 100));
+  return { ok: true, key };
+});
+
+/* ---- AEO buying guides (public read, admin-editable) ---- */
+const GUIDE_SLUG_RE = /^[a-z0-9-]{1,80}$/;
+const shapeGuide = (g) => ({ ...g, published: !!g.published, sections: JSON.parse(g.sections || "[]") });
+
+route("GET", "/guides", (ctx) => {
+  // staff (settings area) gets full rows incl. drafts; public gets live summaries
+  if (canAccess(ctx.user, "settings"))
+    return db.prepare("SELECT * FROM guides ORDER BY updatedAt DESC").all().map(shapeGuide);
+  return db
+    .prepare("SELECT slug, title, tldr, relatedCategory, relatedBand, updatedAt FROM guides WHERE published = 1 ORDER BY updatedAt DESC")
+    .all();
+});
+route("GET", "/guides/:slug", (ctx) => {
+  if (!GUIDE_SLUG_RE.test(ctx.params.slug)) throw new HttpError(404, "Unknown guide");
+  const g = db.prepare("SELECT * FROM guides WHERE slug = ? AND published = 1").get(ctx.params.slug);
+  if (!g) throw new HttpError(404, "Guide not found");
+  return shapeGuide(g);
+});
+route("PUT", "/guides/:slug", (ctx) => {
+  const user = requireArea(ctx, "settings");
+  if (!GUIDE_SLUG_RE.test(ctx.params.slug)) throw bad("invalid slug");
+  const g = db.prepare("SELECT * FROM guides WHERE slug = ?").get(ctx.params.slug);
+  if (!g) throw new HttpError(404, "Guide not found");
+  const b = { ...shapeGuide(g), ...ctx.body };
+  const clean = Array.isArray(b.sections)
+    ? b.sections.filter((s) => s && String(s.heading || "").trim()).slice(0, 15)
+        .map((s) => ({ heading: clamp(s.heading, 120), body: clamp(s.body, 3000) }))
+    : [];
+  db.prepare(
+    `UPDATE guides SET title=?, tldr=?, sections=?, relatedCategory=?, relatedBand=?, published=?, updatedAt=datetime('now') WHERE slug=?`
+  ).run(clamp(b.title, 160), clamp(b.tldr ?? "", 1000), JSON.stringify(clean),
+        clamp(b.relatedCategory ?? "", 60), clamp(b.relatedBand ?? "", 40),
+        b.published === false ? 0 : 1, ctx.params.slug);
+  audit(user, "guide.update", "guide", ctx.params.slug, b.title);
+  return shapeGuide(db.prepare("SELECT * FROM guides WHERE slug = ?").get(ctx.params.slug));
+});
+
+/* ---- policies (public read, admin-editable without redeploy) ---- */
+route("GET", "/policies", (ctx) => {
+  requireArea(ctx, "settings");
+  return db.prepare("SELECT path, title, updated FROM policies ORDER BY path").all();
+});
+route("GET", "/policies/:path", (ctx) => {
+  const pathName = "/" + String(ctx.params.path || "").replace(/[^a-z]/g, "");
+  if (!POLICY_PATHS.includes(pathName)) throw new HttpError(404, "Unknown policy");
+  const row = db.prepare("SELECT * FROM policies WHERE path = ?").get(pathName);
+  if (!row) throw new HttpError(404, "Policy not found");
+  return { ...row, sections: JSON.parse(row.sections || "[]") };
+});
+route("PUT", "/policies/:path", (ctx) => {
+  const user = requireArea(ctx, "settings");
+  const pathName = "/" + String(ctx.params.path || "").replace(/[^a-z]/g, "");
+  if (!POLICY_PATHS.includes(pathName)) throw bad("unknown policy path");
+  const { title, updated, sections } = ctx.body;
+  if (!title || !Array.isArray(sections)) throw bad("title and sections are required");
+  const clean = sections
+    .filter((s) => s && String(s.heading || "").trim())
+    .slice(0, 20)
+    .map((s) => ({ heading: clamp(s.heading, 120), body: clamp(s.body, 2000) }));
+  db.prepare(
+    `INSERT INTO policies (path, title, updated, sections) VALUES (?,?,?,?)
+     ON CONFLICT(path) DO UPDATE SET title = excluded.title, updated = excluded.updated, sections = excluded.sections`
+  ).run(pathName, clamp(title, 120), clamp(updated ?? "", 40), JSON.stringify(clean));
+  audit(user, "policy.update", "policy", pathName, title);
+  const row = db.prepare("SELECT * FROM policies WHERE path = ?").get(pathName);
+  return { ...row, sections: JSON.parse(row.sections || "[]") };
+});
+
 /* ---- products (public) ---- */
 route("GET", "/products", (ctx) => {
   const { cat, q, sort, includeInactive } = ctx.query;
@@ -454,7 +623,7 @@ route("GET", "/products", (ctx) => {
   const where = [], args = [];
   if (!(includeInactive === "1" && ctx.user?.isAdmin)) where.push("active = 1");
   if (cat) { where.push("category = ?"); args.push(cat); }
-  if (q) { where.push("(name LIKE ? OR description LIKE ?)"); args.push(`%${q}%`, `%${q}%`); }
+  if (q) { where.push("(name LIKE ? ESCAPE '\\' OR description LIKE ? ESCAPE '\\')"); args.push(`%${likeEsc(q)}%`, `%${likeEsc(q)}%`); }
   if (where.length) sql += " WHERE " + where.join(" AND ");
   const sorts = {
     "price-asc": " ORDER BY price ASC",
@@ -471,7 +640,7 @@ route("GET", "/products/:id", (ctx) => {
   if (!p) throw new HttpError(404, "Product not found");
   return productRow(p);
 });
-/* real social proof — units sold in the last 7 days (from actual orders) */
+/* real social proof — units sold recently + best-selling variant (from actual orders) */
 route("GET", "/products/:id/stats", (ctx) => {
   const row = db.prepare(
     `SELECT COALESCE(SUM(oi.qty), 0) v FROM order_items oi
@@ -479,22 +648,43 @@ route("GET", "/products/:id/stats", (ctx) => {
      WHERE oi.productId = ? AND o.status NOT IN ('Cancelled','Failed')
        AND o.createdAt > datetime('now', '-7 days')`
   ).get(ctx.params.id);
-  return { soldThisWeek: row.v };
+  // 30-day window for variant popularity — weekly is too sparse per-variant
+  const topVariant = db.prepare(
+    `SELECT oi.variantId, SUM(oi.qty) v FROM order_items oi
+     JOIN orders o ON o.id = oi.orderId
+     WHERE oi.productId = ? AND oi.variantId IS NOT NULL
+       AND o.status NOT IN ('Cancelled','Failed')
+       AND o.createdAt > datetime('now', '-30 days')
+     GROUP BY oi.variantId ORDER BY v DESC LIMIT 1`
+  ).get(ctx.params.id);
+  return { soldThisWeek: row.v, topVariantId: topVariant?.variantId ?? null };
 });
 
 /* ---- products (admin CRUD) ---- */
 route("POST", "/products", (ctx) => {
   const user = requireArea(ctx, "products");
   const b = ctx.body;
-  if (!b.name || !b.category || !b.price) throw bad("name, category and price are required");
+  const name = clamp(b.name ?? "", 200).trim();
+  const category = clamp(b.category ?? "", 60).trim();
+  if (!name || !category || b.price === undefined || b.price === null || b.price === "")
+    throw bad("name, category and price are required");
+  if (!db.prepare("SELECT 1 FROM categories WHERE id = ?").get(category))
+    throw bad(`Category "${category}" does not exist`);
+  const image = clamp(b.image ?? "", 300).trim();
+  if (image && !/^(\/|https?:\/\/)/.test(image)) throw bad("image must be a path (/img/…) or http(s) URL");
   const info = db.prepare(
-    `INSERT INTO products (name, category, price, compareAt, rating, reviews, stock, image, badge, featured, bestSeller, newArrival, dealOfDay, description)
-     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)`
+    `INSERT INTO products (name, category, price, compareAt, rating, reviews, stock, image, badge, featured, bestSeller, newArrival, dealOfDay, description, updatedAt)
+     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,datetime('now'))`
   ).run(
-    b.name, b.category, b.price, b.compareAt ?? null, b.rating ?? 0, b.reviews ?? 0,
-    b.stock ?? 0, b.image ?? "", b.badge ?? null,
+    name, category,
+    clampInt(b.price, 0, 10_000_000),
+    b.compareAt == null || b.compareAt === "" ? null : clampInt(b.compareAt, 0, 10_000_000),
+    Math.min(5, Math.max(0, Number(b.rating) || 0)),
+    clampInt(b.reviews ?? 0, 0, 1_000_000),
+    clampInt(b.stock ?? 0, 0, 1_000_000),
+    image, clamp(b.badge ?? "", 30).trim() || null,
     b.featured ? 1 : 0, b.bestSeller ? 1 : 0, b.newArrival ? 1 : 0, b.dealOfDay ? 1 : 0,
-    b.description ?? ""
+    clamp(b.description ?? "", 5000)
   );
   audit(user, "product.create", "product", info.lastInsertRowid, b.name);
   return productRow(db.prepare("SELECT * FROM products WHERE id = ?").get(info.lastInsertRowid));
@@ -504,15 +694,26 @@ route("PUT", "/products/:id", (ctx) => {
   const p = db.prepare("SELECT * FROM products WHERE id = ?").get(ctx.params.id);
   if (!p) throw new HttpError(404, "Product not found");
   const b = { ...p, ...ctx.body };
+  // validate/coerce — a typo'd price or unknown category must be a clean 400,
+  // not text in an INTEGER column or an FK violation
+  if (!b.name || !String(b.name).trim()) throw bad("name is required");
+  if (!db.prepare("SELECT 1 FROM categories WHERE id = ?").get(b.category)) throw bad(`unknown category: ${b.category}`);
+  const image = clamp(b.image ?? "", 300);
   db.prepare(
-    `UPDATE products SET name=?, category=?, price=?, compareAt=?, rating=?, reviews=?, stock=?, image=?, badge=?, featured=?, bestSeller=?, newArrival=?, dealOfDay=?, description=?, active=? WHERE id=?`
+    `UPDATE products SET name=?, category=?, price=?, compareAt=?, rating=?, reviews=?, stock=?, image=?, badge=?, featured=?, bestSeller=?, newArrival=?, dealOfDay=?, description=?, active=?, updatedAt=datetime('now') WHERE id=?`
   ).run(
-    b.name, b.category, b.price, b.compareAt ?? null, b.rating, b.reviews, b.stock,
-    b.image, b.badge ?? null, b.featured ? 1 : 0, b.bestSeller ? 1 : 0,
-    b.newArrival ? 1 : 0, b.dealOfDay ? 1 : 0, b.description ?? "", b.active === false ? 0 : 1,
+    clamp(b.name, 120), b.category,
+    clampInt(b.price, 0, 10_000_000),
+    b.compareAt == null || b.compareAt === "" ? null : clampInt(b.compareAt, 0, 10_000_000),
+    Math.min(5, Math.max(0, Number(b.rating) || 0)),
+    clampInt(b.reviews ?? 0, 0, 1_000_000),
+    clampInt(b.stock ?? 0, 0, 1_000_000),
+    image, clamp(b.badge ?? "", 30).trim() || null,
+    b.featured ? 1 : 0, b.bestSeller ? 1 : 0, b.newArrival ? 1 : 0, b.dealOfDay ? 1 : 0,
+    clamp(b.description ?? "", 5000), b.active === false ? 0 : 1,
     ctx.params.id
   );
-  if ((ctx.body.stock ?? 0) > (p.stock ?? 0)) checkStockAlerts(parseInt(ctx.params.id, 10));
+  if ((clampInt(ctx.body.stock ?? 0, 0, 1_000_000)) > (p.stock ?? 0)) checkStockAlerts(parseInt(ctx.params.id, 10));
   audit(user, "product.update", "product", ctx.params.id, JSON.stringify(ctx.body).slice(0, 300));
   return productRow(db.prepare("SELECT * FROM products WHERE id = ?").get(ctx.params.id));
 });
@@ -614,13 +815,19 @@ route("POST", "/auth/login", (ctx) => {
 route("POST", "/auth/logout", (ctx) => {
   const auth = ctx.req.headers.authorization || "";
   const token = auth.startsWith("Bearer ") ? auth.slice(7) : null;
-  if (token) db.prepare("DELETE FROM sessions WHERE token = ?").run(token);
+  if (token) db.prepare("DELETE FROM sessions WHERE token IN (?, ?)").run(sha256Hex(token), token);
   return { ok: true };
 });
 route("GET", "/auth/me", (ctx) => publicUser(requireAuth(ctx)));
 
 /* ---- cart ---- */
-route("GET", "/cart", (ctx) => cartPayload(getOrCreateCart(ctx)));
+route("GET", "/cart", (ctx) => {
+  // read-only lookup: never INSERT a row. Bots/crawlers hit GET /cart without
+  // a cart id — creating a row per hit grows the table without bound.
+  // (findCart still performs the login-time guest-cart merge when applicable)
+  const cart = findCart(ctx);
+  return cart ? cartPayload(cart) : { id: null, items: [], subtotal: 0 };
+});
 route("POST", "/cart/items", (ctx) => {
   rateLimit(ctx, "cartWrite");
   const cart = getOrCreateCart(ctx);
@@ -694,23 +901,38 @@ route("GET", "/coupons", (ctx) => {
 });
 route("POST", "/coupons", (ctx) => {
   const user = requireArea(ctx, "coupons");
-  const { code, type, value = 0, minOrder = 0, expiresAt = null } = ctx.body;
+  const { code, type } = ctx.body;
   if (!code || !["percent", "fixed", "freeship"].includes(type)) throw bad("code and valid type required");
+  let expiresAt = null;
+  if (ctx.body.expiresAt != null && ctx.body.expiresAt !== "") {
+    const d = new Date(ctx.body.expiresAt);
+    if (Number.isNaN(d.getTime())) throw bad("expiresAt must be a valid date (e.g. 2026-12-31)");
+    expiresAt = d.toISOString();
+  }
+  const value = ctx.body.value ?? 0;
+  if (type === "percent" && (!Number.isFinite(Number(value)) || Number(value) < 0 || Number(value) > 100))
+    throw bad("percent coupon value must be between 0 and 100");
+  const valueInt = clampInt(value, 0, 10_000_000);
+  const minOrder = clampInt(ctx.body.minOrder ?? 0, 0, 10_000_000);
   const normCode = String(code).toUpperCase().trim();
   if (db.prepare("SELECT 1 FROM coupons WHERE code = ?").get(normCode))
     throw new HttpError(409, `Coupon ${normCode} already exists`);
   db.prepare("INSERT INTO coupons (code, type, value, minOrder, active, expiresAt) VALUES (?,?,?,?,1,?)")
-    .run(normCode, type, value, minOrder, expiresAt);
-  audit(user, "coupon.create", "coupon", String(code).toUpperCase().trim());
-  return db.prepare("SELECT * FROM coupons WHERE code = ?").get(String(code).toUpperCase().trim());
+    .run(normCode, type, valueInt, minOrder, expiresAt);
+  audit(user, "coupon.create", "coupon", normCode);
+  return db.prepare("SELECT * FROM coupons WHERE code = ?").get(normCode);
 });
 route("PUT", "/coupons/:code", (ctx) => {
   const user = requireArea(ctx, "coupons");
   const c = db.prepare("SELECT * FROM coupons WHERE code = ?").get(ctx.params.code);
   if (!c) throw new HttpError(404, "Coupon not found");
   const b = { ...c, ...ctx.body };
+  // validate — invalid type would trip the CHECK constraint as a raw 500
+  if (!["percent", "fixed", "freeship"].includes(b.type)) throw bad("type must be percent, fixed or freeship");
+  const value = clampInt(b.value, 0, b.type === "percent" ? 100 : 10_000_000);
+  const minOrder = clampInt(b.minOrder ?? 0, 0, 10_000_000);
   db.prepare("UPDATE coupons SET type=?, value=?, minOrder=?, active=?, expiresAt=? WHERE code=?")
-    .run(b.type, b.value, b.minOrder, b.active ? 1 : 0, b.expiresAt ?? null, ctx.params.code);
+    .run(b.type, value, minOrder, b.active ? 1 : 0, b.expiresAt ?? null, ctx.params.code);
   audit(user, "coupon.update", "coupon", ctx.params.code, JSON.stringify(ctx.body));
   return db.prepare("SELECT * FROM coupons WHERE code = ?").get(ctx.params.code);
 });
@@ -722,9 +944,63 @@ route("DELETE", "/coupons/:code", (ctx) => {
 });
 
 /* ---- orders ---- */
+/* Meta Conversions API — server-side Purchase event deduplicated against the
+ * browser pixel via the shared event_id. Fire-and-forget: never blocks or
+ * fails checkout, no-ops unless both pixel ID and CAPI token are configured.
+ * (sha256Hex is defined near the top, shared with session hashing) */
+function fireMetaCapi(order, eventId, req) {
+  try {
+    const pixelId = getSetting("facebookPixelId", "");
+    const token = getSetting("metaCapiToken", "");
+    if (!pixelId || !token || !eventId) return;
+    const em = order.email ? sha256Hex(order.email.trim().toLowerCase()) : undefined;
+    const ph = order.phone ? sha256Hex(String(order.phone).replace(/\D/g, "")) : undefined;
+    const payload = {
+      data: [
+        {
+          event_name: "Purchase",
+          event_time: Math.floor(Date.now() / 1000),
+          event_id: String(eventId),
+          action_source: "website",
+          user_data: {
+            ...(em ? { em } : {}),
+            ...(ph ? { ph } : {}),
+            client_ip_address: clientIp(req),
+            client_user_agent: req.headers["user-agent"] || "",
+          },
+          custom_data: {
+            currency: "PKR",
+            value: order.total,
+            num_items: order.items.reduce((s, i) => s + i.qty, 0),
+            contents: order.items.map((i) => ({
+              id: String(i.productId ?? i.name),
+              quantity: i.qty,
+              item_price: i.price,
+            })),
+          },
+        },
+      ],
+    };
+    fetch(`https://graph.facebook.com/v19.0/${encodeURIComponent(pixelId)}/events?access_token=${encodeURIComponent(token)}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    })
+      .then(async (r) => {
+        if (r.ok) console.log(`[capi] Purchase sent for ${order.id}`);
+        else console.error(`[capi] failed (${r.status}):`, await r.text());
+      })
+      .catch((e) => console.error("[capi] error:", e.message));
+  } catch (e) {
+    console.error("[capi] unexpected:", e.message);
+  }
+}
+
 route("POST", "/orders", (ctx) => {
   rateLimit(ctx, "orders");
-  return placeOrder(ctx.body, ctx.user, ctx.req.headers["x-visitor-id"] || null);
+  const order = placeOrder(ctx.body, ctx.user, ctx.req.headers["x-visitor-id"] || null);
+  fireMetaCapi(order, ctx.body.eventId, ctx.req);
+  return order;
 });
 route("GET", "/orders", (ctx) => {
   if (canAccess(ctx.user, "orders"))
@@ -739,7 +1015,7 @@ route("GET", "/orders/:id", (ctx) => {
   const full = orderWithItems(o);
   // public tracking: hide personal details unless admin/owner
   if (canAccess(ctx.user, "orders") || (ctx.user && ctx.user.id === o.userId)) return full;
-  const { phone, address, email, userId, customer, ...safe } = full;
+  const { phone, address, email, userId, customer, city, ...safe } = full;
   // expose only a masked first name publicly
   const first = String(customer || "").trim().split(/\s+/)[0] || null;
   return { ...safe, customer: first };
@@ -762,13 +1038,28 @@ route("PUT", "/orders/:id/status", (ctx) => {
     db.prepare("UPDATE payments SET status = 'paid', updatedAt = datetime('now') WHERE orderId = ? AND status = 'pending'")
       .run(ctx.params.id);
 
-  // cancelling an unfulfilled order restocks its items
-  if (status === "Cancelled" && !["Shipped", "Delivered", "Cancelled"].includes(before.status)) {
-    const items = db.prepare("SELECT productId, variantId, qty FROM order_items WHERE orderId = ?").all(ctx.params.id);
-    for (const it of items)
-      if (it.productId) moveStock(it.productId, it.qty, "return-restock", "order", ctx.params.id, user.email, "order cancelled", it.variantId);
-    db.prepare("UPDATE payments SET status = 'refunded', updatedAt = datetime('now') WHERE orderId = ? AND status = 'paid'")
-      .run(ctx.params.id);
+  // cancelling / failing an unfulfilled order returns its items to stock.
+  // Shipped/Delivered have physically left; Cancelled/Returned/Refunded were
+  // already restocked once (by this handler or a refund) — never restock twice.
+  const restockStatuses = ["Cancelled", "Failed"];
+  const alreadyRestocked = ["Shipped", "Delivered", "Cancelled", "Failed", "Returned", "Refunded"];
+  if (restockStatuses.includes(status) && !alreadyRestocked.includes(before.status)) {
+    db.transaction(() => {
+      const items = db.prepare("SELECT productId, variantId, qty FROM order_items WHERE orderId = ?").all(ctx.params.id);
+      for (const it of items)
+        if (it.productId) moveStock(it.productId, it.qty, "return-restock", "order", ctx.params.id, user.email, `order ${status.toLowerCase()}`, it.variantId);
+    })();
+  }
+
+  // payment side effects — only touch money that actually moved:
+  // a cancelled COD order was never paid, so nothing gets marked refunded
+  if (["Cancelled", "Failed"].includes(status)) {
+    if (before.payment === "cod" || before.payment === "whatsapp")
+      db.prepare("UPDATE payments SET status = 'cancelled', updatedAt = datetime('now') WHERE orderId = ? AND status = 'pending'")
+        .run(ctx.params.id);
+    else
+      db.prepare("UPDATE payments SET status = 'refunded', updatedAt = datetime('now') WHERE orderId = ? AND status = 'paid'")
+        .run(ctx.params.id);
   }
 
   audit(user, "order.status", "order", ctx.params.id, `${before.status} → ${status}`);
@@ -786,7 +1077,7 @@ route("GET", "/payments", (ctx) => {
 route("PUT", "/payments/:orderId", (ctx) => {
   const user = requireArea(ctx, "payments");
   const { status } = ctx.body;
-  if (!["pending", "paid", "failed", "refunded"].includes(status)) throw bad("invalid payment status");
+  if (!["pending", "paid", "failed", "refunded", "cancelled"].includes(status)) throw bad("invalid payment status");
   const r = db.prepare("UPDATE payments SET status = ?, updatedAt = datetime('now') WHERE orderId = ?")
     .run(status, ctx.params.orderId);
   if (r.changes === 0) throw new HttpError(404, "Payment not found");
@@ -799,6 +1090,23 @@ route("GET", "/refunds", (ctx) => {
   requireArea(ctx, "refunds");
   return db.prepare("SELECT * FROM refunds ORDER BY createdAt DESC").all();
 });
+const issueRefund = db.transaction((order, returnId, amt, reason, restock, actorEmail) => {
+  const info = db.prepare("INSERT INTO refunds (orderId, returnId, amount, reason) VALUES (?,?,?,?)")
+    .run(order.id, returnId, amt, reason);
+  db.prepare("UPDATE orders SET status = 'Refunded' WHERE id = ?").run(order.id);
+  db.prepare("UPDATE payments SET status = 'refunded', updatedAt = datetime('now') WHERE orderId = ?").run(order.id);
+  if (returnId)
+    db.prepare("UPDATE returns SET status = 'Refunded' WHERE id = ?").run(returnId);
+  if (restock && !["Cancelled", "Failed"].includes(order.status)) {
+    // Cancelled/Failed orders already had their items returned to stock by the
+    // status handler — restocking again here would double-count inventory
+    const items = db.prepare("SELECT productId, variantId, qty FROM order_items WHERE orderId = ?").all(order.id);
+    for (const it of items)
+      if (it.productId) moveStock(it.productId, it.qty, "return-restock", "return", returnId ?? order.id, actorEmail, "refund restock", it.variantId);
+  }
+  return info.lastInsertRowid;
+});
+
 route("POST", "/refunds", (ctx) => {
   const user = requireArea(ctx, "refunds");
   const { orderId, returnId = null, amount, reason = "", restock = false } = ctx.body;
@@ -808,20 +1116,10 @@ route("POST", "/refunds", (ctx) => {
     throw new HttpError(409, "A refund has already been issued for this order");
   const amt = Math.min(parseInt(amount, 10) || order.total, order.total);
 
-  const info = db.prepare("INSERT INTO refunds (orderId, returnId, amount, reason) VALUES (?,?,?,?)")
-    .run(order.id, returnId, amt, reason);
-  db.prepare("UPDATE orders SET status = 'Refunded' WHERE id = ?").run(order.id);
-  db.prepare("UPDATE payments SET status = 'refunded', updatedAt = datetime('now') WHERE orderId = ?").run(order.id);
-  if (returnId)
-    db.prepare("UPDATE returns SET status = 'Refunded' WHERE id = ?").run(returnId);
-  if (restock) {
-    const items = db.prepare("SELECT productId, variantId, qty FROM order_items WHERE orderId = ?").all(order.id);
-    for (const it of items)
-      if (it.productId) moveStock(it.productId, it.qty, "return-restock", "return", returnId ?? order.id, user.email, "refund restock", it.variantId);
-  }
+  const refundId = issueRefund(order, returnId, amt, reason, restock, user.email);
   audit(user, "refund.issue", "order", order.id, `Rs ${amt} — ${reason}`);
   notify("return", "Refund issued", `${order.id} · Rs ${amt.toLocaleString()}`);
-  return db.prepare("SELECT * FROM refunds WHERE id = ?").get(info.lastInsertRowid);
+  return db.prepare("SELECT * FROM refunds WHERE id = ?").get(refundId);
 });
 
 /* ---- back-in-stock alerts ---- */
@@ -950,8 +1248,12 @@ route("POST", "/analytics/events", (ctx) => {
   if (!consent?.analytics) return { stored: false, reason: "no analytics consent" };
   const { type, data = {} } = ctx.body;
   if (!EVENT_TYPES.includes(type)) throw bad("invalid event type");
+  // reject oversized payloads rather than truncating — a sliced JSON string is
+  // invalid JSON and json_extract() would silently return NULL in dashboards
+  const serialized = JSON.stringify(data ?? {});
+  if (serialized.length > 2000) return { stored: false, reason: "payload too large" };
   db.prepare("INSERT INTO analytics_events (visitorId, type, data) VALUES (?,?,?)")
-    .run(visitorId, type, JSON.stringify(data).slice(0, 2000));
+    .run(visitorId, type, serialized);
   return { stored: true };
 });
 
@@ -1036,13 +1338,26 @@ route("PUT", "/reviews/:id", (ctx) => {
     ).get(rev.productId);
     if (agg.c > 0)
       db.prepare("UPDATE products SET rating = ROUND(?, 1) WHERE id = ?").run(agg.a, rev.productId);
+    else
+      db.prepare("UPDATE products SET rating = 0 WHERE id = ?").run(rev.productId); // last review gone
   }
   audit(user, "review.moderate", "review", ctx.params.id, status);
   return db.prepare("SELECT * FROM reviews WHERE id = ?").get(ctx.params.id);
 });
 route("DELETE", "/reviews/:id", (ctx) => {
   const user = requireArea(ctx, "reviews");
+  const rev = db.prepare("SELECT productId FROM reviews WHERE id = ?").get(ctx.params.id);
   db.prepare("DELETE FROM reviews WHERE id = ?").run(ctx.params.id);
+  // keep product aggregate rating in sync (same as moderation PUT)
+  if (rev) {
+    const agg = db.prepare(
+      "SELECT COUNT(*) c, AVG(rating) a FROM reviews WHERE productId = ? AND status = 'approved'"
+    ).get(rev.productId);
+    if (agg.c > 0)
+      db.prepare("UPDATE products SET rating = ROUND(?, 1) WHERE id = ?").run(agg.a, rev.productId);
+    else
+      db.prepare("UPDATE products SET rating = 0 WHERE id = ?").run(rev.productId); // last review gone
+  }
   audit(user, "review.delete", "review", ctx.params.id);
   return { ok: true };
 });
@@ -1201,12 +1516,29 @@ route("GET", "/admin/metrics", (ctx) => {
 });
 
 /* ================= http server ================= */
-function send(res, code, body, extra = {}) {
-  res.writeHead(code, {
-    "Content-Type": "application/json",
-    "Access-Control-Allow-Origin": "*",
+// When XP_ALLOWED_ORIGIN is set (comma-separated), only those origins receive
+// CORS headers. Unset keeps the permissive default for backwards compatibility.
+const ALLOWED_ORIGINS = (process.env.XP_ALLOWED_ORIGIN || "")
+  .split(",").map((s) => s.trim()).filter(Boolean);
+
+function corsHeaders(req) {
+  const base = {
     "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Cart-Id, X-Visitor-Id",
+  };
+  if (!ALLOWED_ORIGINS.length) return { ...base, "Access-Control-Allow-Origin": "*" };
+  // allowlist mode: the response varies by Origin even when this particular
+  // origin is denied, so no intermediary caches an origin-specific miss
+  const origin = req.headers.origin;
+  if (origin && ALLOWED_ORIGINS.includes(origin))
+    return { ...base, Vary: "Origin", "Access-Control-Allow-Origin": origin };
+  return { ...base, Vary: "Origin" }; // same-origin or disallowed: no ACAO header
+}
+
+function send(req, res, code, body, extra = {}) {
+  res.writeHead(code, {
+    "Content-Type": "application/json",
+    ...corsHeaders(req),
     ...extra,
   });
   res.end(JSON.stringify(body));
@@ -1214,6 +1546,9 @@ function send(res, code, body, extra = {}) {
 
 /* ---------- production static serving (vite build output) ---------- */
 const DIST = path.join(__dirname, "..", "dist");
+// routes that legitimately render the app shell — everything else is a 404,
+// even though we still serve the friendly NotFound UI from the same shell
+const SPA_ROUTES = /^\/(?:$|shop|checkout|admin(?:\/.*)?$|privacy|returns|terms|product\/\d+$|category\/[a-z0-9-]+(?:\/[a-z0-9-]+)?$|guides\/[a-z0-9-]+$)/;
 const MIME = {
   ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".json": "application/json",
   ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".svg": "image/svg+xml",
@@ -1221,13 +1556,56 @@ const MIME = {
 };
 function serveStatic(req, res, urlPath) {
   if (!fs.existsSync(DIST)) return false;
+  // the homepage is always served through the shell renderer so relative
+  // og:image / JSON-LD URLs get rewritten to absolute — don't short-circuit
+  // to the raw index.html below
+  if (urlPath === "/") {
+    const html = renderHomeShell();
+    if (html) {
+      res.writeHead(200, { "Content-Type": "text/html", "Cache-Control": "no-cache" });
+      res.end(html);
+      return true;
+    }
+  }
   let filePath = path.normalize(path.join(DIST, urlPath === "/" ? "index.html" : urlPath));
-  if (!filePath.startsWith(DIST)) return false; // path traversal guard
+  // traversal guard: resolved path must stay inside DIST (relative() beats a
+  // prefix check, which would also match a hypothetical sibling "dist-extra")
+  const rel = path.relative(DIST, filePath);
+  if (rel.startsWith("..") || path.isAbsolute(rel)) return false;
   if (!fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) {
     // SPA fallback for clean URLs
     if (urlPath.startsWith("/api")) return false;
-    filePath = path.join(DIST, "index.html");
-    if (!fs.existsSync(filePath)) return false;
+    const shellPath = path.join(DIST, "index.html");
+    if (!fs.existsSync(shellPath)) return false;
+
+    const sendShell = (status, html) => {
+      res.writeHead(status, { "Content-Type": "text/html", "Cache-Control": "no-cache" });
+      if (html) res.end(html);
+      else fs.createReadStream(shellPath).pipe(res);
+      return true;
+    };
+
+    if (!SPA_ROUTES.test(urlPath)) {
+      // unknown URL: real 404 status (same friendly UI) so crawlers don't index soft-404s
+      return sendShell(404);
+    }
+
+    // product + category URLs get server-injected OG/Twitter meta (WhatsApp/FB crawlers don't run JS)
+    if (urlPath === "/") {
+      const html = renderHomeShell();
+      if (html) return sendShell(200, html);
+    }
+    const productMatch = urlPath.match(/^\/product\/(\d+)$/);
+    if (productMatch) {
+      const html = renderProductShell(productMatch[1]);
+      if (html !== null) return sendShell(200, html);
+    }
+    const categoryMatch = urlPath.match(/^\/category\/([a-z0-9-]+)$/);
+    if (categoryMatch) {
+      const html = renderCategoryShell(categoryMatch[1]);
+      if (html !== null) return sendShell(200, html);
+    }
+    return sendShell(200);
   }
   const ext = path.extname(filePath);
   const stat = fs.statSync(filePath);
@@ -1264,22 +1642,181 @@ function serveStatic(req, res, urlPath) {
 function sitemapXml() {
   const base = process.env.XP_BASE_URL || "https://xccessoriespoint.pk";
   const staticPaths = ["/", "/shop", "/privacy", "/returns", "/terms"];
-  const products = db.prepare("SELECT id FROM products WHERE active = 1").all();
+  const categories = db.prepare("SELECT id FROM categories ORDER BY sortOrder, name").all();
+  const products = db.prepare("SELECT id, COALESCE(updatedAt, createdAt) AS updatedAt FROM products WHERE active = 1").all();
+  const lastmod = (v) => (v ? `<lastmod>${String(v).replace(" ", "T")}Z</lastmod>` : "");
+  const bandPages = liveBandPages();
+  const guides = db.prepare("SELECT slug, updatedAt FROM guides WHERE published = 1").all();
   const urls = [
     ...staticPaths.map((p2) => `  <url><loc>${base}${p2}</loc></url>`),
-    ...products.map((p2) => `  <url><loc>${base}/product/${p2.id}</loc></url>`),
+    ...categories.map((c2) => `  <url><loc>${base}/category/${c2.id}</loc></url>`),
+    ...bandPages.map((b) => `  <url><loc>${base}/category/${b.categoryId}/${b.bandId}</loc></url>`),
+    ...guides.map((g) => `  <url><loc>${base}/guides/${g.slug}</loc></url>${lastmod(g.updatedAt)}`),
+    ...products.map((p2) => `  <url><loc>${base}/product/${p2.id}</loc></url>${lastmod(p2.updatedAt)}`),
   ].join("\n");
   return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>`;
 }
 
+/* rendered sitemap cached 10 min — crawler hits stop touching the DB */
+let sitemapCache = null;
+const SITEMAP_TTL = 600_000;
+function sitemapXmlCached() {
+  if (!sitemapCache || Date.now() - sitemapCache.at > SITEMAP_TTL)
+    sitemapCache = { xml: sitemapXml(), at: Date.now() };
+  return sitemapCache.xml;
+}
+
+/* ---------- server-side OG/Twitter meta injection for /product/:id ----------
+ * WhatsApp/Facebook crawlers don't run JS, so the SPA's client-side setMeta()
+ * is invisible to them. For product URLs we inject real tags from the DB into
+ * the HTML shell before serving it — this is what makes shared links render
+ * rich previews. Cached per product for 60s to keep it cheap.
+ */
+const esc = (s) =>
+  String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
+const PRODUCT_META_TTL = 300_000; // 5 min — trims idle CPU; staleness is fine for crawler-facing meta
+const productMetaCache = new Map(); // productId -> { html, at }
+const categoryMetaCache = new Map(); // categoryId -> { html, at }
+let htmlShell = null;
+
+function loadShell() {
+  if (htmlShell === null) {
+    try {
+      htmlShell = fs.readFileSync(path.join(DIST, "index.html"), "utf8");
+    } catch {
+      return null;
+    }
+  }
+  return htmlShell;
+}
+
+/* strip the shell's default title/description/OG/Twitter tags, keep everything else */
+function stripDefaultHead(shell) {
+  return shell
+    .replace(/<title>[\s\S]*?<\/title>/i, "")
+    .replace(/<meta\s+(?:name|property)="(?:description|og:[^"]*|twitter:[^"]*)"[^>]*>/gi, "");
+}
+
+function injectHead(stripped, tags) {
+  return stripped.replace("</head>", `    ${tags.join("\n    ")}\n</head>`);
+}
+
+function productHeadTags(p) {
+  const base = process.env.XP_BASE_URL || "https://xccessoriespoint.pk";
+  const title = `${p.name} — XccessoriesPoint`;
+  const desc =
+    clamp(p.description, 160) || `Buy ${p.name} at XccessoriesPoint — Rs ${p.price}. COD nationwide, 7-day returns.`;
+  const img = /^https?:\/\//i.test(p.image) ? p.image : `${base}${p.image}`;
+  const url = `${base}/product/${p.id}`;
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: p.name,
+    ...(p.image ? { image: img } : {}),
+    ...(p.description ? { description: clamp(p.description, 5000) } : {}),
+    offers: {
+      "@type": "Offer",
+      priceCurrency: "PKR",
+      price: p.price,
+      availability: p.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+      url,
+    },
+  };
+  return [
+    `<title>${esc(title)}</title>`,
+    `<meta name="description" content="${esc(desc)}" />`,
+    `<meta property="og:type" content="product" />`,
+    `<meta property="og:title" content="${esc(title)}" />`,
+    `<meta property="og:description" content="${esc(desc)}" />`,
+    `<meta property="og:image" content="${esc(img)}" />`,
+    `<meta property="og:url" content="${esc(url)}" />`,
+    `<meta name="twitter:card" content="summary_large_image" />`,
+    `<meta name="twitter:title" content="${esc(title)}" />`,
+    `<meta name="twitter:description" content="${esc(desc)}" />`,
+    `<meta name="twitter:image" content="${esc(img)}" />`,
+    `<script type="application/ld+json">${JSON.stringify(jsonLd).replace(/</g, "\\u003c")}</script>`,
+  ];
+}
+
+/* homepage shell: rewrite relative og:image / JSON-LD logo+image paths to
+ * absolute URLs — Facebook rejects relative og:image and silently drops previews */
+function renderHomeShell() {
+  const shell = loadShell();
+  if (!shell) return null;
+  const base = process.env.XP_BASE_URL || "https://xccessoriespoint.pk";
+  return shell
+    .replace(/(property="og:image" content=")\/((?:img|icons?)\/[^"]+)"/g, `$1${base}/$2"`)
+    .replace(/(name="twitter:image" content=")\/((?:img|icons?)\/[^"]+)"/g, `$1${base}/$2"`)
+    .replace(/"(logo|image)": "\/([^"]+)"/g, `"$1": "${base}/$2"`)
+    .replace(/"(url|@id)": "https:\/\/xccessoriespoint\.pk/g, `"$1": "${base}`);
+}
+
+function renderProductShell(productId) {  const id = parseInt(productId, 10);
+  if (!Number.isFinite(id)) return null;
+  const cached = productMetaCache.get(id);
+  if (cached && Date.now() - cached.at < PRODUCT_META_TTL) return cached.html;
+  const p = db
+    .prepare("SELECT id, name, price, stock, image, description FROM products WHERE id = ? AND active = 1")
+    .get(id);
+  if (!p) return null;
+  const shell = loadShell();
+  if (shell === null) return null;
+  const html = injectHead(stripDefaultHead(shell), productHeadTags(p));
+  productMetaCache.set(id, { html, at: Date.now() });
+  return html;
+}
+
+function categoryHeadTags(c) {
+  const base = process.env.XP_BASE_URL || "https://xccessoriespoint.pk";
+  const title = `${c.name} Online in Pakistan — COD Nationwide | XccessoriesPoint`;
+  const desc =
+    clamp(c.description, 160) || `Buy ${c.name.toLowerCase()} online in Pakistan with cash on delivery and 7-day returns.`;
+  const img = c.image ? (/^https?:\/\//i.test(c.image) ? c.image : `${base}${c.image}`) : `${base}/img/hero-1.png`;
+  const url = `${base}/category/${c.id}`;
+  return [
+    `<title>${esc(title)}</title>`,
+    `<meta name="description" content="${esc(desc)}" />`,
+    `<meta property="og:type" content="website" />`,
+    `<meta property="og:title" content="${esc(title)}" />`,
+    `<meta property="og:description" content="${esc(desc)}" />`,
+    `<meta property="og:image" content="${esc(img)}" />`,
+    `<meta property="og:url" content="${esc(url)}" />`,
+    `<meta name="twitter:card" content="summary_large_image" />`,
+    `<meta name="twitter:title" content="${esc(title)}" />`,
+    `<meta name="twitter:description" content="${esc(desc)}" />`,
+    `<meta name="twitter:image" content="${esc(img)}" />`,
+  ];
+}
+
+function renderCategoryShell(categoryId) {
+  if (!/^[a-z0-9-]{1,40}$/.test(categoryId)) return null;
+  const cached = categoryMetaCache.get(categoryId);
+  if (cached && Date.now() - cached.at < PRODUCT_META_TTL) return cached.html;
+  const c = db.prepare("SELECT * FROM categories WHERE id = ?").get(categoryId);
+  if (!c) return null;
+  const shell = loadShell();
+  if (shell === null) return null;
+  const html = injectHead(stripDefaultHead(shell), categoryHeadTags(c));
+  categoryMetaCache.set(categoryId, { html, at: Date.now() });
+  return html;
+}
+
 const server = http.createServer(async (req, res) => {
-  if (req.method === "OPTIONS") return send(res, 204, {});
+  if (req.method === "OPTIONS") return send(req, res, 204, {});
   const url = new URL(req.url, "http://localhost");
 
-  // sitemap (works in both dev-proxy and production modes)
+  // sitemap + robots.txt (work in both dev-proxy and production modes; honor XP_BASE_URL)
   if (url.pathname === "/sitemap.xml" || url.pathname === "/api/sitemap.xml") {
     res.writeHead(200, { "Content-Type": "application/xml" });
-    return res.end(sitemapXml());
+    return res.end(sitemapXmlCached());
+  }
+  if (url.pathname === "/robots.txt" || url.pathname === "/api/robots.txt") {
+    const base = process.env.XP_BASE_URL || "https://xccessoriespoint.pk";
+    res.writeHead(200, { "Content-Type": "text/plain" });
+    return res.end(
+      `User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /checkout\nSitemap: ${base}/sitemap.xml\n`
+    );
   }
   // static site in production (dist/ present)
   if (req.method === "GET" && !url.pathname.startsWith("/api")) {
@@ -1289,11 +1826,22 @@ const server = http.createServer(async (req, res) => {
   const pathName = url.pathname.replace(/^\/api/, "") || "/";
 
   let body = {};
+  let malformedBody = false;
+  let oversizedBody = false;
   if (["POST", "PUT", "PATCH"].includes(req.method)) {
     body = await new Promise((resolve) => {
       let raw = "";
-      req.on("data", (c) => { raw += c; if (raw.length > 1e6) req.destroy(); });
-      req.on("end", () => { try { resolve(JSON.parse(raw || "{}")); } catch { resolve({}); } });
+      req.on("data", (c) => {
+        // stop buffering but keep draining so we can answer with a clean 413
+        if (raw.length > 1e6) { oversizedBody = true; raw = ""; return; }
+        raw += c;
+      });
+      req.on("end", () => {
+        if (oversizedBody) return resolve({});
+        if (!raw) return resolve({});
+        try { resolve(JSON.parse(raw)); }
+        catch { malformedBody = true; resolve({}); }
+      });
       req.on("error", () => resolve({}));
       req.on("close", () => resolve({}));
     });
@@ -1307,22 +1855,27 @@ const server = http.createServer(async (req, res) => {
   };
 
   try {
+    if (oversizedBody) throw new HttpError(413, "Request body too large (limit 1 MB)");
+    if (malformedBody) throw bad("Request body is not valid JSON");
     rateLimit(ctx, "global");
     for (const r of routes) {
       if (r.method !== req.method) continue;
       const m = pathName.match(r.regex);
       if (!m) continue;
-      r.keys.forEach((k, i) => (ctx.params[k] = decodeURIComponent(m[i + 1])));
+      r.keys.forEach((k, i) => {
+        try { ctx.params[k] = decodeURIComponent(m[i + 1]); }
+        catch { throw bad(`Malformed URL encoding in /${k}`); }
+      });
       const result = r.handler(ctx);
       const cartId = pathName.startsWith("/cart") && result?.id ? { "X-Cart-Id": result.id } : {};
-      return send(res, req.method === "POST" ? 201 : 200, result, cartId);
+      return send(req, res, req.method === "POST" ? 201 : 200, result, cartId);
     }
-    return send(res, 404, { error: `No route: ${req.method} ${pathName}` });
+    return send(req, res, 404, { error: `No route: ${req.method} ${pathName}` });
   } catch (e) {
     const code = e instanceof HttpError ? e.code : 500;
     if (code === 500) console.error(e);
     const extra = e.retryAfter ? { "Retry-After": String(e.retryAfter) } : {};
-    return send(res, code, { error: e.message || "Internal server error" }, extra);
+    return send(req, res, code, { error: e.message || "Internal server error" }, extra);
   }
 });
 

@@ -15,8 +15,9 @@ import { pixelTrack } from "../lib/pixel";
 interface ToastCtx {
   toasts: Toast[];
   push: (message: string, type?: Toast["type"]) => void;
+  dismiss: (id: number) => void;
 }
-const ToastContext = createContext<ToastCtx>({ toasts: [], push: () => {} });
+const ToastContext = createContext<ToastCtx>({ toasts: [], push: () => {}, dismiss: () => {} });
 export const useToast = () => useContext(ToastContext);
 
 /* ---------------- Products ---------------- */
@@ -96,10 +97,16 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   // Toasts
   const [toasts, setToasts] = useState<Toast[]>([]);
   const toastId = useRef(0);
+  const dismiss = (id: number) => setToasts((t) => t.filter((x) => x.id !== id));
   const push = (message: string, type: Toast["type"] = "success") => {
+    if (!message) return;
     const id = ++toastId.current;
-    setToasts((t) => [...t, { id, message, type }]);
-    setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), 3200);
+    setToasts((t) => {
+      // Prevent stacking duplicate messages and cap visible toasts to max 2
+      const filtered = t.filter((x) => x.message !== message);
+      return [...filtered.slice(-1), { id, message, type }];
+    });
+    setTimeout(() => dismiss(id), 2400);
   };
 
   // Products (API with offline fallback)
@@ -272,20 +279,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   // initial load + refetch whenever the signed-in user changes (guest cart merges server-side)
   useEffect(() => {
-    cartApi("/api/cart").then(() => {
-      // returning-visitor nudge: remind once per session about a waiting cart
-      if (sessionStorage.getItem("xp_cart_reminded")) return;
-      setTimeout(() => {
-        setItems((current) => {
-          const n = current.reduce((s2, i) => s2 + i.qty, 0);
-          if (n > 0 && !sessionStorage.getItem("xp_cart_reminded") && !location.pathname.startsWith("/checkout")) {
-            sessionStorage.setItem("xp_cart_reminded", "1");
-            push(`🛒 You have ${n} item${n > 1 ? "s" : ""} waiting in your cart`, "info");
-          }
-          return current;
-        });
-      }, 1800);
-    });
+    cartApi("/api/cart");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
 
@@ -377,7 +371,6 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       adding ? (prev.includes(id) ? prev : [...prev, id]) : prev.filter((x) => x !== id)
     );
     if (adding) pixelTrack("AddToWishlist", { content_ids: [String(id)], content_type: "product" });
-    push(adding ? "Added to wishlist" : "Removed from wishlist", "info");
   };
   const has = (id: number) => ids.includes(id);
 
@@ -387,7 +380,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const openModal = (m: ModalName) => setModal(m);
 
   return (
-    <ToastContext.Provider value={{ toasts, push }}>
+    <ToastContext.Provider value={{ toasts, push, dismiss }}>
       <ProductsContext.Provider value={{ products, categories, loading, offline }}>
         <AuthContext.Provider value={{ user, token, login, register, logout }}>
           <WishlistContext.Provider value={{ ids, toggle, has }}>
@@ -395,6 +388,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
               value={{ items, add, remove: removeItem, setQty, clear, count, total }}
             >
               <UIContext.Provider value={{ modal, openModal, searchQuery, setSearchQuery }}>
+                {/* visible degraded-mode notice — never silently swap in demo data */}
+                {offline && (
+                  <div className="fixed bottom-0 inset-x-0 z-[100] bg-amber-500 text-amber-950 text-center text-xs font-semibold py-1.5 px-4">
+                    ⚠ Can't reach the store right now — browsing a cached preview. Orders are disabled until the connection is restored.
+                  </div>
+                )}
                 {children}
               </UIContext.Provider>
             </CartContext.Provider>
@@ -417,6 +416,8 @@ export async function placeOrderAPI(payload: {
   address: string;
   city: string;
   payment: string;
+  /** Meta CAPI dedup — shared with pixelTrack("Purchase") so Meta counts one conversion */
+  eventId?: string;
 }): Promise<Order> {
   const r = await authFetch("/api/orders", {
     method: "POST",

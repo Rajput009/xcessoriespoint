@@ -6,6 +6,7 @@ import {
   MenuIcon, ZapIcon, TruckIcon,
 } from "./icons";
 import { smartSearch } from "../lib/fuzzy";
+import { useStoreConfig } from "../lib/config";
 
 const ANNOUNCEMENTS = [
   { icon: <TruckIcon size={14} />, text: "Free shipping on orders over Rs 5,000" },
@@ -69,6 +70,7 @@ export default function Header() {
   const [mobileSearch, setMobileSearch] = useState(false);
   const [showSug, setShowSug] = useState(false);
   const [announce, setAnnounce] = useState(0);
+  const cfg = useStoreConfig();
   const { count, total } = useCart();
   const { ids } = useWishlist();
   const { user } = useAuth();
@@ -146,7 +148,7 @@ export default function Header() {
               </span>
               <span className="flex items-center gap-1.5 whitespace-nowrap">
                 <PhoneIcon size={14} className={overHero ? "text-lime-300" : "text-emerald-600"} />
-                <span>+92 300 000 0000</span>
+                <span>{cfg?.supportPhone || "+92 300 0000000"}</span>
               </span>
             </div>
 

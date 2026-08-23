@@ -11,7 +11,7 @@ export default function Footer() {
 
   return (
     <footer className="bg-gradient-to-b from-slate-900 via-emerald-950 to-emerald-950 text-slate-300 mt-20 pb-20 md:pb-0">
-      <div className="max-w-7xl mx-auto px-6 py-14 grid gap-10 md:grid-cols-4">
+      <div className="max-w-7xl mx-auto px-6 py-14 grid gap-10 sm:grid-cols-2 lg:grid-cols-5">
         <div>
           <p className="text-xl font-black text-white mb-3">
             Xccessories<span className="text-emerald-500">Point</span>
@@ -25,9 +25,19 @@ export default function Footer() {
           <p className="font-semibold text-white mb-3 text-sm uppercase tracking-wide">Shop</p>
           <ul className="space-y-2 text-sm">
             <li><Link to="/shop" className="hover:text-emerald-400">All Products</Link></li>
-            <li><Link to="/shop?cat=audio" className="hover:text-emerald-400">Audio</Link></li>
-            <li><Link to="/shop?cat=wearables" className="hover:text-emerald-400">Wearables</Link></li>
-            <li><Link to="/shop?cat=power" className="hover:text-emerald-400">Power &amp; Charging</Link></li>
+            <li><Link to="/category/audio" className="hover:text-emerald-400">Audio</Link></li>
+            <li><Link to="/category/wearables" className="hover:text-emerald-400">Wearables</Link></li>
+            <li><Link to="/category/power" className="hover:text-emerald-400">Power &amp; Charging</Link></li>
+          </ul>
+        </div>
+        <div>
+          <p className="font-semibold text-white mb-3 text-sm uppercase tracking-wide">Buying Guides</p>
+          <ul className="space-y-2 text-sm">
+            <li><Link to="/guides/what-is-anc-noise-cancellation" className="hover:text-emerald-400">What is ANC?</Link></li>
+            <li><Link to="/guides/mah-explained-power-banks" className="hover:text-emerald-400">mAh explained</Link></li>
+            <li><Link to="/guides/gan-chargers-explained" className="hover:text-emerald-400">GaN chargers</Link></li>
+            <li><Link to="/guides/spo2-smartwatch-tracking" className="hover:text-emerald-400">SpO2 tracking</Link></li>
+            <li><Link to="/guides/tpu-vs-silicone-phone-cases" className="hover:text-emerald-400">Case materials</Link></li>
           </ul>
         </div>
         <div>

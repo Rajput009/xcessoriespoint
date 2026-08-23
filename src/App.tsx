@@ -14,10 +14,13 @@ import HomePage from "./pages/HomePage";
 import ShopPage from "./pages/ShopPage";
 import CheckoutPage from "./pages/CheckoutPage";
 import ProductPage from "./pages/ProductPage";
+import CategoryPage from "./pages/CategoryPage";
+import GuidePage from "./pages/GuidePage";
 import PolicyPage from "./pages/PolicyPage";
 import { Link } from "./router";
 import { lazy, Suspense, useEffect, useRef } from "react";
 import { initPixel, pixelPageView } from "./lib/pixel";
+import { setMeta } from "./lib/seo";
 
 // Admin is code-split — shoppers never download the dashboard bundle
 const AdminPage = lazy(() => import("./pages/AdminPage"));
@@ -40,13 +43,18 @@ function PixelManager() {
 }
 
 const TITLES: Record<string, string> = {
-  "/": "XccessoriesPoint — Tech Accessories Store",
-  "/shop": "Shop All Products — XccessoriesPoint",
+  "/": "Tech Accessories Online in Pakistan — COD Nationwide | XccessoriesPoint",
+  "/shop": "Shop All Tech Accessories Online in Pakistan | XccessoriesPoint",
   "/checkout": "Checkout — XccessoriesPoint",
   "/admin": "Admin Console — XccessoriesPoint",
   "/privacy": "Privacy & Cookie Policy — XccessoriesPoint",
   "/returns": "Returns & Refund Policy — XccessoriesPoint",
   "/terms": "Terms of Service — XccessoriesPoint",
+};
+
+const DESCRIPTIONS: Record<string, string> = {
+  "/": "Shop earbuds, smartwatches, power banks, chargers & cases online in Pakistan. Free shipping over Rs 5,000, cash on delivery nationwide and 7-day returns.",
+  "/shop": "Browse every accessory in one place — earbuds, smartwatches, power banks, chargers, cases & cables. COD across Pakistan, free shipping over Rs 5,000.",
 };
 
 function NotFound() {
@@ -77,13 +85,25 @@ function NotFound() {
 }
 
 function Routes() {
-  const { path } = useRouter();
+  const { path, query, navigate } = useRouter();
 
-  // per-route document titles (product page sets its own)
+  // legacy /shop?cat=x links (home tiles, old bookmarks) → canonical category URLs
   useEffect(() => {
-    if (!path.startsWith("/product/")) {
-      document.title = TITLES[path] ?? TITLES["/"];
-    }
+    const cat = query.get("cat");
+    if (path === "/shop" && cat && /^[a-z0-9-]+$/.test(cat)) navigate(`/category/${cat}`);
+  }, [path, query, navigate]);
+
+  // per-route SEO defaults (product/category pages set their own richer meta)
+  useEffect(() => {
+    if (path.startsWith("/product/") || path.startsWith("/category/")) return;
+    const title = TITLES[path] ?? TITLES["/"];
+    setMeta({
+      title,
+      description: DESCRIPTIONS[path] ?? DESCRIPTIONS["/"],
+      image: "/img/hero-1.png",
+      url: path,
+      jsonLd: null,
+    });
   }, [path]);
 
   // Full-screen flows with their own shells
@@ -103,6 +123,8 @@ function Routes() {
 
   // Storefront shell
   const productMatch = path.match(/^\/product\/(\d+)$/);
+  const categoryMatch = path.match(/^\/category\/([a-z0-9-]+)(?:\/([a-z0-9-]+))?$/);
+  const guideMatch = path.match(/^\/guides\/([a-z0-9-]+)$/);
   const isPolicy = ["/privacy", "/returns", "/terms"].includes(path);
   return (
     <>
@@ -113,6 +135,10 @@ function Routes() {
         <ShopPage />
       ) : productMatch ? (
         <ProductPage id={parseInt(productMatch[1], 10)} />
+      ) : categoryMatch ? (
+        <CategoryPage id={categoryMatch[1]} band={categoryMatch[2]} />
+      ) : guideMatch ? (
+        <GuidePage slug={guideMatch[1]} />
       ) : isPolicy ? (
         <PolicyPage />
       ) : (

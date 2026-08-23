@@ -18,13 +18,16 @@ self.addEventListener("fetch", (e) => {
   // API: network only (never cache dynamic data)
   if (url.pathname.startsWith("/api")) return;
 
-  // navigations: network-first, offline fallback to cached shell
+  // navigations: network-first, offline fallback to cached shell.
+  // admin pages are never cached — a stale admin shell can render old UI
+  // against a newer API (and vice versa) after a deploy
   if (e.request.mode === "navigate") {
+    if (url.pathname.startsWith("/admin")) return;
     e.respondWith(
       fetch(e.request)
         .then((r) => {
           const copy = r.clone();
-          caches.open(CACHE).then((c) => c.put("/", copy));
+          caches.open(CACHE).then((c) => c.put(e.request, copy));
           return r;
         })
         .catch(() => caches.match("/"))
