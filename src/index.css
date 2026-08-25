@@ -62,6 +62,12 @@ body::before {
 }
 .slide-in { animation: slideIn .3s ease both; }
 
+@keyframes slideInLeft {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+.slide-in-left { animation: slideInLeft .3s ease both; }
+
 
 /* ---- micro-interactions ---- */
 button:active { transform: scale(0.97); }
@@ -75,7 +81,7 @@ button:active { transform: scale(0.97); }
 
 /* accessibility: respect reduced-motion preferences */
 @media (prefers-reduced-motion: reduce) {
-  .float-slow, .fade-up, .slide-in, .badge-pop { animation: none !important; }
+  .float-slow, .fade-up, .slide-in, .slide-in-left, .badge-pop { animation: none !important; }
   html { scroll-behavior: auto; }
   button:active { transform: none; }
 }

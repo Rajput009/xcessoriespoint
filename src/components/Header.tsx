@@ -65,11 +65,147 @@ function SearchSuggestions({ query, onPick }: { query: string; onPick: () => voi
   );
 }
 
+function CollectionDrawer({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const { products, categories, loading } = useProducts();
+  const { navigate } = useRouter();
+  const [category, setCategory] = useState("all");
+
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [open, onClose]);
+
+  if (!open) return null;
+
+  const visibleProducts = category === "all"
+    ? products
+    : products.filter((p) => p.category === category);
+
+  const goTo = (to: string) => {
+    onClose();
+    navigate(to);
+  };
+
+  return (
+    <div className="fixed inset-0 z-[60]" role="dialog" aria-modal="true" aria-label="Browse product collection">
+      <button
+        type="button"
+        aria-label="Close collection menu"
+        onClick={onClose}
+        className="absolute inset-0 bg-slate-950/25 backdrop-blur-[2px]"
+      />
+      <aside
+        id="collection-drawer"
+        className="relative h-full w-[min(92vw,430px)] bg-white/95 backdrop-blur-xl border-r border-white shadow-2xl shadow-slate-950/20 slide-in-left flex flex-col"
+      >
+        <div className="flex items-start justify-between gap-4 px-5 py-5 border-b border-slate-100">
+          <div>
+            <p className="text-[11px] font-black uppercase tracking-[0.2em] text-emerald-700 mb-1">The collection</p>
+            <h2 className="text-xl font-black text-slate-950">Browse all products</h2>
+            <p className="text-xs text-slate-500 mt-1">
+              {loading ? "Loading products…" : `${visibleProducts.length} product${visibleProducts.length === 1 ? "" : "s"}`}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close collection menu"
+            className="w-9 h-9 shrink-0 rounded-full text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors"
+          >
+            ✕
+          </button>
+        </div>
+
+        <div className="px-4 py-3 border-b border-slate-100 overflow-x-auto no-scrollbar">
+          <div className="flex gap-2 min-w-max">
+            <button
+              type="button"
+              onClick={() => setCategory("all")}
+              className={`px-3 py-1.5 rounded-full text-xs font-bold transition-colors ${
+                category === "all" ? "bg-emerald-700 text-white" : "bg-slate-100 text-slate-600 hover:bg-emerald-50 hover:text-emerald-700"
+              }`}
+            >
+              All products
+            </button>
+            {categories.map((c) => (
+              <button
+                key={c.id}
+                type="button"
+                onClick={() => setCategory(c.id)}
+                className={`px-3 py-1.5 rounded-full text-xs font-bold transition-colors ${
+                  category === c.id ? "bg-emerald-700 text-white" : "bg-slate-100 text-slate-600 hover:bg-emerald-50 hover:text-emerald-700"
+                }`}
+              >
+                {c.icon} {c.name}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-4 space-y-2">
+          {loading ? (
+            Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="flex items-center gap-3 p-2 rounded-xl animate-pulse">
+                <div className="w-16 h-16 rounded-xl bg-slate-100" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-3 bg-slate-100 rounded w-4/5" />
+                  <div className="h-3 bg-slate-100 rounded w-1/3" />
+                </div>
+              </div>
+            ))
+          ) : visibleProducts.length > 0 ? (
+            visibleProducts.map((p) => (
+              <button
+                key={p.id}
+                type="button"
+                onClick={() => goTo(`/product/${p.id}`)}
+                className="w-full flex items-center gap-3 p-2 rounded-xl text-left hover:bg-emerald-50 transition-colors group"
+              >
+                <img src={p.image} alt="" className="w-16 h-16 rounded-xl object-cover bg-slate-100 shrink-0" />
+                <span className="min-w-0 flex-1">
+                  <span className="block text-[10px] uppercase tracking-wide font-bold text-emerald-700 mb-0.5">
+                    {categories.find((c) => c.id === p.category)?.name ?? p.category}
+                  </span>
+                  <span className="block text-sm font-bold text-slate-900 truncate group-hover:text-emerald-800">{p.name}</span>
+                  <span className="block text-sm font-black text-slate-900 mt-0.5">{fmt(p.price)}</span>
+                </span>
+                <span className="text-slate-300 group-hover:text-emerald-600 transition-colors" aria-hidden="true">→</span>
+              </button>
+            ))
+          ) : (
+            <p className="text-sm text-slate-500 text-center py-8">No products in this category yet.</p>
+          )}
+        </div>
+
+        <div className="p-4 border-t border-slate-100">
+          <button
+            type="button"
+            onClick={() => goTo("/shop")}
+            className="w-full py-3 rounded-xl bg-emerald-700 text-white text-sm font-bold hover:bg-emerald-950 transition-colors"
+          >
+            View full shop →
+          </button>
+        </div>
+      </aside>
+    </div>
+  );
+}
+
 export default function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileSearch, setMobileSearch] = useState(false);
   const [showSug, setShowSug] = useState(false);
   const [announce, setAnnounce] = useState(0);
+  const [collectionOpen, setCollectionOpen] = useState(false);
   const cfg = useStoreConfig();
   const { count, total } = useCart();
   const { ids } = useWishlist();
@@ -106,7 +242,8 @@ export default function Header() {
     "absolute -top-0.5 -right-0.5 bg-emerald-600 text-white text-[10px] font-bold min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center ring-2 ring-white/60";
 
   return (
-    <header className="fixed top-0 inset-x-0 z-40">
+    <>
+      <header className="fixed top-0 inset-x-0 z-40">
       {/* announcement bar */}
       <div
         className={`bg-emerald-950/90 backdrop-blur text-emerald-100 text-xs font-medium overflow-hidden transition-all duration-300 ${
@@ -199,8 +336,11 @@ export default function Header() {
             }`}
           >
             <div className="flex items-center gap-4">
-              <Link
-                to="/shop"
+              <button
+                type="button"
+                onClick={() => setCollectionOpen(true)}
+                aria-expanded={collectionOpen}
+                aria-controls="collection-drawer"
                 className={`whitespace-nowrap text-sm font-bold px-4 h-11 rounded-full flex items-center gap-2 transition-all ${
                   overHero
                     ? "bg-white/20 backdrop-blur-md border border-white/35 text-white hover:bg-white/35"
@@ -209,7 +349,7 @@ export default function Header() {
               >
                 <MenuIcon size={16} />
                 Browse all collection
-              </Link>
+              </button>
               <form onSubmit={submitSearch} className="flex-1 relative">
                 {showSug && <SearchSuggestions query={searchQuery} onPick={() => setShowSug(false)} />}
                 <SearchIcon
@@ -289,6 +429,8 @@ export default function Header() {
           )}
         </div>
       </div>
-    </header>
+      </header>
+      <CollectionDrawer open={collectionOpen} onClose={() => setCollectionOpen(false)} />
+    </>
   );
 }
