@@ -39,7 +39,7 @@ function CountdownBoxes() {
   const { days, hours, mins, secs } = useCountdown(saleEnd ?? Date.now());
   if (saleEnd === null) return null;
   const box =
-    "bg-black/20 backdrop-blur-md border border-white/25 rounded-xl px-2.5 py-1.5 min-w-[54px] text-center shadow-lg shadow-black/20";
+    "bg-white/75 backdrop-blur-md border border-emerald-950/10 rounded-xl px-2.5 py-1.5 min-w-[54px] text-center shadow-md shadow-emerald-950/10";
   const items = [
     [days, "Days"], [hours, "Hours"], [mins, "Mins"], [secs, "Secs"],
   ] as const;
@@ -47,8 +47,8 @@ function CountdownBoxes() {
     <div className="flex gap-2 justify-center lg:justify-start">
       {items.map(([v, l]) => (
         <div key={l} className={box}>
-          <div className="text-lg font-black text-white tabular-nums">{String(v).padStart(2, "0")}</div>
-          <div className="text-[10px] uppercase tracking-wide text-white/85">{l}</div>
+          <div className="text-lg font-black text-slate-900 tabular-nums">{String(v).padStart(2, "0")}</div>
+          <div className="text-[10px] uppercase tracking-wide text-slate-500">{l}</div>
         </div>
       ))}
     </div>
@@ -172,9 +172,9 @@ export function HeroSection() {
           decoding="async"
           className="absolute inset-0 w-full h-full object-cover"
         />
-        {/* keep the copy readable while preserving the background's soft studio light */}
-        <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-emerald-950/20" />
-        <div className="absolute inset-0 bg-emerald-950/10" />
+        {/* keep the clean studio light while adding just enough contrast for the copy */}
+        <div className="absolute inset-0 bg-gradient-to-r from-white/15 via-transparent to-emerald-950/5" />
+        <div className="absolute inset-0 bg-emerald-950/5" />
       </div>
 
       <div className="relative max-w-7xl mx-auto px-6 pt-[130px] md:pt-[180px] pb-4">
@@ -195,15 +195,15 @@ export function HeroSection() {
               >
                 {/* text */}
                 <div className="text-center lg:text-left order-2 lg:order-1">
-                  <p className="inline-block text-xs font-bold uppercase tracking-widest bg-black/25 backdrop-blur-md border border-white/25 text-white px-3.5 py-1.5 rounded-full mb-4">
-                    ⚡ {sl.tag}
+                  <p className="inline-flex items-center text-xs font-bold uppercase tracking-widest bg-white/75 backdrop-blur-md border border-emerald-900/10 text-emerald-800 px-3.5 py-1.5 rounded-full mb-4 shadow-sm">
+                    <span className="mr-1.5 text-emerald-600">⚡</span>{sl.tag}
                   </p>
-                  <h1 className="text-3xl md:text-5xl font-black text-white leading-tight mb-4 drop-shadow-[0_3px_18px_rgba(0,0,0,0.45)]">
+                  <h1 className="text-3xl md:text-5xl font-black text-slate-950 leading-tight mb-4">
                     {sl.headline}
                   </h1>
-                  <p className="text-2xl font-bold text-white mb-5 drop-shadow-[0_2px_8px_rgba(0,0,0,0.35)]">
+                  <p className="text-2xl font-bold text-slate-900 mb-5">
                     {fmt(sl.price)}{" "}
-                    <span className="text-base text-white/75 line-through font-medium">{fmt(sl.compareAt)}</span>
+                    <span className="text-base text-slate-500 line-through font-medium">{fmt(sl.compareAt)}</span>
                   </p>
                   <div className="mb-6">
                     <CountdownBoxes />
@@ -211,7 +211,7 @@ export function HeroSection() {
                   <button
                     onClick={() => navigate(sl.productId ? `/product/${sl.productId}` : `/category/${sl.cat}`)}
                     tabIndex={active ? 0 : -1}
-                    className="px-8 py-3.5 rounded-full bg-white text-slate-900 font-bold hover:bg-slate-900 hover:text-white transition-colors shadow-xl shadow-black/25"
+                    className="px-8 py-3.5 rounded-full bg-emerald-700 text-white font-bold hover:bg-emerald-950 transition-colors shadow-xl shadow-emerald-900/20"
                   >
                     Shop Now →
                   </button>
