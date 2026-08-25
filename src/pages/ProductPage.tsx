@@ -26,6 +26,14 @@ const CATEGORY_PERKS: Record<string, string[]> = {
   cables: ["Lifetime warranty on cables", "100% copper cores", "Tangle-free braided nylon"],
 };
 
+const QUICK_SPECS: Record<string, [string, string][]> = {
+  audio: [["Type", "Wireless audio"], ["Connectivity", "Bluetooth"], ["Warranty", "6 months"], ["Delivery", "2–5 working days"]],
+  wearables: [["Compatibility", "Android & iOS"], ["Tracking", "Fitness & health"], ["Warranty", "6 months"], ["Delivery", "2–5 working days"]],
+  power: [["Category", "Power & charging"], ["Protection", "Over-charge safe"], ["Warranty", "6 months"], ["Delivery", "2–5 working days"]],
+  cases: [["Protection", "Everyday impact"], ["Finish", "Slim profile"], ["Warranty", "Product guarantee"], ["Delivery", "2–5 working days"]],
+  cables: [["Build", "Braided nylon"], ["Core", "Copper"], ["Warranty", "Lifetime"], ["Delivery", "2–5 working days"]],
+};
+
 function InfoAccordion({
   title,
   children,
@@ -221,10 +229,22 @@ export default function ProductPage({ id }: { id: number }) {
 
   const variant = product.variants?.find((v) => v.id === variantId) ?? null;
   const unitPrice = product.price + (variant?.priceDelta ?? 0);
+  const comparePrice =
+    product.compareAt && product.compareAt + (variant?.priceDelta ?? 0) > unitPrice
+      ? product.compareAt + (variant?.priceDelta ?? 0)
+      : null;
+  const discountPercent = comparePrice ? Math.round(((comparePrice - unitPrice) / comparePrice) * 100) : 0;
   const availableStock = variant ? variant.stock : product.stock;
   const low = availableStock > 0 && availableStock <= 15;
   const out = availableStock <= 0;
   const perks = CATEGORY_PERKS[product.category] ?? [];
+  const quickSpecs = QUICK_SPECS[product.category] ?? [
+    ["Delivery", "2–5 working days"],
+    ["Payment", "Cash on Delivery"],
+    ["Returns", "7 days"],
+    ["Support", "Nationwide"],
+  ];
+  const summary = product.description?.split(/[.!?]/)[0]?.trim() || "A thoughtfully selected accessory for everyday use.";
 
   /* ---- order this product straight on WhatsApp ---- */
   const orderOnWhatsApp = () => {
@@ -296,7 +316,7 @@ export default function ProductPage({ id }: { id: number }) {
         <div>
           <div className="glass rounded-3xl overflow-hidden relative">
             {product.badge && (
-              <span className="absolute top-4 left-4 z-10 bg-gradient-to-r from-rose-500 to-orange-500 text-white text-sm font-bold px-3 py-1.5 rounded-lg shadow-md shadow-rose-500/30">
+              <span className="absolute top-4 left-4 z-10 bg-emerald-700 text-white text-sm font-bold px-3 py-1.5 rounded-lg shadow-md shadow-emerald-700/25">
                 {product.badge}
               </span>
             )}
@@ -367,9 +387,10 @@ export default function ProductPage({ id }: { id: number }) {
           )}
         </div>
 
-        {/* details */}
+        {/* purchase panel */}
         <div>
-          <Link to={`/category/${product.category}`} className="text-xs font-bold uppercase tracking-widest text-emerald-600 hover:underline">
+          <div className="glass rounded-3xl p-5 md:p-6 lg:sticky lg:top-24 self-start">
+            <Link to={`/category/${product.category}`} className="text-xs font-bold uppercase tracking-widest text-emerald-600 hover:underline">
             {catName}
           </Link>
           <h1 className="text-3xl md:text-4xl font-black text-slate-900 mt-2 mb-3">{product.name}</h1>
@@ -382,16 +403,19 @@ export default function ProductPage({ id }: { id: number }) {
               </span>
             )}
           </div>
+          <p className="text-sm text-slate-600 leading-relaxed mb-4">{summary}</p>
           <div className="flex items-baseline gap-3 mb-1.5 flex-wrap">
             <span className="text-3xl font-black text-emerald-700">{fmt(unitPrice)}</span>
-            {product.compareAt && (
-              <span className="text-lg text-slate-400 line-through">{fmt(product.compareAt + (variant?.priceDelta ?? 0))}</span>
+            {comparePrice && (
+              <span className="text-lg text-slate-400 line-through">{fmt(comparePrice)}</span>
+            )}
+            {discountPercent > 0 && (
+              <span className="text-[11px] font-black uppercase tracking-wide text-emerald-700">{discountPercent}% off</span>
             )}
           </div>
-          {product.compareAt && (
-            <p className="text-sm font-bold text-rose-500 mb-4">
-              You save {fmt(product.compareAt + (variant?.priceDelta ?? 0) - unitPrice)} (
-              {Math.round(((product.compareAt + (variant?.priceDelta ?? 0) - unitPrice) / (product.compareAt + (variant?.priceDelta ?? 0))) * 100)}%)
+          {comparePrice && (
+            <p className="text-sm font-bold text-emerald-700 mb-4">
+              You save {fmt(comparePrice - unitPrice)}
             </p>
           )}
 
@@ -542,31 +566,6 @@ export default function ProductPage({ id }: { id: number }) {
 
           {!out && <DeliveryEstimate />}
 
-          <div className="space-y-2 mb-6">
-            <InfoAccordion title="Description" defaultOpen>
-              <p className="text-sm text-slate-600 leading-relaxed">{product.description || "A thoughtfully selected accessory designed for everyday use."}</p>
-            </InfoAccordion>
-
-            <InfoAccordion title="Why you’ll like it" defaultOpen>
-              <ul className="space-y-2">
-                {perks.map((f) => (
-                  <li key={f} className="flex items-center gap-2.5 text-sm text-slate-600">
-                    <span className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-xs shrink-0">✓</span>
-                    {f}
-                  </li>
-                ))}
-              </ul>
-            </InfoAccordion>
-
-            <InfoAccordion title="Shipping & returns">
-              <ul className="space-y-2 text-sm text-slate-600 leading-relaxed">
-                <li>Cash on Delivery is available nationwide.</li>
-                <li>Free shipping applies to orders over Rs 5,000.</li>
-                <li>Easy 7-day returns for eligible products.</li>
-              </ul>
-            </InfoAccordion>
-          </div>
-
           {/* qty + actions */}
           <div className="flex items-center gap-3 mb-5">
             <div className="flex items-center glass-soft rounded-xl">
@@ -652,8 +651,54 @@ export default function ProductPage({ id }: { id: number }) {
               </div>
             ))}
           </div>
+          </div>
+
+          <div className="mt-4 space-y-2 mb-6">
+            <InfoAccordion title="Description" defaultOpen>
+              <p className="text-sm text-slate-600 leading-relaxed">{product.description || "A thoughtfully selected accessory designed for everyday use."}</p>
+            </InfoAccordion>
+
+            <InfoAccordion title="Why you’ll like it">
+              <ul className="space-y-2">
+                {perks.map((f) => (
+                  <li key={f} className="flex items-center gap-2.5 text-sm text-slate-600">
+                    <span className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-xs shrink-0">✓</span>
+                    {f}
+                  </li>
+                ))}
+              </ul>
+            </InfoAccordion>
+
+            <InfoAccordion title="Shipping & returns">
+              <ul className="space-y-2 text-sm text-slate-600 leading-relaxed">
+                <li>Cash on Delivery is available nationwide.</li>
+                <li>Free shipping applies to orders over Rs 5,000.</li>
+                <li>Easy 7-day returns for eligible products.</li>
+              </ul>
+            </InfoAccordion>
+          </div>
+
         </div>
       </div>
+
+      {/* quick specifications — scannable facts before the long-form details */}
+      <section className="mt-12">
+        <div className="flex items-end justify-between gap-4 mb-4">
+          <div>
+            <p className="text-[11px] font-black uppercase tracking-[0.2em] text-emerald-700 mb-1">At a glance</p>
+            <h2 className="text-2xl font-black text-slate-900">Product details</h2>
+          </div>
+          <span className="hidden sm:block text-xs text-slate-400">Simple facts, quick decision</span>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {quickSpecs.map(([label, value]) => (
+            <div key={label} className="glass-soft rounded-2xl px-4 py-3.5">
+              <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400">{label}</p>
+              <p className="text-sm font-bold text-slate-800 mt-1">{value}</p>
+            </div>
+          ))}
+        </div>
+      </section>
 
       {/* reviews */}
       <section className="mt-16 grid lg:grid-cols-2 gap-8">
