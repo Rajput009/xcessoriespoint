@@ -24,7 +24,7 @@ ENV XP_DB_PATH=/data/store.db \
     PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
 
 COPY package.json package-lock.json ./
-RUN npm ci
+RUN npm install
 
 COPY . .
 RUN npm run build
