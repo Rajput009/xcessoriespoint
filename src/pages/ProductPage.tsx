@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { Link, useRouter } from "../router";
 import { useAuth, useCart, useProducts, useToast, useWishlist, fmt } from "../context/store";
 import ProductCard, { Stars } from "../components/ProductCard";
@@ -26,6 +26,32 @@ const CATEGORY_PERKS: Record<string, string[]> = {
   cables: ["Lifetime warranty on cables", "100% copper cores", "Tangle-free braided nylon"],
 };
 
+function InfoAccordion({
+  title,
+  children,
+  defaultOpen = false,
+}: {
+  title: string;
+  children: ReactNode;
+  defaultOpen?: boolean;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <div className="glass-soft rounded-2xl overflow-hidden">
+      <button
+        type="button"
+        onClick={() => setOpen((value) => !value)}
+        aria-expanded={open}
+        className="w-full flex items-center justify-between gap-4 px-4 py-3.5 text-left hover:bg-white/45 transition-colors"
+      >
+        <span className="text-sm font-bold text-slate-900">{title}</span>
+        <span className={`text-emerald-600 text-lg leading-none transition-transform ${open ? "rotate-45" : ""}`} aria-hidden="true">＋</span>
+      </button>
+      {open && <div className="border-t border-white/60 px-4 py-4">{children}</div>}
+    </div>
+  );
+}
+
 export default function ProductPage({ id }: { id: number }) {
   const { products, categories, loading } = useProducts();
   const { add } = useCart();
@@ -48,6 +74,7 @@ export default function ProductPage({ id }: { id: number }) {
   const [alertDone, setAlertDone] = useState(false);
   const [imgIdx, setImgIdx] = useState(0);
   const [hoverPreview, setHoverPreview] = useState<string | null>(null);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
 
   const product = products.find((p) => p.id === id);
   const catName = categories.find((c) => c.id === product?.category)?.name ?? product?.category;
@@ -55,6 +82,15 @@ export default function ProductPage({ id }: { id: number }) {
     () => products.filter((p) => p.category === product?.category && p.id !== id).slice(0, 4),
     [products, product, id]
   );
+
+  const gallery = product
+    ? (() => {
+        const imgs = product.images?.length ? [...product.images] : [product.image];
+        const vImg = product.variants?.find((v) => v.id === variantId)?.image;
+        if (vImg && !imgs.includes(vImg)) imgs.unshift(vImg);
+        return imgs;
+      })()
+    : [];
 
   useEffect(() => {
     if (!product) return;
@@ -69,7 +105,7 @@ export default function ProductPage({ id }: { id: number }) {
       title: `${product.name} — XccessoriesPoint`,
       description:
         product.description?.slice(0, 160) ||
-        `Buy ${product.name} at XccessoriesPoint — Rs ${fmt(product.price)}. COD nationwide, 7-day returns.`,
+        `Buy ${product.name} at XccessoriesPoint — ${fmt(product.price)}. COD nationwide, 7-day returns.`,
       image: product.image,
       url: `/product/${product.id}`,
       type: "product",
@@ -148,6 +184,23 @@ export default function ProductPage({ id }: { id: number }) {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  // keep the gallery lightbox focused and prevent the page behind it from moving
+  useEffect(() => {
+    if (!lightboxOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setLightboxOpen(false);
+      if (e.key === "ArrowLeft") setImgIdx((i) => (i - 1 + gallery.length) % gallery.length);
+      if (e.key === "ArrowRight") setImgIdx((i) => (i + 1) % gallery.length);
+    };
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [lightboxOpen, gallery.length]);
+
   if (loading)
     return (
       <main className="pt-[120px] md:pt-44 max-w-7xl mx-auto px-6 pb-16">
@@ -164,12 +217,6 @@ export default function ProductPage({ id }: { id: number }) {
       </main>
     );
 
-  const gallery = (() => {
-    const imgs = product.images?.length ? [...product.images] : [product.image];
-    const vImg = product.variants?.find((v) => v.id === variantId)?.image;
-    if (vImg && !imgs.includes(vImg)) imgs.unshift(vImg);
-    return imgs;
-  })();
   const mainImage = hoverPreview ?? gallery[Math.min(imgIdx, gallery.length - 1)];
 
   const variant = product.variants?.find((v) => v.id === variantId) ?? null;
@@ -274,17 +321,25 @@ export default function ProductPage({ id }: { id: number }) {
                 </span>
               </>
             )}
-            <div className="overflow-hidden">
+            <button
+              type="button"
+              onClick={() => setLightboxOpen(true)}
+              className="group block w-full overflow-hidden bg-white/55 p-4 md:p-8 cursor-zoom-in"
+              aria-label="Open product image gallery"
+            >
               <img
                 key={mainImage}
                 src={mainImage}
                 alt={product.name}
                 width={800}
                 height={800}
-                className="w-full aspect-square object-cover hover:scale-110 transition-transform duration-700 fade-up"
+                className="w-full aspect-square object-contain group-hover:scale-[1.03] transition-transform duration-500 fade-up"
                 fetchPriority="high"
               />
-            </div>
+              <span className="pointer-events-none absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-slate-900/65 px-3 py-1.5 text-[11px] font-semibold text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                Click to enlarge
+              </span>
+            </button>
           </div>
           {gallery.length > 1 && (
             <div className="flex gap-2.5 mt-3 overflow-x-auto no-scrollbar pb-1">
@@ -304,7 +359,7 @@ export default function ProductPage({ id }: { id: number }) {
                     alt={`${product.name} — image ${i + 1}`}
                     width={160}
                     height={160}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-contain bg-white/60 p-1"
                   />
                 </button>
               ))}
@@ -487,17 +542,30 @@ export default function ProductPage({ id }: { id: number }) {
 
           {!out && <DeliveryEstimate />}
 
-          <p className="text-slate-600 leading-relaxed mb-6">{product.description}</p>
+          <div className="space-y-2 mb-6">
+            <InfoAccordion title="Description" defaultOpen>
+              <p className="text-sm text-slate-600 leading-relaxed">{product.description || "A thoughtfully selected accessory designed for everyday use."}</p>
+            </InfoAccordion>
 
-          {/* perks */}
-          <ul className="space-y-2 mb-6">
-            {perks.map((f) => (
-              <li key={f} className="flex items-center gap-2.5 text-sm text-slate-600">
-                <span className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-xs shrink-0">✓</span>
-                {f}
-              </li>
-            ))}
-          </ul>
+            <InfoAccordion title="Why you’ll like it" defaultOpen>
+              <ul className="space-y-2">
+                {perks.map((f) => (
+                  <li key={f} className="flex items-center gap-2.5 text-sm text-slate-600">
+                    <span className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-xs shrink-0">✓</span>
+                    {f}
+                  </li>
+                ))}
+              </ul>
+            </InfoAccordion>
+
+            <InfoAccordion title="Shipping & returns">
+              <ul className="space-y-2 text-sm text-slate-600 leading-relaxed">
+                <li>Cash on Delivery is available nationwide.</li>
+                <li>Free shipping applies to orders over Rs 5,000.</li>
+                <li>Easy 7-day returns for eligible products.</li>
+              </ul>
+            </InfoAccordion>
+          </div>
 
           {/* qty + actions */}
           <div className="flex items-center gap-3 mb-5">
@@ -590,6 +658,15 @@ export default function ProductPage({ id }: { id: number }) {
       {/* reviews */}
       <section className="mt-16 grid lg:grid-cols-2 gap-8">
         <div>
+          <div className="glass-soft rounded-2xl p-4 mb-4 flex items-center gap-4">
+            <span className="text-3xl font-black text-slate-900">{product.reviews > 0 ? product.rating.toFixed(1) : "—"}</span>
+            <div>
+              <Stars rating={product.rating} />
+              <p className="text-xs text-slate-500 mt-0.5">
+                {product.reviews > 0 ? `Based on ${product.reviews} review${product.reviews === 1 ? "" : "s"}` : "Be the first to review this product"}
+              </p>
+            </div>
+          </div>
           <h2 className="text-xl font-black text-slate-900 mb-4">Customer Reviews ({reviews.length})</h2>
           {reviews.length === 0 ? (
             <p className="text-sm text-slate-500">No approved reviews yet — be the first!</p>
@@ -653,6 +730,27 @@ export default function ProductPage({ id }: { id: number }) {
         </div>
       </section>
 
+      {/* compact desktop buy bar appears once the main purchase controls leave the viewport */}
+      {showSticky && !out && (
+        <div className="hidden md:flex fixed bottom-6 right-6 z-30 glass !bg-white/90 rounded-2xl shadow-xl shadow-slate-900/15 p-2.5 items-center gap-3 max-w-sm">
+          <img src={variant?.image || product.image} alt="" className="w-12 h-12 rounded-xl object-contain bg-white/70 p-1" />
+          <div className="min-w-0 flex-1">
+            <p className="text-xs font-bold text-slate-900 truncate">{product.name}</p>
+            <p className="text-sm font-black text-emerald-700">
+              {fmt(unitPrice)}
+              {variant && <span className="ml-1.5 text-[10px] font-bold text-slate-400">{variant.label}</span>}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => add(product, qty, variantId)}
+            className="shrink-0 px-4 py-2.5 rounded-xl bg-emerald-600 text-white text-sm font-bold hover:bg-emerald-700 neon-glow-soft"
+          >
+            Add to cart
+          </button>
+        </div>
+      )}
+
       {/* sticky mobile add-to-cart (conversion) */}
       {showSticky && !out && (
         <div className="md:hidden fixed bottom-[60px] inset-x-0 z-30 px-3 pb-2 fade-up">
@@ -688,6 +786,60 @@ export default function ProductPage({ id }: { id: number }) {
             ))}
           </div>
         </section>
+      )}
+
+      {lightboxOpen && (
+        <div
+          className="fixed inset-0 z-[80] bg-slate-950/80 backdrop-blur-sm p-4 md:p-8 flex items-center justify-center"
+          role="dialog"
+          aria-modal="true"
+          aria-label={`${product.name} image gallery`}
+          onClick={() => setLightboxOpen(false)}
+        >
+          <button
+            type="button"
+            onClick={() => setLightboxOpen(false)}
+            aria-label="Close image gallery"
+            className="absolute top-5 right-5 w-10 h-10 rounded-full bg-white/90 text-slate-700 text-xl hover:bg-white z-10"
+          >
+            ×
+          </button>
+          <div className="relative max-w-5xl max-h-full flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
+            {gallery.length > 1 && (
+              <button
+                type="button"
+                onClick={() => setImgIdx((i) => (i - 1 + gallery.length) % gallery.length)}
+                aria-label="Previous image"
+                className="absolute left-2 md:-left-14 w-10 h-10 rounded-full bg-white/90 text-slate-700 text-2xl shadow-lg hover:bg-white z-10"
+              >
+                ‹
+              </button>
+            )}
+            <img
+              key={mainImage}
+              src={mainImage}
+              alt={product.name}
+              width={1000}
+              height={1000}
+              className="max-h-[82vh] max-w-[88vw] object-contain rounded-2xl shadow-2xl"
+            />
+            {gallery.length > 1 && (
+              <button
+                type="button"
+                onClick={() => setImgIdx((i) => (i + 1) % gallery.length)}
+                aria-label="Next image"
+                className="absolute right-2 md:-right-14 w-10 h-10 rounded-full bg-white/90 text-slate-700 text-2xl shadow-lg hover:bg-white z-10"
+              >
+                ›
+              </button>
+            )}
+            {gallery.length > 1 && (
+              <span className="absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-slate-950/70 text-white text-xs font-bold px-3 py-1.5">
+                {Math.min(imgIdx + 1, gallery.length)} / {gallery.length}
+              </span>
+            )}
+          </div>
+        </div>
       )}
     </main>
   );
