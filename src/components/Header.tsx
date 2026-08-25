@@ -393,13 +393,24 @@ export default function Header() {
         {/* ---------- Mobile ---------- */}
         <div className="md:hidden px-4 py-2.5">
           <div className="flex items-center justify-between gap-2">
-            <button
-              onClick={() => setMobileSearch((s) => !s)}
-              className={`${iconBtn} shrink-0 ${mobileSearch ? "bg-white/50" : ""}`}
-              aria-label="Toggle search"
-            >
-              <SearchIcon size={20} />
-            </button>
+            <div className="flex items-center gap-1 shrink-0">
+              <button
+                onClick={() => setCollectionOpen(true)}
+                className={`${iconBtn} ${collectionOpen ? "bg-emerald-50 text-emerald-700" : ""}`}
+                aria-label="Browse categories"
+                aria-expanded={collectionOpen}
+                aria-controls="collection-drawer"
+              >
+                <MenuIcon size={20} />
+              </button>
+              <button
+                onClick={() => setMobileSearch((s) => !s)}
+                className={`${iconBtn} ${mobileSearch ? "bg-white/50" : ""}`}
+                aria-label="Toggle search"
+              >
+                <SearchIcon size={20} />
+              </button>
+            </div>
             <Link to="/" className="min-w-0 text-center">
               <Logo compact light={overHero} />
             </Link>
