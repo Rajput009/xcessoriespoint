@@ -39,7 +39,7 @@ function CountdownBoxes() {
   const { days, hours, mins, secs } = useCountdown(saleEnd ?? Date.now());
   if (saleEnd === null) return null;
   const box =
-    "bg-white/75 backdrop-blur-md border border-emerald-950/10 rounded-xl px-2.5 py-1.5 min-w-[54px] text-center shadow-md shadow-emerald-950/10";
+    "bg-black/20 backdrop-blur-md border border-white/25 rounded-xl px-2.5 py-1.5 min-w-[54px] text-center shadow-lg shadow-black/20";
   const items = [
     [days, "Days"], [hours, "Hours"], [mins, "Mins"], [secs, "Secs"],
   ] as const;
@@ -47,8 +47,8 @@ function CountdownBoxes() {
     <div className="flex gap-2 justify-center lg:justify-start">
       {items.map(([v, l]) => (
         <div key={l} className={box}>
-          <div className="text-lg font-black text-slate-900 tabular-nums">{String(v).padStart(2, "0")}</div>
-          <div className="text-[10px] uppercase tracking-wide text-slate-500">{l}</div>
+          <div className="text-lg font-black text-white tabular-nums">{String(v).padStart(2, "0")}</div>
+          <div className="text-[10px] uppercase tracking-wide text-white/85">{l}</div>
         </div>
       ))}
     </div>
@@ -68,8 +68,7 @@ const SLIDES = [
     image: "/img/hero-1.webp",
     width: 800,
     height: 523,
-    // Keep the backdrop quiet so the product cutout carries the visual weight.
-    gradient: "from-[#e6f1eb] via-[#fbfdfc] to-[#d6e8dd]",
+    gradient: "from-emerald-700 via-teal-600 to-emerald-500",
     cat: "audio",
   },
   {
@@ -80,7 +79,7 @@ const SLIDES = [
     image: "/img/hero-2.webp",
     width: 752,
     height: 800,
-    gradient: "from-[#e6f1eb] via-[#fbfdfc] to-[#d6e8dd]",
+    gradient: "from-violet-700 via-purple-600 to-fuchsia-500",
     cat: "wearables",
   },
   {
@@ -91,7 +90,7 @@ const SLIDES = [
     image: "/img/hero-3.webp",
     width: 567,
     height: 800,
-    gradient: "from-[#e6f1eb] via-[#fbfdfc] to-[#d6e8dd]",
+    gradient: "from-amber-600 via-orange-500 to-rose-500",
     cat: "power",
   },
 ];
@@ -123,6 +122,23 @@ function useSlides(): Slide[] {
   );
 }
 
+/* hand-drawn dashed arrow doodle (amaze-style personality) */
+function ArrowDoodle() {
+  return (
+    <svg
+      viewBox="0 0 120 90"
+      className="hidden lg:block absolute left-[46%] top-[38%] w-28 text-white/70 -rotate-12"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+    >
+      <path d="M8 78 C 30 70, 28 40, 52 38 C 76 36, 66 14, 104 12" strokeDasharray="6 7" />
+      <path d="M92 6 l14 5 -11 11" strokeDasharray="0" />
+    </svg>
+  );
+}
+
 export function HeroSection() {
   const slides = useSlides();
   const [slide, setSlide] = useState(0);
@@ -144,8 +160,8 @@ export function HeroSection() {
   const featured = products.filter((p) => [2, 6, 3].includes(p.id)).slice(0, 3);
 
   return (
-    <section className="relative overflow-hidden">
-      {/* full-bleed, low-contrast canvas keeps attention on the product */}
+    <section className="relative">
+      {/* full-bleed cross-fading gradients — run up behind the glass header */}
       <div className="absolute inset-0 overflow-hidden">
         {slides.map((sl, i) => (
           <div
@@ -155,10 +171,11 @@ export function HeroSection() {
             }`}
           />
         ))}
-        {/* subtle depth only — the product image remains the hero's focal point */}
-        <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-emerald-700/5 blur-3xl" />
-        <div className="absolute bottom-0 left-0 w-[28rem] h-[28rem] rounded-full bg-white/60 blur-3xl" />
-        <div className="absolute inset-0 bg-gradient-to-r from-white/35 via-transparent to-emerald-950/5" />
+        {/* soft light blooms for depth */}
+        <div className="absolute -top-24 -left-24 w-96 h-96 rounded-full bg-white/15 blur-3xl" />
+        <div className="absolute bottom-0 right-0 w-[28rem] h-[28rem] rounded-full bg-white/10 blur-3xl" />
+        {/* readability scrim behind the text column */}
+        <div className="absolute inset-0 bg-gradient-to-r from-black/30 via-black/10 to-transparent" />
       </div>
 
       <div className="relative max-w-7xl mx-auto px-6 pt-[130px] md:pt-[180px] pb-4">
@@ -173,21 +190,21 @@ export function HeroSection() {
                 key={i}
                 aria-hidden={!active}
                 inert={!active ? true : undefined}
-                className={`col-start-1 row-start-1 grid lg:grid-cols-[0.8fr_1.2fr] gap-8 items-center transition-opacity duration-700 ease-out ${
+                className={`col-start-1 row-start-1 grid lg:grid-cols-2 gap-8 items-center transition-opacity duration-700 ease-out ${
                   active ? "opacity-100" : "opacity-0 pointer-events-none"
                 }`}
               >
                 {/* text */}
                 <div className="text-center lg:text-left order-2 lg:order-1">
-                  <p className="inline-flex items-center text-xs font-bold uppercase tracking-widest bg-white/75 backdrop-blur-md border border-emerald-900/10 text-emerald-800 px-3.5 py-1.5 rounded-full mb-4 shadow-sm">
-                    <span className="mr-1.5 text-emerald-600">⚡</span>{sl.tag}
+                  <p className="inline-block text-xs font-bold uppercase tracking-widest bg-black/25 backdrop-blur-md border border-white/25 text-white px-3.5 py-1.5 rounded-full mb-4">
+                    ⚡ {sl.tag}
                   </p>
-                  <h1 className="text-3xl md:text-5xl font-black text-slate-950 leading-tight mb-4">
+                  <h1 className="text-3xl md:text-5xl font-black text-white leading-tight mb-4 drop-shadow-[0_3px_18px_rgba(0,0,0,0.45)]">
                     {sl.headline}
                   </h1>
-                  <p className="text-2xl font-bold text-slate-900 mb-5">
+                  <p className="text-2xl font-bold text-white mb-5 drop-shadow-[0_2px_8px_rgba(0,0,0,0.35)]">
                     {fmt(sl.price)}{" "}
-                    <span className="text-base text-slate-500 line-through font-medium">{fmt(sl.compareAt)}</span>
+                    <span className="text-base text-white/75 line-through font-medium">{fmt(sl.compareAt)}</span>
                   </p>
                   <div className="mb-6">
                     <CountdownBoxes />
@@ -195,14 +212,15 @@ export function HeroSection() {
                   <button
                     onClick={() => navigate(sl.productId ? `/product/${sl.productId}` : `/category/${sl.cat}`)}
                     tabIndex={active ? 0 : -1}
-                    className="px-8 py-3.5 rounded-full bg-emerald-700 text-white font-bold hover:bg-emerald-950 transition-colors shadow-xl shadow-emerald-900/20"
+                    className="px-8 py-3.5 rounded-full bg-white text-slate-900 font-bold hover:bg-slate-900 hover:text-white transition-colors shadow-xl shadow-black/25"
                   >
                     Shop Now →
                   </button>
                 </div>
                 {/* floating cutout product — fixed-height box so differently shaped
                     cutouts (and slow image loads) can't resize the hero */}
-                <div className="order-1 lg:order-2 relative flex justify-center items-center h-[320px] md:h-[520px]">
+                <div className="order-1 lg:order-2 relative flex justify-center items-center h-[280px] md:h-[420px]">
+                  <ArrowDoodle />
                   {loaded.includes(i) && (
                     <img
                       src={sl.image}
@@ -211,7 +229,7 @@ export function HeroSection() {
                       height={sl.height}
                       fetchPriority={i === 0 ? "high" : "low"}
                       decoding="async"
-                      className="float-slow max-h-full w-auto max-w-[20rem] md:max-w-[560px] object-contain drop-shadow-[0_28px_38px_rgba(15,23,42,0.22)]"
+                      className="float-slow max-h-full w-auto max-w-[16rem] md:max-w-[400px] object-contain drop-shadow-[0_35px_45px_rgba(6,78,59,0.4)]"
                     />
                   )}
                 </div>
@@ -228,7 +246,7 @@ export function HeroSection() {
               onClick={() => setSlide(i)}
               aria-label={`Slide ${i + 1}`}
               className={`h-2 rounded-full transition-all ${
-                i === slide ? "w-8 bg-emerald-700" : "w-2 bg-emerald-700/25 hover:bg-emerald-700/50"
+                i === slide ? "w-8 bg-white" : "w-2 bg-white/40 hover:bg-white/70"
               }`}
             />
           ))}
@@ -240,7 +258,7 @@ export function HeroSection() {
             <button
               key={p.id}
               onClick={() => navigate("/shop")}
-              className="snap-start shrink-0 w-72 lg:w-auto bg-white/80 backdrop-blur-xl border border-white rounded-2xl p-4 flex items-center gap-4 shadow-xl shadow-emerald-950/10 hover:bg-white hover:-translate-y-0.5 transition text-left"
+              className="snap-start shrink-0 w-72 lg:w-auto bg-white/40 backdrop-blur-xl border border-white/50 rounded-2xl p-4 flex items-center gap-4 shadow-xl shadow-emerald-950/15 hover:bg-white/60 hover:-translate-y-0.5 transition text-left"
             >
               <img src={p.image} alt="" className="w-16 h-16 rounded-xl object-cover ring-1 ring-white/50" />
               <div className="min-w-0">
@@ -248,7 +266,7 @@ export function HeroSection() {
                 <p className="text-sm font-bold text-slate-900 truncate">{p.name}</p>
                 <p className="text-sm">
                   <span className="font-bold text-slate-900">{fmt(p.price)}</span>{" "}
-                  {p.badge && <span className="text-xs font-bold text-emerald-700/90">{p.badge}</span>}
+                  {p.badge && <span className="text-xs font-bold text-red-600/80">{p.badge}</span>}
                 </p>
               </div>
             </button>

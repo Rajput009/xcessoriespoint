@@ -220,7 +220,7 @@ export default function Header() {
   const { ids } = useWishlist();
   const { user } = useAuth();
   const { openModal, searchQuery, setSearchQuery } = useUI();
-  const { navigate } = useRouter();
+  const { navigate, path } = useRouter();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
@@ -234,8 +234,8 @@ export default function Header() {
     return () => clearInterval(t);
   }, []);
 
-  // The hero is now a light product canvas, so keep navigation readable from first paint.
-  const overHero = false;
+  // On the homepage the header floats ON the hero gradient (glass); elsewhere it's a solid bar
+  const overHero = path === "/" && !scrolled;
 
   const submitSearch = (e: React.FormEvent) => {
     e.preventDefault();
