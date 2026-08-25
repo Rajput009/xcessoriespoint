@@ -26,11 +26,72 @@ function Logo({ compact = false, light = false }: { compact?: boolean; light?: b
   );
 }
 
+const POPULAR_SEARCHES = ["Earbuds", "Smartwatch", "Power bank", "Fast charger", "Phone case"];
+
 function SearchSuggestions({ query, onPick }: { query: string; onPick: () => void }) {
   const { products } = useProducts();
   const { navigate } = useRouter();
-  const q = query.trim().toLowerCase();
-  if (q.length < 2) return null;
+  const { setSearchQuery } = useUI();
+  const trimmed = query.trim();
+  const q = trimmed.toLowerCase();
+
+  const chooseSearch = (term: string) => {
+    setSearchQuery(term);
+    onPick();
+    navigate(`/shop?q=${encodeURIComponent(term)}`);
+  };
+
+  // Clicking into an empty search field opens useful, low-friction suggestions.
+  if (q.length < 2) {
+    const featured = products.filter((p) => p.bestSeller || p.featured).slice(0, 3);
+    return (
+      <div className="absolute top-full left-0 right-0 mt-2 glass !bg-white/90 rounded-2xl shadow-xl shadow-slate-900/10 overflow-hidden z-50 p-4">
+        <p className="text-[11px] font-black uppercase tracking-[0.16em] text-emerald-700 mb-3">Popular searches</p>
+        <div className="flex flex-wrap gap-2">
+          {POPULAR_SEARCHES.map((term) => (
+            <button
+              key={term}
+              type="button"
+              onMouseDown={(e) => {
+                e.preventDefault();
+                chooseSearch(term);
+              }}
+              className="glass-soft rounded-full px-3 py-1.5 text-xs font-semibold text-slate-700 hover:text-emerald-700 hover:bg-emerald-50 transition-colors"
+            >
+              {term}
+            </button>
+          ))}
+        </div>
+        {featured.length > 0 && (
+          <>
+            <p className="text-[11px] font-black uppercase tracking-[0.16em] text-slate-400 mt-4 mb-2">Popular products</p>
+            <div className="space-y-1">
+              {featured.map((p) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    onPick();
+                    navigate(`/product/${p.id}`);
+                  }}
+                  className="w-full flex items-center gap-3 rounded-xl px-2 py-2 hover:bg-emerald-50/80 text-left transition-colors"
+                >
+                  <img src={p.image} alt="" className="w-9 h-9 rounded-lg object-cover" />
+                  <span className="flex-1 min-w-0">
+                    <span className="block text-sm font-semibold text-slate-900 truncate">{p.name}</span>
+                    <span className="block text-xs text-emerald-700 font-bold">{fmt(p.price)}</span>
+                  </span>
+                  <span className="text-slate-300" aria-hidden="true">→</span>
+                </button>
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+    );
+  }
+
   const res = smartSearch(products, q);
   const matches = res.results.slice(0, 5);
   const fuzzy = res.method === "fuzzy" || res.method === "synonym";
@@ -39,7 +100,7 @@ function SearchSuggestions({ query, onPick }: { query: string; onPick: () => voi
     <div className="absolute top-full left-0 right-0 mt-2 glass !bg-white/90 rounded-2xl shadow-xl shadow-slate-900/10 overflow-hidden z-50">
       {fuzzy && (
         <p className="px-4 pt-2.5 pb-1 text-[11px] font-semibold text-slate-400">
-          {res.interpretedAs ? `Showing "${res.interpretedAs}"` : `Closest matches for "${query.trim()}"`}
+          {res.interpretedAs ? `Showing "${res.interpretedAs}"` : `Closest matches for "${trimmed}"`}
         </p>
       )}
       {matches.map((p) => (
@@ -437,6 +498,7 @@ export default function Header() {
                 autoFocus
                 value={searchQuery}
                 onChange={(e) => { setSearchQuery(e.target.value); setShowSug(true); }}
+                onFocus={() => setShowSug(true)}
                 onBlur={() => setTimeout(() => setShowSug(false), 150)}
                 placeholder="Search products…"
                 className={`w-full rounded-full pl-10 pr-4 py-2.5 text-sm outline-none ${
