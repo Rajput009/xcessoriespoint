@@ -219,7 +219,7 @@ export function HeroSection() {
                 </div>
                 {/* floating cutout product — fixed-height box so differently shaped
                     cutouts (and slow image loads) can't resize the hero */}
-                <div className="relative z-0 order-1 lg:order-2 flex justify-center items-center h-[280px] md:h-[420px]">
+                <div className="relative z-0 order-1 lg:order-2 flex justify-center items-center h-[260px] md:h-[360px]">
                   <ArrowDoodle />
                   {loaded.includes(i) && (
                     <img

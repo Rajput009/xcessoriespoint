@@ -281,7 +281,7 @@ export default function Header() {
   const { ids } = useWishlist();
   const { user } = useAuth();
   const { openModal, searchQuery, setSearchQuery } = useUI();
-  const { navigate } = useRouter();
+  const { navigate, path } = useRouter();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
@@ -295,8 +295,8 @@ export default function Header() {
     return () => clearInterval(t);
   }, []);
 
-  // The light studio hero needs the solid, readable navigation treatment.
-  const overHero = false;
+  // Let the hero backdrop continue behind the navigation on the homepage.
+  const overHero = path === "/" && !scrolled;
 
   const submitSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -305,7 +305,7 @@ export default function Header() {
 
   const iconBtn = `relative w-10 h-10 flex items-center justify-center rounded-full transition-colors ${
     overHero
-      ? "text-white hover:bg-white/25"
+      ? "text-slate-700 hover:bg-white/60"
       : "text-slate-600 hover:text-emerald-700 hover:bg-emerald-50"
   }`;
   const badge =
@@ -316,7 +316,7 @@ export default function Header() {
       <header className="fixed top-0 inset-x-0 z-40">
       {/* announcement bar */}
       <div
-        className={`bg-emerald-950/90 backdrop-blur text-emerald-100 text-xs font-medium overflow-hidden transition-all duration-300 ${
+        className={`bg-emerald-950/75 backdrop-blur text-emerald-100 text-xs font-medium overflow-hidden transition-all duration-300 ${
           scrolled ? "max-h-0" : "max-h-8"
         }`}
       >
@@ -334,7 +334,7 @@ export default function Header() {
       <div
         className={`transition-all duration-500 ${
           overHero
-            ? "bg-transparent"
+            ? "bg-white/35 backdrop-blur-xl border-b border-white/45"
             : scrolled
             ? "bg-white/80 backdrop-blur-xl shadow-lg shadow-slate-900/5"
             : "bg-white/80 backdrop-blur-xl border-b border-slate-100"
@@ -347,21 +347,21 @@ export default function Header() {
             <div
               className={`flex items-center gap-5 text-xs overflow-hidden transition-all duration-300 ${
                 scrolled ? "opacity-0 max-w-0" : "opacity-100 max-w-md"
-              } ${overHero ? "text-white/90 font-medium" : "text-slate-500"}`}
+              } ${overHero ? "text-slate-600 font-medium" : "text-slate-500"}`}
             >
               <span className="flex items-center gap-1.5 whitespace-nowrap">
-                <MapPinIcon size={14} className={overHero ? "text-lime-300" : "text-emerald-600"} />
+                <MapPinIcon size={14} className="text-emerald-600" />
                 <span>Lahore · Karachi</span>
               </span>
               <span className="flex items-center gap-1.5 whitespace-nowrap">
-                <PhoneIcon size={14} className={overHero ? "text-lime-300" : "text-emerald-600"} />
+                <PhoneIcon size={14} className="text-emerald-600" />
                 <span>{cfg?.supportPhone || "+92 300 0000000"}</span>
               </span>
             </div>
 
             {/* center logo */}
             <Link to="/" className="justify-self-center">
-              <Logo light={overHero} />
+              <Logo />
             </Link>
 
             {/* right actions */}
@@ -388,7 +388,7 @@ export default function Header() {
               <button
                 onClick={() => openModal(user ? "account" : "auth")}
                 className={`flex items-center gap-2 h-10 px-3 rounded-full text-sm font-semibold transition-colors ${
-                  overHero ? "text-white hover:bg-white/25" : "text-slate-600 hover:text-emerald-700 hover:bg-emerald-50"
+                  overHero ? "text-slate-700 hover:bg-white/60" : "text-slate-600 hover:text-emerald-700 hover:bg-emerald-50"
                 }`}
               >
                 <UserIcon size={19} />
@@ -413,7 +413,7 @@ export default function Header() {
                 aria-controls="collection-drawer"
                 className={`whitespace-nowrap text-sm font-bold px-4 h-11 rounded-full flex items-center gap-2 transition-all ${
                   overHero
-                    ? "bg-white/20 backdrop-blur-md border border-white/35 text-white hover:bg-white/35"
+                    ? "bg-white/60 backdrop-blur-md border border-white/70 text-emerald-800 hover:bg-white/85"
                     : "text-white bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 shadow-md shadow-emerald-600/20"
                 }`}
               >
@@ -425,7 +425,7 @@ export default function Header() {
                 <SearchIcon
                   size={17}
                   className={`absolute left-5 top-1/2 -translate-y-1/2 pointer-events-none ${
-                    overHero ? "text-white/80" : "text-slate-400"
+                    overHero ? "text-slate-500" : "text-slate-400"
                   }`}
                 />
                 <input
@@ -436,7 +436,7 @@ export default function Header() {
                   placeholder="Search earbuds, چارجر, handsfree…"
                   className={`w-full h-11 rounded-full pl-12 pr-12 text-sm outline-none transition-all ${
                     overHero
-                      ? "bg-white/20 backdrop-blur-md border border-white/35 placeholder-white/75 text-white focus:bg-white/90 focus:text-slate-900 focus:placeholder-slate-400 focus:border-white"
+                      ? "bg-white/60 backdrop-blur-md border border-white/75 placeholder-slate-500 text-slate-700 focus:bg-white/85 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
                       : "border-2 border-slate-100 bg-slate-50 focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100"
                   }`}
                 />
@@ -474,7 +474,7 @@ export default function Header() {
               </button>
             </div>
             <Link to="/" className="min-w-0 text-center">
-              <Logo compact light={overHero} />
+              <Logo compact />
             </Link>
             <div className="flex items-center gap-0.5 shrink-0">
               <button onClick={() => openModal("cart")} className={iconBtn} aria-label="Cart">
@@ -503,7 +503,7 @@ export default function Header() {
                 placeholder="Search products…"
                 className={`w-full rounded-full pl-10 pr-4 py-2.5 text-sm outline-none ${
                   overHero
-                    ? "bg-white/40 backdrop-blur-md border border-white/50 placeholder-emerald-950/50 text-emerald-950"
+                    ? "bg-white/60 backdrop-blur-md border border-white/70 placeholder-slate-500 text-slate-700 focus:bg-white/85 focus:border-emerald-500"
                     : "border-2 border-slate-100 bg-slate-50 focus:border-emerald-500 focus:bg-white"
                 }`}
               />
