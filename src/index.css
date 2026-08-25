@@ -64,27 +64,6 @@ body::before {
   }
 }
 
-/* Responsive PDP gallery sizing: the product stays prominent without taking over
-   short mobile screens or creating an oversized desktop image. */
-.product-detail-image {
-  display: block;
-  width: 100%;
-  height: clamp(220px, 62vw, 400px);
-  max-height: calc(100svh - 190px);
-  object-fit: contain;
-}
-@media (min-width: 768px) {
-  .product-detail-image {
-    height: clamp(320px, 40vw, 520px);
-    max-height: calc(100svh - 210px);
-  }
-}
-@media (min-width: 1280px) {
-  .product-detail-image {
-    height: 540px;
-  }
-}
-
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(14px); }
   to { opacity: 1; transform: translateY(0); }

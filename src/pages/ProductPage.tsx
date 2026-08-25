@@ -333,7 +333,7 @@ export default function ProductPage({ id }: { id: number }) {
                 alt={product.name}
                 width={800}
                 height={800}
-                className="product-detail-image object-contain group-hover:scale-[1.03] transition-transform duration-500 fade-up"
+                className="w-full aspect-square object-contain group-hover:scale-[1.03] transition-transform duration-500 fade-up"
                 fetchPriority="high"
               />
               <span className="pointer-events-none absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-slate-900/65 px-3 py-1.5 text-[11px] font-semibold text-white opacity-0 group-hover:opacity-100 transition-opacity">
