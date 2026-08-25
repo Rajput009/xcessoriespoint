@@ -68,7 +68,11 @@ function SearchSuggestions({ query, onPick }: { query: string; onPick: () => voi
 function CollectionDrawer({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { products, categories, loading } = useProducts();
   const { navigate } = useRouter();
-  const [category, setCategory] = useState("all");
+  const [expanded, setExpanded] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (open) setExpanded(null);
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;
@@ -86,9 +90,15 @@ function CollectionDrawer({ open, onClose }: { open: boolean; onClose: () => voi
 
   if (!open) return null;
 
-  const visibleProducts = category === "all"
-    ? products
-    : products.filter((p) => p.category === category);
+  const rows = [
+    { id: "all", label: "All products", products },
+    ...categories.map((c) => ({
+      id: c.id,
+      label: c.name,
+      products: products.filter((p) => p.category === c.id),
+    })),
+    { id: "new", label: "New arrivals", products: products.filter((p) => p.newArrival) },
+  ];
 
   const goTo = (to: string) => {
     onClose();
@@ -101,96 +111,94 @@ function CollectionDrawer({ open, onClose }: { open: boolean; onClose: () => voi
         type="button"
         aria-label="Close collection menu"
         onClick={onClose}
-        className="absolute inset-0 bg-slate-950/25 backdrop-blur-[2px]"
+        className="absolute inset-0 bg-slate-950/10"
       />
       <aside
         id="collection-drawer"
-        className="relative h-full w-[min(92vw,430px)] bg-white/95 backdrop-blur-xl border-r border-white shadow-2xl shadow-slate-950/20 slide-in-left flex flex-col"
+        className="relative h-full w-[min(86vw,430px)] bg-white border-r border-slate-100 shadow-2xl shadow-slate-950/20 slide-in-left flex flex-col"
       >
-        <div className="flex items-start justify-between gap-4 px-5 py-5 border-b border-slate-100">
-          <div>
-            <p className="text-[11px] font-black uppercase tracking-[0.2em] text-emerald-700 mb-1">The collection</p>
-            <h2 className="text-xl font-black text-slate-950">Browse all products</h2>
-            <p className="text-xs text-slate-500 mt-1">
-              {loading ? "Loading products…" : `${visibleProducts.length} product${visibleProducts.length === 1 ? "" : "s"}`}
-            </p>
-          </div>
+        <div className="relative px-9 pt-12 pb-7 border-b border-slate-100">
+          <p className="text-[18px] font-medium uppercase tracking-wide text-slate-400">All categories</p>
           <button
             type="button"
             onClick={onClose}
             aria-label="Close collection menu"
-            className="w-9 h-9 shrink-0 rounded-full text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors"
+            className="absolute top-5 right-6 text-[#0b466c] hover:text-emerald-700 transition-colors"
           >
-            ✕
+            <span className="text-[30px] font-light leading-none" aria-hidden="true">×</span>
           </button>
         </div>
 
-        <div className="px-4 py-3 border-b border-slate-100 overflow-x-auto no-scrollbar">
-          <div className="flex gap-2 min-w-max">
-            <button
-              type="button"
-              onClick={() => setCategory("all")}
-              className={`px-3 py-1.5 rounded-full text-xs font-bold transition-colors ${
-                category === "all" ? "bg-emerald-700 text-white" : "bg-slate-100 text-slate-600 hover:bg-emerald-50 hover:text-emerald-700"
-              }`}
-            >
-              All products
-            </button>
-            {categories.map((c) => (
-              <button
-                key={c.id}
-                type="button"
-                onClick={() => setCategory(c.id)}
-                className={`px-3 py-1.5 rounded-full text-xs font-bold transition-colors ${
-                  category === c.id ? "bg-emerald-700 text-white" : "bg-slate-100 text-slate-600 hover:bg-emerald-50 hover:text-emerald-700"
-                }`}
-              >
-                {c.icon} {c.name}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="flex-1 overflow-y-auto p-4 space-y-2">
-          {loading ? (
-            Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="flex items-center gap-3 p-2 rounded-xl animate-pulse">
-                <div className="w-16 h-16 rounded-xl bg-slate-100" />
-                <div className="flex-1 space-y-2">
-                  <div className="h-3 bg-slate-100 rounded w-4/5" />
-                  <div className="h-3 bg-slate-100 rounded w-1/3" />
-                </div>
-              </div>
-            ))
-          ) : visibleProducts.length > 0 ? (
-            visibleProducts.map((p) => (
-              <button
-                key={p.id}
-                type="button"
-                onClick={() => goTo(`/product/${p.id}`)}
-                className="w-full flex items-center gap-3 p-2 rounded-xl text-left hover:bg-emerald-50 transition-colors group"
-              >
-                <img src={p.image} alt="" className="w-16 h-16 rounded-xl object-cover bg-slate-100 shrink-0" />
-                <span className="min-w-0 flex-1">
-                  <span className="block text-[10px] uppercase tracking-wide font-bold text-emerald-700 mb-0.5">
-                    {categories.find((c) => c.id === p.category)?.name ?? p.category}
+        <div className="flex-1 overflow-y-auto">
+          {rows.map((row) => {
+            const isExpanded = expanded === row.id;
+            const hasProducts = loading || row.products.length > 0;
+            return (
+              <div key={row.id} className="border-b border-slate-200">
+                <button
+                  type="button"
+                  aria-expanded={isExpanded}
+                  aria-controls={`collection-${row.id}`}
+                  onClick={() => hasProducts && setExpanded(isExpanded ? null : row.id)}
+                  className={`w-full min-h-[64px] px-9 flex items-center justify-between gap-4 text-left transition-colors ${
+                    isExpanded ? "bg-slate-50" : "bg-white hover:bg-slate-50"
+                  }`}
+                >
+                  <span className={`text-[18px] leading-tight font-medium ${
+                    row.id === "all" ? "text-slate-400 uppercase tracking-wide" : "text-[#0b466c]"
+                  }`}>
+                    {row.label}
                   </span>
-                  <span className="block text-sm font-bold text-slate-900 truncate group-hover:text-emerald-800">{p.name}</span>
-                  <span className="block text-sm font-black text-slate-900 mt-0.5">{fmt(p.price)}</span>
-                </span>
-                <span className="text-slate-300 group-hover:text-emerald-600 transition-colors" aria-hidden="true">→</span>
-              </button>
-            ))
-          ) : (
-            <p className="text-sm text-slate-500 text-center py-8">No products in this category yet.</p>
-          )}
+                  {hasProducts && (
+                    <span
+                      className={`w-2.5 h-2.5 shrink-0 border-r-2 border-b-2 border-[#0b466c] rotate-45 -translate-y-1 transition-transform ${
+                        isExpanded ? "rotate-[225deg] translate-y-1" : ""
+                      }`}
+                      aria-hidden="true"
+                    />
+                  )}
+                </button>
+
+                {isExpanded && (
+                  <div id={`collection-${row.id}`} className="bg-slate-50 px-6 py-2">
+                    {loading ? (
+                      Array.from({ length: 4 }).map((_, i) => (
+                        <div key={i} className="flex items-center gap-3 px-3 py-3 animate-pulse">
+                          <div className="w-10 h-10 rounded-lg bg-slate-200" />
+                          <div className="h-3 bg-slate-200 rounded w-3/4" />
+                        </div>
+                      ))
+                    ) : row.products.length > 0 ? (
+                      row.products.map((p) => (
+                        <button
+                          key={p.id}
+                          type="button"
+                          onClick={() => goTo(`/product/${p.id}`)}
+                          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left hover:bg-white transition-colors group"
+                        >
+                          <img src={p.image} alt="" className="w-10 h-10 rounded-lg object-cover bg-white shrink-0" />
+                          <span className="min-w-0 flex-1">
+                            <span className="block text-sm font-medium text-slate-800 truncate group-hover:text-[#0b466c]">{p.name}</span>
+                            <span className="block text-xs font-bold text-slate-500 mt-0.5">{fmt(p.price)}</span>
+                          </span>
+                          <span className="text-slate-300 group-hover:text-[#0b466c]" aria-hidden="true">→</span>
+                        </button>
+                      ))
+                    ) : (
+                      <p className="px-3 py-4 text-sm text-slate-500">No products here yet.</p>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
 
-        <div className="p-4 border-t border-slate-100">
+        <div className="p-5 border-t border-slate-100 bg-white">
           <button
             type="button"
             onClick={() => goTo("/shop")}
-            className="w-full py-3 rounded-xl bg-emerald-700 text-white text-sm font-bold hover:bg-emerald-950 transition-colors"
+            className="w-full py-3 rounded-xl bg-[#0b466c] text-white text-sm font-bold hover:bg-emerald-800 transition-colors"
           >
             View full shop →
           </button>
