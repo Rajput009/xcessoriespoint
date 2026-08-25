@@ -56,8 +56,8 @@ function CountdownBoxes() {
 }
 
 /* ---------- 1. Hero ---------- */
-// Query suffix prevents an older cached hero asset from masking the new artwork.
-const HERO_BACKGROUND = "/img/hero-premium-bg.webp?v=2";
+// Studio stage background stays fixed while each product slides through the showcase.
+const HERO_BACKGROUND = "/img/hero-studio-showcase.webp?v=1";
 
 /* Design defaults (marketing copy + art direction). When Admin → Settings sets
  * `heroSlide1..3` to product IDs, the price, image and link come from the LIVE
@@ -179,9 +179,8 @@ export function HeroSection() {
       </div>
 
       <div className="relative max-w-7xl mx-auto px-6 pt-[130px] md:pt-[180px] pb-4">
-        {/* All slides live in the SAME grid cell and are only faded in/out. The hero is
-            therefore always as tall as its tallest slide, so switching slides can never
-            reflow the page below it (no layout shift / CLS). */}
+        {/* All slides share the SAME grid cell. They glide left while fading, so the
+            showcase never reflows the page below it (no layout shift / CLS). */}
         <div className="grid">
           {slides.map((sl, i) => {
             const active = i === slide;
@@ -190,8 +189,10 @@ export function HeroSection() {
                 key={i}
                 aria-hidden={!active}
                 inert={!active ? true : undefined}
-                className={`col-start-1 row-start-1 grid lg:grid-cols-2 gap-8 items-center transition-opacity duration-700 ease-out ${
-                  active ? "opacity-100" : "opacity-0 pointer-events-none"
+                className={`col-start-1 row-start-1 grid lg:grid-cols-2 gap-8 items-center transition-all duration-700 ease-out ${
+                  active
+                    ? "opacity-100 translate-x-0 pointer-events-auto"
+                    : "opacity-0 -translate-x-12 pointer-events-none"
                 }`}
               >
                 {/* text */}
