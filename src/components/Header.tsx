@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link, useRouter } from "../router";
 import { useCart, useWishlist, useAuth, useUI, useProducts, fmt } from "../context/store";
 import {
@@ -172,11 +172,11 @@ function CollectionDrawer({ open, onClose }: { open: boolean; onClose: () => voi
         type="button"
         aria-label="Close collection menu"
         onClick={onClose}
-        className="absolute inset-0 bg-emerald-950/20 backdrop-blur-sm"
+        className="absolute inset-0 bg-emerald-950/20"
       />
       <aside
         id="collection-drawer"
-        className="relative h-full w-[min(92vw,430px)] glass !bg-white/80 !border-l-0 !border-white/70 rounded-r-3xl shadow-2xl shadow-emerald-950/20 slide-in-left flex flex-col"
+        className="collection-drawer relative h-full w-[min(92vw,430px)] bg-white/95 border-r border-white/70 rounded-r-3xl shadow-2xl shadow-emerald-950/20 slide-in-left flex flex-col"
       >
         <div className="relative px-5 pt-6 pb-5 border-b border-white/60">
           <p className="text-[11px] font-black uppercase tracking-[0.2em] text-emerald-700 mb-1">The collection</p>
@@ -238,7 +238,7 @@ function CollectionDrawer({ open, onClose }: { open: boolean; onClose: () => voi
                           onClick={() => goTo(`/product/${p.id}`)}
                           className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left hover:bg-white/70 transition-colors group"
                         >
-                          <img src={p.image} alt="" className="w-10 h-10 rounded-lg object-cover bg-white shrink-0" />
+                          <img src={p.image} alt="" loading="lazy" className="w-10 h-10 rounded-lg object-cover bg-white shrink-0" />
                           <span className="min-w-0 flex-1">
                             <span className="block text-sm font-medium text-slate-800 truncate group-hover:text-emerald-700">{p.name}</span>
                             <span className="block text-xs font-bold text-slate-500 mt-0.5">{fmt(p.price)}</span>
@@ -276,6 +276,7 @@ export default function Header() {
   const [showSug, setShowSug] = useState(false);
   const [announce, setAnnounce] = useState(0);
   const [collectionOpen, setCollectionOpen] = useState(false);
+  const closeCollection = useCallback(() => setCollectionOpen(false), []);
   const cfg = useStoreConfig();
   const { count, total } = useCart();
   const { ids } = useWishlist();
@@ -512,7 +513,7 @@ export default function Header() {
         </div>
       </div>
       </header>
-      <CollectionDrawer open={collectionOpen} onClose={() => setCollectionOpen(false)} />
+      <CollectionDrawer open={collectionOpen} onClose={closeCollection} />
     </>
   );
 }
