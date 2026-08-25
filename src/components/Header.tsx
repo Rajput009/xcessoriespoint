@@ -111,21 +111,22 @@ function CollectionDrawer({ open, onClose }: { open: boolean; onClose: () => voi
         type="button"
         aria-label="Close collection menu"
         onClick={onClose}
-        className="absolute inset-0 bg-slate-950/10"
+        className="absolute inset-0 bg-emerald-950/20 backdrop-blur-sm"
       />
       <aside
         id="collection-drawer"
-        className="relative h-full w-[min(86vw,430px)] bg-white border-r border-slate-100 shadow-2xl shadow-slate-950/20 slide-in-left flex flex-col"
+        className="relative h-full w-[min(92vw,430px)] glass !bg-white/80 !border-l-0 !border-white/70 rounded-r-3xl shadow-2xl shadow-emerald-950/20 slide-in-left flex flex-col"
       >
-        <div className="relative px-9 pt-12 pb-7 border-b border-slate-100">
-          <p className="text-[18px] font-medium uppercase tracking-wide text-slate-400">All categories</p>
+        <div className="relative px-5 pt-6 pb-5 border-b border-white/60">
+          <p className="text-[11px] font-black uppercase tracking-[0.2em] text-emerald-700 mb-1">The collection</p>
+          <p className="text-lg font-black text-slate-950">All categories</p>
           <button
             type="button"
             onClick={onClose}
             aria-label="Close collection menu"
-            className="absolute top-5 right-6 text-[#0b466c] hover:text-emerald-700 transition-colors"
+            className="absolute top-5 right-5 w-9 h-9 rounded-full bg-white/60 text-slate-500 hover:text-emerald-700 hover:bg-white transition-colors flex items-center justify-center"
           >
-            <span className="text-[30px] font-light leading-none" aria-hidden="true">×</span>
+            <span className="text-2xl font-light leading-none" aria-hidden="true">×</span>
           </button>
         </div>
 
@@ -134,24 +135,24 @@ function CollectionDrawer({ open, onClose }: { open: boolean; onClose: () => voi
             const isExpanded = expanded === row.id;
             const hasProducts = loading || row.products.length > 0;
             return (
-              <div key={row.id} className="border-b border-slate-200">
+              <div key={row.id} className="border-b border-white/60">
                 <button
                   type="button"
                   aria-expanded={isExpanded}
                   aria-controls={`collection-${row.id}`}
                   onClick={() => hasProducts && setExpanded(isExpanded ? null : row.id)}
                   className={`w-full min-h-[64px] px-9 flex items-center justify-between gap-4 text-left transition-colors ${
-                    isExpanded ? "bg-slate-50" : "bg-white hover:bg-slate-50"
+                    isExpanded ? "bg-emerald-50/70" : "bg-transparent hover:bg-white/55"
                   }`}
                 >
                   <span className={`text-[18px] leading-tight font-medium ${
-                    row.id === "all" ? "text-slate-400 uppercase tracking-wide" : "text-[#0b466c]"
+                    row.id === "all" ? "text-slate-400 uppercase tracking-wide" : "text-slate-700"
                   }`}>
                     {row.label}
                   </span>
                   {hasProducts && (
                     <span
-                      className={`w-2.5 h-2.5 shrink-0 border-r-2 border-b-2 border-[#0b466c] rotate-45 -translate-y-1 transition-transform ${
+                      className={`w-2.5 h-2.5 shrink-0 border-r-2 border-b-2 border-emerald-600 rotate-45 -translate-y-1 transition-transform ${
                         isExpanded ? "rotate-[225deg] translate-y-1" : ""
                       }`}
                       aria-hidden="true"
@@ -160,7 +161,7 @@ function CollectionDrawer({ open, onClose }: { open: boolean; onClose: () => voi
                 </button>
 
                 {isExpanded && (
-                  <div id={`collection-${row.id}`} className="bg-slate-50 px-6 py-2">
+                  <div id={`collection-${row.id}`} className="bg-white/35 px-4 py-2 border-t border-white/50">
                     {loading ? (
                       Array.from({ length: 4 }).map((_, i) => (
                         <div key={i} className="flex items-center gap-3 px-3 py-3 animate-pulse">
@@ -174,14 +175,14 @@ function CollectionDrawer({ open, onClose }: { open: boolean; onClose: () => voi
                           key={p.id}
                           type="button"
                           onClick={() => goTo(`/product/${p.id}`)}
-                          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left hover:bg-white transition-colors group"
+                          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left hover:bg-white/70 transition-colors group"
                         >
                           <img src={p.image} alt="" className="w-10 h-10 rounded-lg object-cover bg-white shrink-0" />
                           <span className="min-w-0 flex-1">
-                            <span className="block text-sm font-medium text-slate-800 truncate group-hover:text-[#0b466c]">{p.name}</span>
+                            <span className="block text-sm font-medium text-slate-800 truncate group-hover:text-emerald-700">{p.name}</span>
                             <span className="block text-xs font-bold text-slate-500 mt-0.5">{fmt(p.price)}</span>
                           </span>
-                          <span className="text-slate-300 group-hover:text-[#0b466c]" aria-hidden="true">→</span>
+                          <span className="text-slate-300 group-hover:text-emerald-600" aria-hidden="true">→</span>
                         </button>
                       ))
                     ) : (
@@ -194,11 +195,11 @@ function CollectionDrawer({ open, onClose }: { open: boolean; onClose: () => voi
           })}
         </div>
 
-        <div className="p-5 border-t border-slate-100 bg-white">
+        <div className="p-5 border-t border-white/60 bg-white/35">
           <button
             type="button"
             onClick={() => goTo("/shop")}
-            className="w-full py-3 rounded-xl bg-[#0b466c] text-white text-sm font-bold hover:bg-emerald-800 transition-colors"
+            className="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-sm font-bold shadow-md shadow-emerald-600/20 hover:from-emerald-700 hover:to-teal-700 transition-all"
           >
             View full shop →
           </button>
