@@ -56,6 +56,8 @@ function CountdownBoxes() {
 }
 
 /* ---------- 1. Hero ---------- */
+const HERO_BACKGROUND = "/img/hero-premium-bg.webp";
+
 /* Design defaults (marketing copy + art direction). When Admin → Settings sets
  * `heroSlide1..3` to product IDs, the price, image and link come from the LIVE
  * catalog instead — the homepage can never advertise a stale price or a dead deal. */
@@ -68,7 +70,6 @@ const SLIDES = [
     image: "/img/hero-1.webp",
     width: 800,
     height: 523,
-    gradient: "from-emerald-700 via-teal-600 to-emerald-500",
     cat: "audio",
   },
   {
@@ -79,7 +80,6 @@ const SLIDES = [
     image: "/img/hero-2.webp",
     width: 752,
     height: 800,
-    gradient: "from-violet-700 via-purple-600 to-fuchsia-500",
     cat: "wearables",
   },
   {
@@ -90,7 +90,6 @@ const SLIDES = [
     image: "/img/hero-3.webp",
     width: 567,
     height: 800,
-    gradient: "from-amber-600 via-orange-500 to-rose-500",
     cat: "power",
   },
 ];
@@ -161,21 +160,21 @@ export function HeroSection() {
 
   return (
     <section className="relative">
-      {/* full-bleed cross-fading gradients — run up behind the glass header */}
-      <div className="absolute inset-0 overflow-hidden">
-        {slides.map((sl, i) => (
-          <div
-            key={i}
-            className={`absolute inset-0 bg-gradient-to-br ${sl.gradient} transition-opacity duration-1000 ${
-              i === slide ? "opacity-100" : "opacity-0"
-            }`}
-          />
-        ))}
-        {/* soft light blooms for depth */}
-        <div className="absolute -top-24 -left-24 w-96 h-96 rounded-full bg-white/15 blur-3xl" />
-        <div className="absolute bottom-0 right-0 w-[28rem] h-[28rem] rounded-full bg-white/10 blur-3xl" />
-        {/* readability scrim behind the text column */}
-        <div className="absolute inset-0 bg-gradient-to-r from-black/30 via-black/10 to-transparent" />
+      {/* Premium studio backdrop stays fixed while the product slides cross-fade above it. */}
+      <div className="absolute inset-0 overflow-hidden bg-emerald-950">
+        <img
+          src={HERO_BACKGROUND}
+          alt=""
+          aria-hidden="true"
+          width="1376"
+          height="768"
+          fetchPriority="high"
+          decoding="async"
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+        {/* keep the copy readable while preserving the background's soft studio light */}
+        <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-emerald-950/20" />
+        <div className="absolute inset-0 bg-emerald-950/10" />
       </div>
 
       <div className="relative max-w-7xl mx-auto px-6 pt-[130px] md:pt-[180px] pb-4">
