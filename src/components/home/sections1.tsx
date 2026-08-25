@@ -160,7 +160,7 @@ export function HeroSection() {
   const featured = products.filter((p) => [2, 6, 3].includes(p.id)).slice(0, 3);
 
   return (
-    <section className="relative overflow-hidden">
+    <section className="relative">
       {/* Premium studio backdrop stays fixed while the product slides cross-fade above it. */}
       <div className="absolute inset-0 overflow-hidden bg-emerald-950">
         <img
