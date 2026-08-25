@@ -68,7 +68,8 @@ const SLIDES = [
     image: "/img/hero-1.webp",
     width: 800,
     height: 523,
-    gradient: "from-emerald-700 via-teal-600 to-emerald-500",
+    // Keep the hero palette intentionally restrained: deep green, charcoal and white.
+    gradient: "from-[#061b16] via-[#0b3a2c] to-[#155a42]",
     cat: "audio",
   },
   {
@@ -79,7 +80,7 @@ const SLIDES = [
     image: "/img/hero-2.webp",
     width: 752,
     height: 800,
-    gradient: "from-violet-700 via-purple-600 to-fuchsia-500",
+    gradient: "from-[#061b16] via-[#0b3a2c] to-[#155a42]",
     cat: "wearables",
   },
   {
@@ -90,7 +91,7 @@ const SLIDES = [
     image: "/img/hero-3.webp",
     width: 567,
     height: 800,
-    gradient: "from-amber-600 via-orange-500 to-rose-500",
+    gradient: "from-[#061b16] via-[#0b3a2c] to-[#155a42]",
     cat: "power",
   },
 ];
@@ -171,11 +172,11 @@ export function HeroSection() {
             }`}
           />
         ))}
-        {/* soft light blooms for depth */}
-        <div className="absolute -top-24 -left-24 w-96 h-96 rounded-full bg-white/15 blur-3xl" />
-        <div className="absolute bottom-0 right-0 w-[28rem] h-[28rem] rounded-full bg-white/10 blur-3xl" />
+        {/* restrained highlights keep the hero premium without introducing new hues */}
+        <div className="absolute -top-24 -left-24 w-96 h-96 rounded-full bg-emerald-200/8 blur-3xl" />
+        <div className="absolute bottom-0 right-0 w-[28rem] h-[28rem] rounded-full bg-black/15 blur-3xl" />
         {/* readability scrim behind the text column */}
-        <div className="absolute inset-0 bg-gradient-to-r from-black/30 via-black/10 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/45 via-black/15 to-transparent" />
       </div>
 
       <div className="relative max-w-7xl mx-auto px-6 pt-[130px] md:pt-[180px] pb-4">
@@ -196,7 +197,7 @@ export function HeroSection() {
               >
                 {/* text */}
                 <div className="text-center lg:text-left order-2 lg:order-1">
-                  <p className="inline-block text-xs font-bold uppercase tracking-widest bg-black/25 backdrop-blur-md border border-white/25 text-white px-3.5 py-1.5 rounded-full mb-4">
+                  <p className="inline-block text-xs font-bold uppercase tracking-widest bg-white/10 backdrop-blur-md border border-white/20 text-white px-3.5 py-1.5 rounded-full mb-4">
                     ⚡ {sl.tag}
                   </p>
                   <h1 className="text-3xl md:text-5xl font-black text-white leading-tight mb-4 drop-shadow-[0_3px_18px_rgba(0,0,0,0.45)]">
@@ -212,7 +213,7 @@ export function HeroSection() {
                   <button
                     onClick={() => navigate(sl.productId ? `/product/${sl.productId}` : `/category/${sl.cat}`)}
                     tabIndex={active ? 0 : -1}
-                    className="px-8 py-3.5 rounded-full bg-white text-slate-900 font-bold hover:bg-slate-900 hover:text-white transition-colors shadow-xl shadow-black/25"
+                    className="px-8 py-3.5 rounded-full bg-white text-slate-900 font-bold hover:bg-lime-300 hover:text-slate-950 transition-colors shadow-xl shadow-black/25"
                   >
                     Shop Now →
                   </button>
@@ -258,15 +259,15 @@ export function HeroSection() {
             <button
               key={p.id}
               onClick={() => navigate("/shop")}
-              className="snap-start shrink-0 w-72 lg:w-auto bg-white/40 backdrop-blur-xl border border-white/50 rounded-2xl p-4 flex items-center gap-4 shadow-xl shadow-emerald-950/15 hover:bg-white/60 hover:-translate-y-0.5 transition text-left"
+              className="snap-start shrink-0 w-72 lg:w-auto bg-black/15 backdrop-blur-xl border border-white/15 rounded-2xl p-4 flex items-center gap-4 shadow-xl shadow-black/20 hover:bg-black/25 hover:-translate-y-0.5 transition text-left"
             >
               <img src={p.image} alt="" className="w-16 h-16 rounded-xl object-cover ring-1 ring-white/50" />
               <div className="min-w-0">
                 <Stars rating={p.rating} size="text-xs" />
-                <p className="text-sm font-bold text-slate-900 truncate">{p.name}</p>
+                <p className="text-sm font-bold text-white truncate">{p.name}</p>
                 <p className="text-sm">
-                  <span className="font-bold text-slate-900">{fmt(p.price)}</span>{" "}
-                  {p.badge && <span className="text-xs font-bold text-red-600/80">{p.badge}</span>}
+                  <span className="font-bold text-white">{fmt(p.price)}</span>{" "}
+                  {p.badge && <span className="text-xs font-bold text-lime-300/90">{p.badge}</span>}
                 </p>
               </div>
             </button>
