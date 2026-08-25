@@ -56,7 +56,8 @@ function CountdownBoxes() {
 }
 
 /* ---------- 1. Hero ---------- */
-const HERO_BACKGROUND = "/img/hero-premium-bg.webp";
+// Query suffix prevents an older cached hero asset from masking the new artwork.
+const HERO_BACKGROUND = "/img/hero-premium-bg.webp?v=2";
 
 /* Design defaults (marketing copy + art direction). When Admin → Settings sets
  * `heroSlide1..3` to product IDs, the price, image and link come from the LIVE
@@ -159,7 +160,7 @@ export function HeroSection() {
   const featured = products.filter((p) => [2, 6, 3].includes(p.id)).slice(0, 3);
 
   return (
-    <section className="relative">
+    <section className="relative overflow-hidden">
       {/* Premium studio backdrop stays fixed while the product slides cross-fade above it. */}
       <div className="absolute inset-0 overflow-hidden bg-emerald-950">
         <img
@@ -194,7 +195,7 @@ export function HeroSection() {
                 }`}
               >
                 {/* text */}
-                <div className="text-center lg:text-left order-2 lg:order-1">
+                <div className="relative z-10 text-center lg:text-left order-2 lg:order-1">
                   <p className="inline-flex items-center text-xs font-bold uppercase tracking-widest bg-white/75 backdrop-blur-md border border-emerald-900/10 text-emerald-800 px-3.5 py-1.5 rounded-full mb-4 shadow-sm">
                     <span className="mr-1.5 text-emerald-600">⚡</span>{sl.tag}
                   </p>
@@ -218,7 +219,7 @@ export function HeroSection() {
                 </div>
                 {/* floating cutout product — fixed-height box so differently shaped
                     cutouts (and slow image loads) can't resize the hero */}
-                <div className="order-1 lg:order-2 relative flex justify-center items-center h-[280px] md:h-[420px]">
+                <div className="relative z-0 order-1 lg:order-2 flex justify-center items-center h-[280px] md:h-[420px]">
                   <ArrowDoodle />
                   {loaded.includes(i) && (
                     <img
@@ -228,7 +229,7 @@ export function HeroSection() {
                       height={sl.height}
                       fetchPriority={i === 0 ? "high" : "low"}
                       decoding="async"
-                      className="float-slow max-h-full w-auto max-w-[16rem] md:max-w-[400px] object-contain drop-shadow-[0_35px_45px_rgba(6,78,59,0.4)]"
+                      className="hero-product float-slow object-contain drop-shadow-[0_35px_45px_rgba(6,78,59,0.4)]"
                     />
                   )}
                 </div>
