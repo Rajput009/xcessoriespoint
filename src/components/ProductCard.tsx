@@ -4,6 +4,7 @@ import { Link } from "../router";
 import { swatchFor, swatchStyle, allColorVariants } from "../lib/swatch";
 import { useCart, useWishlist, fmt } from "../context/store";
 import { useProducts } from "../context/store";
+import { CartIcon } from "./icons";
 
 export function Stars({ rating, size = "text-sm" }: { rating: number; size?: string }) {
   const rounded = Math.max(0, Math.min(5, Math.round(rating)));
@@ -41,19 +42,24 @@ export default function ProductCard({ product, compact = false }: { product: Pro
     window.setTimeout(() => setAdded(false), 1800);
   };
 
+  const openOptionsOrAdd = () => {
+    if (hasVariants) setPickerOpen(true);
+    else handleAdd();
+  };
+
   return (
-    <div className="group surface rounded-xl shadow-none overflow-hidden hover:shadow-md hover:shadow-slate-900/10 hover:-translate-y-0.5 transition-all duration-200 flex flex-col">
-      {/* Image stage — contain keeps watches, earbuds and chargers from being cropped. */}
-      <div className="relative aspect-square overflow-hidden">
+    <article className="group min-w-0">
+      {/* Image-first stage, like a premium retail catalogue. */}
+      <div className="relative aspect-square overflow-hidden rounded-2xl border border-slate-200 bg-slate-100">
         <Link to={`/product/${product.id}`} className="relative block w-full h-full">
           <img
             src={product.image}
             alt={product.name}
             loading="lazy"
             decoding="async"
-            width={400}
-            height={400}
-            className={`w-full h-full object-contain p-4 transition-all duration-500 group-hover:scale-[1.04] ${
+            width={480}
+            height={480}
+            className={`w-full h-full object-contain p-5 transition-transform duration-300 group-hover:scale-[1.04] ${
               secondaryImage ? "group-hover:opacity-0" : ""
             }`}
           />
@@ -63,122 +69,107 @@ export default function ProductCard({ product, compact = false }: { product: Pro
               alt=""
               loading="lazy"
               decoding="async"
-              width={400}
-              height={400}
-              className="absolute inset-0 w-full h-full object-contain p-4 opacity-0 group-hover:opacity-100 group-hover:scale-[1.04] transition-all duration-500"
+              width={480}
+              height={480}
+              className="absolute inset-0 w-full h-full object-contain p-5 opacity-0 group-hover:opacity-100 group-hover:scale-[1.04] transition-all duration-300"
             />
           )}
-          <span className="absolute top-3 left-3 flex flex-col gap-1.5 items-start">
-            {soldOut ? (
-              <span className="bg-slate-800/90 text-white text-[10px] font-bold px-2 py-1 rounded-md shadow-sm">
-                SOLD OUT
-              </span>
-            ) : product.badge ? (
-              <span className="bg-emerald-700 text-white text-xs font-bold px-2 py-1 rounded-md shadow-md shadow-emerald-700/25">
-                {product.badge}
-              </span>
-            ) : product.newArrival ? (
-              <span className="bg-slate-900/90 text-white text-[10px] font-black px-2 py-1 rounded-md tracking-wide">
-                NEW
-              </span>
-            ) : null}
-          </span>
-        </Link>
-        {!compact && (
-          <button
-            type="button"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              toggle(product.id);
-            }}
-            aria-pressed={wished}
-            aria-label={wished ? `Remove ${product.name} from wishlist` : `Add ${product.name} to wishlist`}
-            className={`absolute top-3 right-3 w-9 h-9 rounded-full flex items-center justify-center shadow transition-all focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 ${
-              wished
-                ? "bg-emerald-600 text-white"
-                : "bg-white text-slate-500 hover:text-emerald-600 hover:bg-white"
-            } md:opacity-0 md:group-hover:opacity-100 opacity-100`}
-          >
-            {wished ? "♥" : "♡"}
-          </button>
-        )}
-      </div>
-
-      <div className="p-4 flex flex-col flex-1">
-        <p className="text-xs uppercase tracking-wide font-bold mb-1 flex items-center text-slate-400">
-          <span className="truncate">{catName}</span>
-          {hasVariants && !compact && (
-            <span className="ml-auto flex items-center gap-1 shrink-0" title={product.variants!.map((v) => v.label).join(" · ")}>
-              {allColorVariants(product.variants!) ? (
-                product.variants!.slice(0, 4).map((v) =>
-                  swatchFor(v) ? (
-                    <span key={v.id} className="w-3 h-3 rounded-full border border-black/10" style={swatchStyle(swatchFor(v)!)} />
-                  ) : null
-                )
-              ) : (
-                <span className="text-[9px] text-slate-400 font-bold normal-case">
-                  {product.variants!.length} options
+          {(product.badge || product.newArrival || soldOut) && (
+            <span className="absolute top-3 left-3">
+              {soldOut ? (
+                <span className="inline-flex rounded-full bg-slate-800 px-2.5 py-1 text-[10px] font-bold text-white">
+                  SOLD OUT
                 </span>
-              )}
-              {product.variants!.length > 4 && (
-                <span className="text-[9px] text-slate-400 font-bold normal-case">+{product.variants!.length - 4}</span>
+              ) : product.badge ? (
+                <span className="inline-flex rounded-full bg-emerald-700 px-2.5 py-1 text-[10px] font-bold text-white">
+                  {product.badge}
+                </span>
+              ) : (
+                <span className="inline-flex rounded-full bg-slate-900 px-2.5 py-1 text-[10px] font-black tracking-wide text-white">
+                  NEW
+                </span>
               )}
             </span>
           )}
-        </p>
-
-        <Link to={`/product/${product.id}`}>
-          <h3 className="font-semibold text-slate-900 text-sm leading-snug mb-1.5 line-clamp-2 hover:text-emerald-700 transition-colors">
-            {product.name}
-          </h3>
         </Link>
 
-        <div className="flex items-center gap-1.5 mb-2 min-h-[18px]">
-          {product.reviews > 0 ? (
-            <>
-              <Stars rating={product.rating} size="text-xs" />
-              <span className="text-xs text-slate-400">({product.reviews})</span>
-            </>
-          ) : (
-            <span className="text-[11px] font-semibold text-slate-400">New listing</span>
+        <div className="absolute top-3 right-3 flex flex-col gap-2">
+          <button
+            type="button"
+            onClick={() => toggle(product.id)}
+            aria-pressed={wished}
+            aria-label={wished ? `Remove ${product.name} from wishlist` : `Add ${product.name} to wishlist`}
+            className={`flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white text-lg shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-emerald-500 md:opacity-0 md:group-hover:opacity-100 ${
+              wished ? "text-emerald-700" : "text-slate-500 hover:text-emerald-700"
+            }`}
+          >
+            {wished ? "♥" : "♡"}
+          </button>
+          <button
+            type="button"
+            onClick={openOptionsOrAdd}
+            disabled={soldOut}
+            aria-label={soldOut ? `${product.name} is sold out` : hasVariants ? `Choose options for ${product.name}` : `Quick add ${product.name}`}
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 shadow-sm transition-all hover:bg-emerald-700 hover:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 disabled:cursor-not-allowed disabled:opacity-40 md:opacity-0 md:group-hover:opacity-100"
+          >
+            <CartIcon size={16} />
+          </button>
+        </div>
+      </div>
+
+      <div className="pt-3">
+        <div className="flex items-center justify-between gap-2">
+          <span className="truncate text-[10px] font-bold uppercase tracking-[0.12em] text-slate-400">{catName}</span>
+          {!compact && hasVariants && (
+            <span className="flex shrink-0 items-center gap-1" title={product.variants!.map((v) => v.label).join(" · ")}>
+              {allColorVariants(product.variants!) ? (
+                product.variants!.slice(0, 4).map((v) =>
+                  swatchFor(v) ? (
+                    <span key={v.id} className="h-3 w-3 rounded-full border border-black/10" style={swatchStyle(swatchFor(v)!)} />
+                  ) : null
+                )
+              ) : (
+                <span className="text-[9px] font-semibold normal-case text-slate-400">{product.variants!.length} options</span>
+              )}
+            </span>
           )}
         </div>
 
-        <div className="mt-auto mb-2">
-          <div className="flex items-baseline flex-wrap gap-x-2 gap-y-0.5">
-            <span className="text-lg font-bold text-emerald-700">{fmt(product.price)}</span>
-            {product.compareAt && product.compareAt > product.price && (
-              <span className="text-sm text-slate-400 line-through">{fmt(product.compareAt)}</span>
-            )}
-            {discount > 0 && (
-              <span className="text-[10px] font-black uppercase tracking-wide text-emerald-700">{discount}% off</span>
-            )}
-          </div>
-          {!compact && (
-            <p className={`text-[10px] font-semibold mt-1 ${lowStock ? "text-amber-700" : soldOut ? "text-slate-400" : "text-slate-400"}`}>
-              {soldOut ? "Currently unavailable" : lowStock ? `Only ${product.stock} left` : "COD · 7-day returns"}
-            </p>
+        <div className="mt-1 flex items-start justify-between gap-2">
+          <Link to={`/product/${product.id}`} className="min-w-0">
+            <h3 className="line-clamp-2 text-sm font-semibold leading-snug text-slate-900 transition-colors group-hover:text-emerald-700">
+              {product.name}
+            </h3>
+          </Link>
+          {product.reviews > 0 && (
+            <span className="flex shrink-0 items-center gap-1 text-[11px] font-semibold text-slate-600" aria-label={`${product.rating} out of 5 stars`}>
+              <span className="text-amber-400">★</span>{product.rating.toFixed(1)}
+            </span>
           )}
         </div>
 
-        {!compact && (pickerOpen && hasVariants ? (
-          <div className="fade-up">
-            <div className="flex items-center gap-1.5 mb-1">
-              <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400 flex-1">
-                Choose an option
-              </p>
-              <button
-                type="button"
-                onClick={() => setPickerOpen(false)}
-                aria-label="Close options"
-                className="w-5 h-5 rounded-full text-slate-400 hover:bg-slate-100 text-[10px] leading-none"
-              >
-                ✕
-              </button>
+        <div className="mt-2 flex flex-wrap items-baseline gap-x-2 gap-y-1">
+          <span className="text-base font-black text-slate-900">{fmt(product.price)}</span>
+          {product.compareAt && product.compareAt > product.price && (
+            <span className="text-xs text-slate-400 line-through">{fmt(product.compareAt)}</span>
+          )}
+          {discount > 0 && (
+            <span className="rounded-full bg-emerald-50 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wide text-emerald-700">
+              -{discount}%
+            </span>
+          )}
+        </div>
+
+        {lowStock && <p className="mt-1 text-[10px] font-semibold text-amber-700">Only {product.stock} left</p>}
+
+        {pickerOpen && hasVariants && (
+          <div className="mt-3 rounded-lg border border-slate-200 bg-white p-2.5">
+            <div className="mb-2 flex items-center justify-between">
+              <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400">Choose an option</p>
+              <button type="button" onClick={() => setPickerOpen(false)} aria-label="Close options" className="text-xs text-slate-400 hover:text-slate-700">×</button>
             </div>
             {allColorVariants(product.variants!) ? (
-              <div className="flex items-center gap-2 py-1 flex-wrap">
+              <div className="flex flex-wrap items-center gap-2">
                 {product.variants!.map((v) => {
                   const color = swatchFor(v)!;
                   const out = v.stock <= 0;
@@ -190,67 +181,52 @@ export default function ProductCard({ product, compact = false }: { product: Pro
                       title={`${v.label} — ${out ? "sold out" : fmt(product.price + v.priceDelta)}`}
                       aria-label={`${v.label}${out ? " sold out" : ""}`}
                       onClick={() => handleAdd(v.id, v.label)}
-                      className={`relative w-8 h-8 rounded-full transition-all focus:outline-none focus:ring-2 focus:ring-emerald-500 ${
-                        out
-                          ? "opacity-35 cursor-not-allowed"
-                          : "ring-1 ring-slate-300 hover:ring-2 hover:ring-emerald-500 hover:scale-110"
-                      }`}
+                      className={`relative h-8 w-8 rounded-full transition-all focus:outline-none focus:ring-2 focus:ring-emerald-500 ${out ? "cursor-not-allowed opacity-35" : "ring-1 ring-slate-300 hover:ring-2 hover:ring-emerald-500 hover:scale-110"}`}
                       style={swatchStyle(color)}
                     >
                       <span className="absolute inset-0 rounded-full border border-black/10" />
-                      {out && (
-                        <span className="absolute left-1/2 top-1/2 w-[130%] h-[2px] bg-red-400 -translate-x-1/2 -translate-y-1/2 rotate-45" />
-                      )}
+                      {out && <span className="absolute left-1/2 top-1/2 h-[2px] w-[130%] -translate-x-1/2 -translate-y-1/2 rotate-45 bg-red-400" />}
                     </button>
                   );
                 })}
               </div>
             ) : (
-              <div className="flex gap-1.5 py-1 flex-wrap">
+              <div className="flex flex-wrap gap-1.5">
                 {product.variants!.map((v) => (
                   <button
                     key={v.id}
                     type="button"
                     disabled={v.stock <= 0}
                     onClick={() => handleAdd(v.id, v.label)}
-                    className={`px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition inline-flex items-center gap-1.5 focus:outline-none focus:ring-2 focus:ring-emerald-500 ${
-                      v.stock <= 0
-                        ? "surface-muted text-slate-300 line-through cursor-not-allowed"
-                        : "surface-muted text-slate-700 hover:ring-2 hover:ring-emerald-400 hover:text-emerald-700"
-                    }`}
+                    className={`rounded-md border px-2 py-1.5 text-[10px] font-bold transition focus:outline-none focus:ring-2 focus:ring-emerald-500 ${v.stock <= 0 ? "cursor-not-allowed border-slate-200 text-slate-300 line-through" : "border-slate-200 text-slate-700 hover:border-emerald-400 hover:text-emerald-700"}`}
                   >
-                    {swatchFor(v) && (
-                      <span className="w-2.5 h-2.5 rounded-full border border-black/10" style={swatchStyle(swatchFor(v)!)} />
-                    )}
                     {v.label}
-                    {v.priceDelta !== 0 && v.stock > 0 && (
-                      <span className="text-slate-400 font-semibold">
-                        {v.priceDelta > 0 ? "+" : "−"}{Math.abs(v.priceDelta)}
-                      </span>
-                    )}
+                    {v.priceDelta !== 0 && <span className="ml-1 text-slate-400">{v.priceDelta > 0 ? "+" : "−"}{Math.abs(v.priceDelta)}</span>}
                   </button>
                 ))}
               </div>
             )}
           </div>
-        ) : (
+        )}
+
+        {!compact && (
           <button
             type="button"
             disabled={soldOut}
             aria-label={soldOut ? `${product.name} is sold out` : hasVariants ? `Choose options for ${product.name}` : `Add ${product.name} to cart`}
-            onClick={() => (hasVariants ? setPickerOpen(true) : handleAdd())}
-            className={`w-full py-2.5 rounded-xl text-sm font-semibold transition-all focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 ${
+            onClick={openOptionsOrAdd}
+            className={`mt-3 flex w-full items-center justify-center rounded-md py-2.5 text-xs font-bold transition-all focus:outline-none focus:ring-2 focus:ring-emerald-500 md:hidden ${
               soldOut
-                ? "bg-slate-100 text-slate-400 cursor-not-allowed"
+                ? "cursor-not-allowed bg-slate-100 text-slate-400"
                 : added
                 ? "bg-emerald-600 text-white"
-                : "bg-slate-900/90 text-white hover:bg-emerald-600 hover:shadow-lg hover:shadow-emerald-500/30"
+                : "bg-emerald-600 text-white hover:bg-emerald-700"
             }`}
           >
-            {soldOut ? "Sold out" : added ? "Added ✓" : hasVariants ? "Choose options" : "Add to Cart"}
+            {soldOut ? "Sold out" : added ? "Added ✓" : hasVariants ? "Choose options" : "Quick add"}
           </button>
-        ))}
+        )}
       </div>
-    </div>
+    </article>
   );
 }
