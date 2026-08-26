@@ -2,13 +2,13 @@ import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } 
 import { Link, useRouter } from "../router";
 import { useAuth, useCart, useProducts, useToast, useWishlist, fmt } from "../context/store";
 import ProductCard, { Stars } from "../components/ProductCard";
-import { HeartIcon, TruckIcon, ZapIcon } from "../components/icons";
+import { HeartIcon } from "../components/icons";
 import RecentlyViewed from "../components/RecentlyViewed";
 import { swatchFor, allColorVariants, swatchStyle } from "../lib/swatch";
 import { track } from "../lib/tracking";
 import { pixelTrack } from "../lib/pixel";
 import { setMeta } from "../lib/seo";
-import { buildOrderMessage, openWhatsApp, WHATSAPP_NUMBER } from "../lib/whatsapp";
+import { buildOrderMessage, openWhatsApp } from "../lib/whatsapp";
 
 interface Review {
   id: number;
@@ -75,7 +75,6 @@ export default function ProductPage({ id }: { id: number }) {
   const [revRating, setRevRating] = useState(5);
   const [revText, setRevText] = useState("");
   const [revBusy, setRevBusy] = useState(false);
-  const [soldWeek, setSoldWeek] = useState(0);
   const [topVariantId, setTopVariantId] = useState<number | null>(null);
   const variantTouched = useRef(false);
   const [showSticky, setShowSticky] = useState(false);
@@ -172,7 +171,6 @@ export default function ProductPage({ id }: { id: number }) {
     fetch(`/api/products/${product.id}/stats`)
       .then((r) => (r.ok ? r.json() : { soldThisWeek: 0, topVariantId: null }))
       .then((d) => {
-        setSoldWeek(d.soldThisWeek ?? 0);
         const topId = d.topVariantId ?? null;
         setTopVariantId(topId);
         // pre-select the best-selling variant unless the shopper already chose one
@@ -406,11 +404,6 @@ export default function ProductPage({ id }: { id: number }) {
           <div className="flex items-center gap-2 mb-4 flex-wrap">
             <Stars rating={product.rating} />
             <span className="text-sm text-slate-500">{product.rating} · {product.reviews} reviews</span>
-            {soldWeek > 0 && (
-              <span className="text-xs font-bold bg-orange-100 text-orange-600 px-2.5 py-1 rounded-full">
-                🔥 {soldWeek} sold this week
-              </span>
-            )}
           </div>
           <p className="text-sm text-slate-600 leading-relaxed mb-4">{summary}</p>
           <div className="flex items-baseline gap-3 mb-1.5 flex-wrap">
@@ -525,9 +518,6 @@ export default function ProductPage({ id }: { id: number }) {
             </div>
           )}
 
-          {!out && unitPrice * qty >= 5000 && (
-            <p className="text-xs font-bold text-emerald-600 -mt-3 mb-4">🚚 This order qualifies for FREE shipping</p>
-          )}
 
           {out && (
             <div className="surface rounded-2xl p-4 mb-6">
@@ -621,45 +611,9 @@ export default function ProductPage({ id }: { id: number }) {
             </svg>
             Order on WhatsApp
           </button>
-          <p className="text-center text-[11px] text-slate-400 mb-6">
-            No card, no account — we confirm on {"+" + WHATSAPP_NUMBER} in minutes.
+          <p className="text-center text-xs text-slate-500 mb-4">
+            COD nationwide · 7-day returns · Phone confirmation
           </p>
-
-          {/* share */}
-          <div className="flex items-center gap-2 mb-5">
-            <span className="text-xs font-bold uppercase tracking-wide text-slate-400 mr-1">Share</span>
-            <button
-              onClick={() =>
-                window.open(
-                  "https://wa.me/?text=" + encodeURIComponent(`${product.name} — ${fmt(unitPrice)} at XccessoriesPoint! ${location.href}`),
-                  "_blank"
-                )
-              }
-              className="px-3.5 py-1.5 rounded-full surface-muted text-xs font-bold text-emerald-700 hover:ring-2 hover:ring-emerald-300 transition"
-            >
-              WhatsApp
-            </button>
-            <button
-              onClick={() => { navigator.clipboard?.writeText(location.href); push("Link copied 📋"); }}
-              className="px-3.5 py-1.5 rounded-full surface-muted text-xs font-bold text-slate-600 hover:ring-2 hover:ring-emerald-300 transition"
-            >
-              Copy link
-            </button>
-          </div>
-
-          {/* trust strip */}
-          <div className="grid grid-cols-3 gap-3 text-center">
-            {[
-              [<TruckIcon key="t" size={18} />, "Free ship > Rs 5,000"],
-              [<ZapIcon key="z" size={18} />, "2–4 day delivery"],
-              ["↩", "7-day easy returns"],
-            ].map(([icon, label], i) => (
-              <div key={i} className="surface-muted rounded-xl py-3 px-2 flex flex-col items-center gap-1.5 text-emerald-700">
-                <span>{icon}</span>
-                <span className="text-[11px] font-semibold text-slate-600">{label}</span>
-              </div>
-            ))}
-          </div>
           </div>
 
           <div className="mt-4 space-y-2 mb-6">
@@ -681,7 +635,7 @@ export default function ProductPage({ id }: { id: number }) {
             <InfoAccordion title="Shipping & returns">
               <ul className="space-y-2 text-sm text-slate-600 leading-relaxed">
                 <li>Cash on Delivery is available nationwide.</li>
-                <li>Free shipping applies to orders over Rs 5,000.</li>
+                <li>Free shipping over Rs 5,000.</li>
                 <li>Easy 7-day returns for eligible products.</li>
               </ul>
             </InfoAccordion>
@@ -805,27 +759,6 @@ export default function ProductPage({ id }: { id: number }) {
           </form>
         </div>
       </section>
-
-      {/* compact desktop buy bar appears once the main purchase controls leave the viewport */}
-      {showSticky && !out && (
-        <div className="hidden md:flex fixed bottom-6 right-6 z-30 surface !bg-white rounded-2xl shadow-xl shadow-slate-900/15 p-2.5 items-center gap-3 max-w-sm">
-          <img src={variant?.image || product.image} alt="" className="w-12 h-12 rounded-xl object-contain bg-white p-1" />
-          <div className="min-w-0 flex-1">
-            <p className="text-xs font-bold text-slate-900 truncate">{product.name}</p>
-            <p className="text-sm font-black text-emerald-700">
-              {fmt(unitPrice)}
-              {variant && <span className="ml-1.5 text-[10px] font-bold text-slate-400">{variant.label}</span>}
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={() => add(product, qty, variantId)}
-            className="shrink-0 px-4 py-2.5 rounded-xl bg-emerald-600 text-white text-sm font-bold hover:bg-emerald-700 neon-glow-soft"
-          >
-            Add to cart
-          </button>
-        </div>
-      )}
 
       {/* sticky mobile add-to-cart (conversion) */}
       {showSticky && !out && (

@@ -478,35 +478,9 @@ export default function CheckoutPage() {
               </div>
             ) : (
               <>
-                {/* express checkout — same form, WhatsApp instead of paying online */}
-                <section className="mb-7">
-                  <p className="text-center text-xs uppercase tracking-wider text-slate-400 mb-3">Express checkout</p>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setPayment("whatsapp");
-                      document.getElementById("xp-payment")?.scrollIntoView?.({ behavior: "smooth", block: "center" });
-                    }}
-                    className={`w-full flex items-center justify-center gap-2.5 rounded-md py-3.5 font-bold text-white transition ${
-                      isWhatsApp ? "bg-[#128C7E]" : "bg-[#25D366] hover:brightness-95"
-                    }`}
-                  >
-                    <WaIcon className="w-5 h-5" />
-                    {isWhatsApp ? "WhatsApp selected — fill the form below" : "Order on WhatsApp"}
-                  </button>
-                  <p className="mt-2 text-center text-[11px] text-slate-500">
-                    No card needed — we confirm your order on {"+" + WHATSAPP_NUMBER} in minutes.
-                  </p>
-                  <div className="flex items-center gap-3 mt-6">
-                    <span className="h-px flex-1 bg-slate-200" />
-                    <span className="text-xs text-slate-400">OR</span>
-                    <span className="h-px flex-1 bg-slate-200" />
-                  </div>
-                </section>
-
                 {/* contact */}
                 <section className="mb-8">
-                  <div className="flex items-baseline justify-between mb-3">
+                  <div className="flex items-baseline justify-between mb-1">
                     <h2 className="text-[17px] font-semibold">Contact</h2>
                     {!user && (
                       <Link to="/" className="text-[13px] text-emerald-700 hover:underline">
@@ -514,6 +488,7 @@ export default function CheckoutPage() {
                       </Link>
                     )}
                   </div>
+                  <p className="text-xs text-slate-500 mb-3">We’ll call your mobile number to confirm the COD order before dispatch.</p>
                   <div className="space-y-3">
                     <Field
                       label="Mobile number (03xx xxxxxxx)"
@@ -526,20 +501,25 @@ export default function CheckoutPage() {
                       onChange={setPhone}
                       error={showErrors ? errors.phone : null}
                     />
-                    <Field
-                      label="Email address"
-                      type="email"
-                      inputMode="email"
-                      autoComplete="email"
-                      value={email}
-                      onChange={setEmail}
-                      optional={!needsEmail}
-                      error={showErrors ? errors.email : null}
-                    />
-                    <label className="flex items-center gap-2.5 text-[13px] text-slate-600">
-                      <input type="checkbox" checked={newsletter} onChange={(e) => setNewsletter(e.target.checked)} className="w-4 h-4 accent-emerald-600" />
-                      Email me with news and offers
-                    </label>
+                    <details className="rounded-md border border-slate-200 bg-slate-50 px-3.5 py-2.5">
+                      <summary className="cursor-pointer text-xs font-semibold text-slate-600">Add email for order updates <span className="font-normal text-slate-400">(optional)</span></summary>
+                      <div className="space-y-3 pt-3">
+                        <Field
+                          label="Email address"
+                          type="email"
+                          inputMode="email"
+                          autoComplete="email"
+                          value={email}
+                          onChange={setEmail}
+                          optional={!needsEmail}
+                          error={showErrors ? errors.email : null}
+                        />
+                        <label className="flex items-center gap-2.5 text-[13px] text-slate-600">
+                          <input type="checkbox" checked={newsletter} onChange={(e) => setNewsletter(e.target.checked)} className="w-4 h-4 accent-emerald-600" />
+                          Email me with news and offers
+                        </label>
+                      </div>
+                    </details>
                   </div>
                 </section>
 
@@ -564,42 +544,39 @@ export default function CheckoutPage() {
                   )}
 
                   <div className="space-y-3">
-                    <div className="relative">
-                      <select disabled className="w-full rounded-md border border-slate-300 bg-slate-50 px-3.5 pt-6 pb-1.5 text-[15px] text-slate-700">
-                        <option>Pakistan</option>
-                      </select>
-                      <span className="pointer-events-none absolute left-3.5 top-1.5 text-[11px] text-slate-500">Country / Region</span>
-                    </div>
                     <Field label="Full name" autoComplete="name" value={name} onChange={setName} error={showErrors ? errors.name : null} />
                     <Field label="Address (street, area)" autoComplete="street-address" value={address} onChange={setAddress} error={showErrors ? errors.address : null} />
-                    <Field label="Apartment / suite" value={apartment} onChange={setApartment} optional />
-                    <div className="grid grid-cols-2 gap-3">
-                      <label className="relative block">
-                        <select
-                          value={city}
-                          onChange={(e) => setCity(e.target.value)}
-                          className="w-full rounded-md border border-slate-300 bg-white px-3.5 pt-6 pb-1.5 text-[15px] outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/25"
-                        >
-                          {CITIES.map((c) => (
-                            <option key={c}>{c}</option>
-                          ))}
-                        </select>
-                        <span className="pointer-events-none absolute left-3.5 top-1.5 text-[11px] text-slate-500">City</span>
-                      </label>
-                      <Field label="Postal code" inputMode="numeric" value={postalCode} onChange={(v) => setPostalCode(v.replace(/[^0-9]/g, "").slice(0, 6))} />
-                    </div>
                     <label className="relative block">
-                      <textarea
-                        rows={3}
-                        value={notes}
-                        onChange={(e) => setNotes(e.target.value)}
-                        placeholder="Order notes"
-                        className={`${field} pt-6 pb-2 resize-none`}
-                      />
-                      <span className="pointer-events-none absolute left-3.5 top-1.5 text-[11px] text-slate-500">
-                        Order notes / landmark <span className="text-slate-400">(optional)</span>
-                      </span>
+                      <select
+                        value={city}
+                        onChange={(e) => setCity(e.target.value)}
+                        className="w-full rounded-md border border-slate-300 bg-white px-3.5 pt-6 pb-1.5 text-[15px] outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/25"
+                      >
+                        {CITIES.map((c) => (
+                          <option key={c}>{c}</option>
+                        ))}
+                      </select>
+                      <span className="pointer-events-none absolute left-3.5 top-1.5 text-[11px] text-slate-500">City</span>
                     </label>
+                    <details className="rounded-md border border-slate-200 bg-slate-50 px-3.5 py-2.5">
+                      <summary className="cursor-pointer text-xs font-semibold text-slate-600">Add apartment, postal code or landmark <span className="font-normal text-slate-400">(optional)</span></summary>
+                      <div className="space-y-3 pt-3">
+                        <Field label="Apartment / suite" value={apartment} onChange={setApartment} optional />
+                        <Field label="Postal code" inputMode="numeric" value={postalCode} onChange={(v) => setPostalCode(v.replace(/[^0-9]/g, "").slice(0, 6))} optional />
+                        <label className="relative block">
+                          <textarea
+                            rows={3}
+                            value={notes}
+                            onChange={(e) => setNotes(e.target.value)}
+                            placeholder="Order notes"
+                            className={`${field} pt-6 pb-2 resize-none`}
+                          />
+                          <span className="pointer-events-none absolute left-3.5 top-1.5 text-[11px] text-slate-500">
+                            Order notes / landmark <span className="text-slate-400">(optional)</span>
+                          </span>
+                        </label>
+                      </div>
+                    </details>
                     <label className="flex items-center gap-2.5 text-[13px] text-slate-600">
                       <input type="checkbox" checked={saveInfo} onChange={(e) => setSaveInfo(e.target.checked)} className="w-4 h-4 accent-emerald-600" />
                       Save this information for next time
@@ -626,7 +603,7 @@ export default function CheckoutPage() {
                     {isWhatsApp ? "We’ll confirm your order with you on WhatsApp." : "No online payment required — pay cash when your parcel arrives."}
                   </p>
                   <div className="rounded-md border border-slate-300 divide-y divide-slate-200 overflow-hidden">
-                    {PAY_METHODS.map((m) => {
+                    {PAY_METHODS.filter((m) => m.available).map((m) => {
                       const disabled = !m.available;
                       return (
                         <div key={m.id}>

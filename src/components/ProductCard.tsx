@@ -155,9 +155,11 @@ export default function ProductCard({ product, compact = false }: { product: Pro
               <span className="text-[10px] font-black uppercase tracking-wide text-emerald-700">{discount}% off</span>
             )}
           </div>
-          <p className={`text-[10px] font-semibold mt-1 ${lowStock ? "text-amber-700" : soldOut ? "text-slate-400" : "text-slate-400"}`}>
-            {soldOut ? "Currently unavailable" : lowStock ? `Only ${product.stock} left` : "COD · 7-day returns"}
-          </p>
+          {!compact && (
+            <p className={`text-[10px] font-semibold mt-1 ${lowStock ? "text-amber-700" : soldOut ? "text-slate-400" : "text-slate-400"}`}>
+              {soldOut ? "Currently unavailable" : lowStock ? `Only ${product.stock} left` : "COD · 7-day returns"}
+            </p>
+          )}
         </div>
 
         {!compact && (pickerOpen && hasVariants ? (
