@@ -442,7 +442,7 @@ export default function ProductPage({ id }: { id: number }) {
 
         {/* purchase panel */}
         <div>
-          <div className="surface rounded-xl shadow-none p-5 md:p-6 lg:sticky lg:top-24 self-start">
+          <div className="lg:sticky lg:top-24 self-start">
             <Link to={`/category/${product.category}`} className="text-xs font-bold uppercase tracking-widest text-emerald-600 hover:underline">
             {catName}
           </Link>
