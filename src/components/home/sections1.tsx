@@ -39,7 +39,7 @@ function CountdownBoxes() {
   const { days, hours, mins, secs } = useCountdown(saleEnd ?? Date.now());
   if (saleEnd === null) return null;
   const box =
-    "bg-white/75 backdrop-blur-md border border-emerald-950/10 rounded-xl px-2.5 py-1.5 min-w-[54px] text-center shadow-md shadow-emerald-950/10";
+    "bg-white  border border-emerald-950/10 rounded-xl px-2.5 py-1.5 min-w-[54px] text-center shadow-md shadow-emerald-950/10";
   const items = [
     [days, "Days"], [hours, "Hours"], [mins, "Mins"], [secs, "Secs"],
   ] as const;
@@ -196,7 +196,7 @@ export function HeroSection() {
               >
                 {/* text */}
                 <div className="relative z-10 text-center lg:text-left order-2 lg:order-1">
-                  <p className="inline-flex items-center text-xs font-bold uppercase tracking-widest bg-white/75 backdrop-blur-md border border-emerald-900/10 text-emerald-800 px-3.5 py-1.5 rounded-full mb-4 shadow-sm">
+                  <p className="inline-flex items-center text-xs font-bold uppercase tracking-widest bg-white  border border-emerald-900/10 text-emerald-800 px-3.5 py-1.5 rounded-full mb-4 shadow-sm">
                     <span className="mr-1.5 text-emerald-600">⚡</span>{sl.tag}
                   </p>
                   <h1 className="text-3xl md:text-5xl font-black text-slate-950 leading-tight mb-4">
@@ -246,19 +246,19 @@ export function HeroSection() {
               onClick={() => setSlide(i)}
               aria-label={`Slide ${i + 1}`}
               className={`h-2 rounded-full transition-all ${
-                i === slide ? "w-8 bg-white" : "w-2 bg-white/40 hover:bg-white/70"
+                i === slide ? "w-8 bg-white" : "w-2 bg-white hover:bg-white/70"
               }`}
             />
           ))}
         </div>
 
-        {/* featured glass cards — straddle the hero's bottom edge (amaze-style) */}
+        {/* featured surface cards — straddle the hero's bottom edge (amaze-style) */}
         <div className="mt-8 -mb-14 relative z-10 flex lg:grid lg:grid-cols-3 gap-4 overflow-x-auto no-scrollbar snap-x pb-2">
           {featured.map((p) => (
             <button
               key={p.id}
               onClick={() => navigate("/shop")}
-              className="snap-start shrink-0 w-72 lg:w-auto bg-white/40 backdrop-blur-xl border border-white/50 rounded-2xl p-4 flex items-center gap-4 shadow-xl shadow-emerald-950/15 hover:bg-white/60 hover:-translate-y-0.5 transition text-left"
+              className="snap-start shrink-0 w-72 lg:w-auto bg-white  border border-white/50 rounded-2xl p-4 flex items-center gap-4 shadow-xl shadow-emerald-950/15 hover:bg-white hover:-translate-y-0.5 transition text-left"
             >
               <img src={p.image} alt="" className="w-16 h-16 rounded-xl object-cover ring-1 ring-white/50" />
               <div className="min-w-0">
@@ -304,7 +304,7 @@ export function CategoryIcons() {
         <div className="hidden md:flex gap-2">
           <button
             onClick={() => scrollBy(-1)}
-            className="w-9 h-9 rounded-full glass-soft text-slate-600 hover:text-emerald-700 hover:shadow-md flex items-center justify-center transition-all"
+            className="w-9 h-9 rounded-full surface-muted text-slate-600 hover:text-emerald-700 hover:shadow-md flex items-center justify-center transition-all"
             aria-label="Scroll left"
           >
             ‹
@@ -331,9 +331,9 @@ export function CategoryIcons() {
             <Link
               key={c.id}
               to={`/category/${c.id}`}
-              className="group snap-start shrink-0 w-36 md:w-44 flex flex-col rounded-2xl glass-soft overflow-hidden hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-500/15 hover:ring-2 hover:ring-emerald-400/50 transition-all"
+              className="group snap-start shrink-0 w-36 md:w-44 flex flex-col rounded-2xl surface-muted overflow-hidden hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-500/15 hover:ring-2 hover:ring-emerald-400/50 transition-all"
             >
-              <span className={`relative block aspect-square p-3 ${meta?.tint ?? "bg-white/60"}`}>
+              <span className={`relative block aspect-square p-3 ${meta?.tint ?? "bg-white"}`}>
                 {tile ? (
                   <img
                     src={tile}
@@ -405,7 +405,7 @@ export function BestSelling() {
               className={`px-4 py-2 rounded-full text-sm font-semibold transition ${
                 tab === c.id
                   ? "bg-emerald-600 text-white neon-glow-soft"
-                  : "glass-soft text-slate-600 hover:text-emerald-700"
+                  : "surface-muted text-slate-600 hover:text-emerald-700"
               }`}
             >
               {c.name}
@@ -416,7 +416,7 @@ export function BestSelling() {
         <select
           value={tab}
           onChange={(e) => setTab(e.target.value)}
-          className="md:hidden rounded-xl glass-soft px-3 py-2 text-sm outline-none"
+          className="md:hidden rounded-xl surface-muted px-3 py-2 text-sm outline-none"
         >
           <option value="all">All categories</option>
           {categories.map((c) => (
@@ -455,7 +455,7 @@ export function FeaturedProductDetail() {
           <p className="text-slate-300 text-sm md:text-base mb-6">{p.description}</p>
           <ul className="space-y-2.5 mb-8 text-sm">
             {["Hybrid active noise cancellation", "32-hour total battery life", "Wireless + USB-C fast charging", "IPX5 sweat & splash resistant"].map((f) => (
-              <li key={f} className="flex items-center gap-2.5 glass-dark rounded-xl px-3 py-2">
+              <li key={f} className="flex items-center gap-2.5 surface-dark rounded-xl px-3 py-2">
                 <span className="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xs">✓</span>
                 {f}
               </li>
@@ -484,7 +484,7 @@ export function FeaturedProductDetail() {
   );
 }
 
-/* ---------- 5. DealsOfDay (glass on gradient) ---------- */
+/* ---------- 5. DealsOfDay (retail promo section) ---------- */
 function DealCard({ id }: { id: number }) {
   const { products } = useProducts();
   const { add } = useCart();
@@ -496,7 +496,7 @@ function DealCard({ id }: { id: number }) {
   const soldPct = Math.min(92, 100 - p.stock);
 
   return (
-    <div className="bg-white/15 backdrop-blur-xl border border-white/25 rounded-2xl p-5 flex flex-col sm:flex-row gap-5 hover:bg-white/25 transition shadow-lg shadow-emerald-950/10">
+    <div className="bg-slate-950 border border-slate-800 rounded-2xl p-5 flex flex-col sm:flex-row gap-5 hover:bg-slate-900 transition shadow-lg shadow-slate-950/20">
       <img src={p.image} alt={p.name} className="w-full sm:w-40 aspect-square rounded-xl object-cover ring-1 ring-white/30" />
       <div className="flex-1 flex flex-col">
         <Stars rating={p.rating} size="text-xs" />
@@ -556,8 +556,6 @@ export function DealsOfDay() {
     <section className="max-w-7xl mx-auto px-6 py-10">
       <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-emerald-600 via-teal-600 to-emerald-800 p-5 md:p-8">
         {/* light blooms */}
-        <div className="absolute -top-20 -right-20 w-80 h-80 rounded-full bg-white/15 blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-24 -left-16 w-72 h-72 rounded-full bg-fuchsia-400/25 blur-3xl pointer-events-none" />
         <div className="relative grid lg:grid-cols-3 gap-5">
           <div className="flex flex-col justify-center text-white py-4">
             <p className="text-xs font-bold uppercase tracking-widest text-emerald-200 mb-2">
@@ -569,7 +567,7 @@ export function DealsOfDay() {
             </p>
             <button
               onClick={() => navigate("/shop")}
-              className="self-start px-6 py-2.5 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-white font-bold hover:bg-white hover:text-emerald-800 transition"
+              className="self-start px-6 py-2.5 rounded-full bg-white/20  border border-white/30 text-white font-bold hover:bg-white hover:text-emerald-800 transition"
             >
               View All Offers →
             </button>

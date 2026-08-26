@@ -139,7 +139,7 @@ export default function CategoryPage({ id, band }: { id: string; band?: string }
           <div className="h-8 w-72 bg-slate-100 rounded animate-pulse mb-6" />
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             {[0, 1, 2].map((i) => (
-              <div key={i} className="glass-soft rounded-2xl aspect-[3/4] animate-pulse" />
+              <div key={i} className="surface-muted rounded-2xl aspect-[3/4] animate-pulse" />
             ))}
           </div>
         </main>
@@ -181,7 +181,7 @@ export default function CategoryPage({ id, band }: { id: string; band?: string }
         <ol className="mt-8 space-y-5">
           {bandData.items.map((it) => (
             <li key={it.id}>
-              <div className="flex items-start gap-4 glass rounded-2xl p-4 hover:shadow-lg transition">
+              <div className="flex items-start gap-4 surface rounded-2xl p-4 hover:shadow-lg transition">
                 <span className={`shrink-0 w-9 h-9 rounded-full flex items-center justify-center font-black text-sm ${
                   it.rank <= 3 ? "bg-emerald-600 text-white" : "bg-slate-100 text-slate-500"
                 }`}>{it.rank}</span>
@@ -220,12 +220,12 @@ export default function CategoryPage({ id, band }: { id: string; band?: string }
             <h2 className="text-lg font-black text-slate-900 mb-3">Other budgets in {bandData.categoryName}</h2>
             <div className="flex flex-wrap gap-2">
               <Link to={`/category/${bandData.categoryId}`}
-                className="px-4 py-2 rounded-full glass-soft text-sm font-medium text-slate-600 hover:text-emerald-700 transition">
+                className="px-4 py-2 rounded-full surface-muted text-sm font-medium text-slate-600 hover:text-emerald-700 transition">
                 All {bandData.categoryName}
               </Link>
               {bandData.siblings.map((s) => (
                 <Link key={s.url} to={s.url}
-                  className="px-4 py-2 rounded-full glass-soft text-sm font-medium text-slate-600 hover:text-emerald-700 transition">
+                  className="px-4 py-2 rounded-full surface-muted text-sm font-medium text-slate-600 hover:text-emerald-700 transition">
                   {s.bandLabel}
                 </Link>
               ))}
@@ -304,7 +304,7 @@ export default function CategoryPage({ id, band }: { id: string; band?: string }
       {loading ? (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[0, 1, 2, 3].map((i) => (
-            <div key={i} className="glass-soft rounded-2xl overflow-hidden animate-pulse">
+            <div key={i} className="surface-muted rounded-2xl overflow-hidden animate-pulse">
               <div className="aspect-square bg-slate-100" />
               <div className="p-4 space-y-2.5">
                 <div className="h-3 bg-slate-100 rounded w-1/2" />
@@ -320,7 +320,7 @@ export default function CategoryPage({ id, band }: { id: string; band?: string }
           ))}
         </div>
       ) : (
-        <div className="glass-soft rounded-2xl p-10 text-center text-slate-500 text-sm">
+        <div className="surface-muted rounded-2xl p-10 text-center text-slate-500 text-sm">
           Nothing here yet — new stock lands weekly.
           {" "}Check back soon or browse <Link to="/shop" className="font-bold text-emerald-600 hover:underline">all products</Link>.
         </div>
@@ -334,7 +334,7 @@ export default function CategoryPage({ id, band }: { id: string; band?: string }
             <Link
               key={c.id}
               to={`/category/${c.id}`}
-              className="px-4 py-2 rounded-full glass-soft text-sm font-medium text-slate-600 hover:text-emerald-700 transition"
+              className="px-4 py-2 rounded-full surface-muted text-sm font-medium text-slate-600 hover:text-emerald-700 transition"
             >
               {c.icon} {c.name}
             </Link>

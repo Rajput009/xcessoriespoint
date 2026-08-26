@@ -10,7 +10,7 @@ export default function Toasts() {
         <div
           key={t.id}
           onClick={() => dismiss(t.id)}
-          className={`fade-up flex items-center gap-2.5 px-4 py-3 rounded-2xl backdrop-blur-xl border text-sm font-medium text-white cursor-pointer select-none transition-all hover:opacity-90 ${
+          className={`fade-up flex items-center gap-2.5 px-4 py-3 rounded-2xl  border text-sm font-medium text-white cursor-pointer select-none transition-all hover:opacity-90 ${
             t.type === "error"
               ? "bg-red-600/90 border-red-400/40 shadow-lg shadow-red-600/25"
               : t.type === "info"

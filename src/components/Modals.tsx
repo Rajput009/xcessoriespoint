@@ -22,7 +22,7 @@ function Overlay({ children, onClose }: { children: ReactNode; onClose: () => vo
   }, [onClose]);
   return (
     <div className="fixed inset-0 z-50 flex" onClick={onClose}>
-      <div className="absolute inset-0 bg-emerald-950/30 backdrop-blur-md" />
+      <div className="absolute inset-0 bg-emerald-950/30 " />
       {children}
     </div>
   );
@@ -40,14 +40,14 @@ function CenterModal({
   return (
     <Overlay onClose={onClose}>
       <div
-        className="relative m-auto w-[92vw] max-w-md glass !bg-white/75 rounded-3xl shadow-2xl shadow-emerald-950/20 p-6 fade-up max-h-[85vh] overflow-y-auto"
+        className="relative m-auto w-[92vw] max-w-md surface !bg-white rounded-3xl shadow-2xl shadow-emerald-950/20 p-6 fade-up max-h-[85vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-bold text-slate-900">{title}</h2>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full hover:bg-white/70 text-slate-500"
+            className="w-8 h-8 rounded-full hover:bg-white text-slate-500"
             aria-label="Close"
           >
             ✕
@@ -71,14 +71,14 @@ function Drawer({
   return (
     <Overlay onClose={onClose}>
       <div
-        className="relative ml-auto h-full w-full max-w-md glass !bg-white/80 !border-l !border-white/60 shadow-2xl shadow-emerald-950/25 slide-in flex flex-col"
+        className="relative ml-auto h-full w-full max-w-md surface !bg-white !border-l !border-white/60 shadow-2xl shadow-emerald-950/25 slide-in flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between px-5 py-4 border-b border-white/50">
           <h2 className="text-lg font-bold text-slate-900">{title}</h2>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full hover:bg-white/70 text-slate-500"
+            className="w-8 h-8 rounded-full hover:bg-white text-slate-500"
             aria-label="Close"
           >
             ✕
@@ -186,7 +186,7 @@ function CartDrawer({ onClose }: { onClose: () => void }) {
       ) : (
         <>
           <div className="px-5 pt-4">
-            <div className="glass-soft rounded-xl px-4 py-3">
+            <div className="surface-muted rounded-xl px-4 py-3">
               <p className="text-xs font-semibold text-slate-700 mb-1.5">
                 {toFree === 0 ? (
                   <>🎉 You've unlocked <span className="text-emerald-700 font-bold">FREE shipping!</span></>
@@ -194,7 +194,7 @@ function CartDrawer({ onClose }: { onClose: () => void }) {
                   <>Add <span className="text-emerald-700 font-bold">{fmt(toFree)}</span> more for free shipping</>
                 )}
               </p>
-              <div className="h-2 rounded-full bg-white/70 overflow-hidden">
+              <div className="h-2 rounded-full bg-slate-100 overflow-hidden">
                 <div
                   className="h-full bg-gradient-to-r from-emerald-500 to-lime-400 transition-all duration-500"
                   style={{ width: `${freePct}%` }}
@@ -245,7 +245,7 @@ function CartDrawer({ onClose }: { onClose: () => void }) {
                 </p>
                 <div className="grid grid-cols-2 gap-2">
                   {upsells.map((u) => (
-                    <div key={u.id} className="glass-soft rounded-xl p-2 flex items-center gap-2">
+                    <div key={u.id} className="surface-muted rounded-xl p-2 flex items-center gap-2">
                       <img src={u.image} alt="" className="w-9 h-9 rounded-lg object-cover" />
                       <div className="min-w-0 flex-1">
                         <p className="text-[11px] font-semibold text-slate-900 truncate">{u.name}</p>
@@ -408,7 +408,7 @@ function AccountModal({ onClose }: { onClose: () => void }) {
         ) : (
           <div className="space-y-2 max-h-52 overflow-y-auto pr-1">
             {orders.map((o) => (
-              <div key={o.id} className="glass-soft rounded-xl px-3.5 py-2.5 flex items-center gap-3">
+              <div key={o.id} className="surface-muted rounded-xl px-3.5 py-2.5 flex items-center gap-3">
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-bold text-slate-900">{o.id}</p>
                   <p className="text-[11px] text-slate-500">

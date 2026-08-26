@@ -35,7 +35,7 @@ export default function CookieConsent() {
 
   return (
     <div className="fixed inset-x-0 bottom-0 z-[90] p-4 md:p-6 pointer-events-none">
-      <div className="pointer-events-auto max-w-3xl mx-auto glass !bg-white/70 rounded-3xl shadow-2xl shadow-emerald-950/15 p-5 md:p-6 fade-up">
+      <div className="pointer-events-auto max-w-3xl mx-auto surface !bg-white rounded-3xl shadow-2xl shadow-emerald-950/15 p-5 md:p-6 fade-up">
         <div className="flex items-start gap-3 mb-3">
           <span className="text-2xl">🍪</span>
           <div>

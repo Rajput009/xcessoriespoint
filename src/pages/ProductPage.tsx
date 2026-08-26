@@ -45,17 +45,17 @@ function InfoAccordion({
 }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
-    <div className="glass-soft rounded-2xl overflow-hidden">
+    <div className="surface-muted rounded-2xl overflow-hidden">
       <button
         type="button"
         onClick={() => setOpen((value) => !value)}
         aria-expanded={open}
-        className="w-full flex items-center justify-between gap-4 px-4 py-3.5 text-left hover:bg-white/45 transition-colors"
+        className="w-full flex items-center justify-between gap-4 px-4 py-3.5 text-left hover:bg-slate-50 transition-colors"
       >
         <span className="text-sm font-bold text-slate-900">{title}</span>
         <span className={`text-emerald-600 text-lg leading-none transition-transform ${open ? "rotate-45" : ""}`} aria-hidden="true">＋</span>
       </button>
-      {open && <div className="border-t border-white/60 px-4 py-4">{children}</div>}
+      {open && <div className="border-t border-slate-200 px-4 py-4">{children}</div>}
     </div>
   );
 }
@@ -212,7 +212,7 @@ export default function ProductPage({ id }: { id: number }) {
   if (loading)
     return (
       <main className="pt-[120px] md:pt-44 max-w-7xl mx-auto px-6 pb-16">
-        <div className="glass-soft rounded-3xl h-96 animate-pulse" />
+        <div className="surface-muted rounded-3xl h-96 animate-pulse" />
       </main>
     );
 
@@ -314,7 +314,7 @@ export default function ProductPage({ id }: { id: number }) {
       <div className="grid lg:grid-cols-2 gap-8 lg:gap-12">
         {/* gallery */}
         <div>
-          <div className="glass rounded-3xl overflow-hidden relative">
+          <div className="surface rounded-3xl overflow-hidden relative">
             {product.badge && (
               <span className="absolute top-4 left-4 z-10 bg-emerald-700 text-white text-sm font-bold px-3 py-1.5 rounded-lg shadow-md shadow-emerald-700/25">
                 {product.badge}
@@ -325,18 +325,18 @@ export default function ProductPage({ id }: { id: number }) {
                 <button
                   onClick={() => setImgIdx((i) => (i - 1 + gallery.length) % gallery.length)}
                   aria-label="Previous image"
-                  className="absolute left-3 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white/70 backdrop-blur text-slate-700 hover:bg-white flex items-center justify-center shadow-lg transition"
+                  className="absolute left-3 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white  text-slate-700 hover:bg-white flex items-center justify-center shadow-lg transition"
                 >
                   ‹
                 </button>
                 <button
                   onClick={() => setImgIdx((i) => (i + 1) % gallery.length)}
                   aria-label="Next image"
-                  className="absolute right-3 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white/70 backdrop-blur text-slate-700 hover:bg-white flex items-center justify-center shadow-lg transition"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white  text-slate-700 hover:bg-white flex items-center justify-center shadow-lg transition"
                 >
                   ›
                 </button>
-                <span className="absolute bottom-3 right-3 z-10 bg-slate-900/60 backdrop-blur text-white text-[11px] font-bold px-2.5 py-1 rounded-full">
+                <span className="absolute bottom-3 right-3 z-10 bg-slate-900/60  text-white text-[11px] font-bold px-2.5 py-1 rounded-full">
                   {Math.min(imgIdx + 1, gallery.length)} / {gallery.length}
                 </span>
               </>
@@ -344,7 +344,7 @@ export default function ProductPage({ id }: { id: number }) {
             <button
               type="button"
               onClick={() => setLightboxOpen(true)}
-              className="group block w-full overflow-hidden bg-white/55 p-4 md:p-8 cursor-zoom-in"
+              className="group block w-full overflow-hidden bg-white p-4 md:p-8 cursor-zoom-in"
               aria-label="Open product image gallery"
             >
               <img
@@ -368,10 +368,10 @@ export default function ProductPage({ id }: { id: number }) {
                   key={src + i}
                   onClick={() => setImgIdx(i)}
                   aria-label={`Image ${i + 1}`}
-                  className={`shrink-0 w-18 h-18 md:w-20 md:h-20 rounded-xl overflow-hidden transition-all ${
+                  className={`shrink-0 w-18 h-18 md:w-20 md:h-20 rounded-xl overflow-hidden tranion-all ${
                     i === imgIdx
                       ? "ring-2 ring-emerald-500 ring-offset-2 ring-offset-transparent"
-                      : "opacity-60 hover:opacity-100 glass-soft"
+                      : "opacity-60 hover:opacity-100 surface-muted"
                   }`}
                 >
                   <img
@@ -379,7 +379,7 @@ export default function ProductPage({ id }: { id: number }) {
                     alt={`${product.name} — image ${i + 1}`}
                     width={160}
                     height={160}
-                    className="w-full h-full object-contain bg-white/60 p-1"
+                    className="w-full h-full object-contain bg-white p-1"
                   />
                 </button>
               ))}
@@ -389,7 +389,7 @@ export default function ProductPage({ id }: { id: number }) {
 
         {/* purchase panel */}
         <div>
-          <div className="glass rounded-3xl p-5 md:p-6 lg:sticky lg:top-24 self-start">
+          <div className="surface rounded-3xl p-5 md:p-6 lg:sticky lg:top-24 self-start">
             <Link to={`/category/${product.category}`} className="text-xs font-bold uppercase tracking-widest text-emerald-600 hover:underline">
             {catName}
           </Link>
@@ -495,8 +495,8 @@ export default function ProductPage({ id }: { id: number }) {
                           v.id === variantId
                             ? "bg-emerald-600 text-white neon-glow-soft"
                             : v.stock <= 0
-                            ? "glass-soft text-slate-300 line-through cursor-not-allowed"
-                            : "glass-soft text-slate-700 hover:ring-2 hover:ring-emerald-300"
+                            ? "surface-muted text-slate-300 line-through cursor-not-allowed"
+                            : "surface-muted text-slate-700 hover:ring-2 hover:ring-emerald-300"
                         }`}
                       >
                         {color && (
@@ -521,7 +521,7 @@ export default function ProductPage({ id }: { id: number }) {
           )}
 
           {out && (
-            <div className="glass rounded-2xl p-4 mb-6">
+            <div className="surface rounded-2xl p-4 mb-6">
               {alertDone ? (
                 <p className="text-sm font-semibold text-emerald-700">
                   ✓ You're on the list — we'll email you the moment it's back!
@@ -553,7 +553,7 @@ export default function ProductPage({ id }: { id: number }) {
                       value={alertEmail}
                       onChange={(e) => setAlertEmail(e.target.value)}
                       placeholder="you@email.com"
-                      className="flex-1 min-w-0 rounded-xl bg-white/70 border border-white/70 px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-300/60"
+                      className="flex-1 min-w-0 rounded-xl bg-white border border-slate-200 px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-300/60"
                     />
                     <button className="px-4 py-2.5 rounded-xl bg-emerald-600 text-white text-sm font-bold hover:bg-emerald-700">
                       Notify me
@@ -568,7 +568,7 @@ export default function ProductPage({ id }: { id: number }) {
 
           {/* qty + actions */}
           <div className="flex items-center gap-3 mb-5">
-            <div className="flex items-center glass-soft rounded-xl">
+            <div className="flex items-center surface-muted rounded-xl">
               <button onClick={() => setQty((q) => Math.max(1, q - 1))} className="w-10 h-11 text-slate-600 hover:text-emerald-700 font-bold">−</button>
               <span className="w-10 text-center font-bold">{qty}</span>
               <button onClick={() => setQty((q) => Math.min(Math.max(1, availableStock), q + 1))} className="w-10 h-11 text-slate-600 hover:text-emerald-700 font-bold">+</button>
@@ -584,7 +584,7 @@ export default function ProductPage({ id }: { id: number }) {
               onClick={() => toggle(product.id)}
               aria-label="Toggle wishlist"
               className={`w-12 h-12 rounded-xl flex items-center justify-center transition ${
-                has(product.id) ? "bg-emerald-600 text-white neon-glow-soft" : "glass-soft text-slate-500 hover:text-emerald-600"
+                has(product.id) ? "bg-emerald-600 text-white neon-glow-soft" : "surface-muted text-slate-500 hover:text-emerald-600"
               }`}
             >
               <HeartIcon size={20} filled={has(product.id)} />
@@ -626,13 +626,13 @@ export default function ProductPage({ id }: { id: number }) {
                   "_blank"
                 )
               }
-              className="px-3.5 py-1.5 rounded-full glass-soft text-xs font-bold text-emerald-700 hover:ring-2 hover:ring-emerald-300 transition"
+              className="px-3.5 py-1.5 rounded-full surface-muted text-xs font-bold text-emerald-700 hover:ring-2 hover:ring-emerald-300 transition"
             >
               WhatsApp
             </button>
             <button
               onClick={() => { navigator.clipboard?.writeText(location.href); push("Link copied 📋"); }}
-              className="px-3.5 py-1.5 rounded-full glass-soft text-xs font-bold text-slate-600 hover:ring-2 hover:ring-emerald-300 transition"
+              className="px-3.5 py-1.5 rounded-full surface-muted text-xs font-bold text-slate-600 hover:ring-2 hover:ring-emerald-300 transition"
             >
               Copy link
             </button>
@@ -645,7 +645,7 @@ export default function ProductPage({ id }: { id: number }) {
               [<ZapIcon key="z" size={18} />, "2–4 day delivery"],
               ["↩", "7-day easy returns"],
             ].map(([icon, label], i) => (
-              <div key={i} className="glass-soft rounded-xl py-3 px-2 flex flex-col items-center gap-1.5 text-emerald-700">
+              <div key={i} className="surface-muted rounded-xl py-3 px-2 flex flex-col items-center gap-1.5 text-emerald-700">
                 <span>{icon}</span>
                 <span className="text-[11px] font-semibold text-slate-600">{label}</span>
               </div>
@@ -692,7 +692,7 @@ export default function ProductPage({ id }: { id: number }) {
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {quickSpecs.map(([label, value]) => (
-            <div key={label} className="glass-soft rounded-2xl px-4 py-3.5">
+            <div key={label} className="surface-muted rounded-2xl px-4 py-3.5">
               <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400">{label}</p>
               <p className="text-sm font-bold text-slate-800 mt-1">{value}</p>
             </div>
@@ -703,7 +703,7 @@ export default function ProductPage({ id }: { id: number }) {
       {/* reviews */}
       <section className="mt-16 grid lg:grid-cols-2 gap-8">
         <div>
-          <div className="glass-soft rounded-2xl p-4 mb-4 flex items-center gap-4">
+          <div className="surface-muted rounded-2xl p-4 mb-4 flex items-center gap-4">
             <span className="text-3xl font-black text-slate-900">{product.reviews > 0 ? product.rating.toFixed(1) : "—"}</span>
             <div>
               <Stars rating={product.rating} />
@@ -718,7 +718,7 @@ export default function ProductPage({ id }: { id: number }) {
           ) : (
             <div className="space-y-3">
               {reviews.map((r) => (
-                <div key={r.id} className="glass rounded-2xl p-4">
+                <div key={r.id} className="surface rounded-2xl p-4">
                   <div className="flex items-center gap-2.5 mb-1.5">
                     <span className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-sm font-bold">
                       {r.name.charAt(0)}
@@ -735,13 +735,13 @@ export default function ProductPage({ id }: { id: number }) {
         </div>
         <div>
           <h2 className="text-xl font-black text-slate-900 mb-4">Write a Review</h2>
-          <form onSubmit={submitReview} className="glass rounded-2xl p-5 space-y-3">
+          <form onSubmit={submitReview} className="surface rounded-2xl p-5 space-y-3">
             <input
               value={revName}
               onChange={(e) => setRevName(e.target.value)}
               placeholder="Your name"
               required
-              className="w-full rounded-xl bg-white/70 border border-white/70 px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-300/60"
+              className="w-full rounded-xl bg-white border border-slate-200 px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-300/60"
             />
             <div className="flex items-center gap-1">
               {[1, 2, 3, 4, 5].map((n) => (
@@ -762,7 +762,7 @@ export default function ProductPage({ id }: { id: number }) {
               onChange={(e) => setRevText(e.target.value)}
               rows={4}
               placeholder="What did you think of it?"
-              className="w-full rounded-xl bg-white/70 border border-white/70 px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-300/60"
+              className="w-full rounded-xl bg-white border border-slate-200 px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-300/60"
             />
             <button
               disabled={revBusy}
@@ -777,8 +777,8 @@ export default function ProductPage({ id }: { id: number }) {
 
       {/* compact desktop buy bar appears once the main purchase controls leave the viewport */}
       {showSticky && !out && (
-        <div className="hidden md:flex fixed bottom-6 right-6 z-30 glass !bg-white/90 rounded-2xl shadow-xl shadow-slate-900/15 p-2.5 items-center gap-3 max-w-sm">
-          <img src={variant?.image || product.image} alt="" className="w-12 h-12 rounded-xl object-contain bg-white/70 p-1" />
+        <div className="hidden md:flex fixed bottom-6 right-6 z-30 surface !bg-white rounded-2xl shadow-xl shadow-slate-900/15 p-2.5 items-center gap-3 max-w-sm">
+          <img src={variant?.image || product.image} alt="" className="w-12 h-12 rounded-xl object-contain bg-white p-1" />
           <div className="min-w-0 flex-1">
             <p className="text-xs font-bold text-slate-900 truncate">{product.name}</p>
             <p className="text-sm font-black text-emerald-700">
@@ -799,7 +799,7 @@ export default function ProductPage({ id }: { id: number }) {
       {/* sticky mobile add-to-cart (conversion) */}
       {showSticky && !out && (
         <div className="md:hidden fixed bottom-[60px] inset-x-0 z-30 px-3 pb-2 fade-up">
-          <div className="glass !bg-white/90 rounded-2xl shadow-xl shadow-slate-900/15 p-2.5 flex items-center gap-3">
+          <div className="surface !bg-white rounded-2xl shadow-xl shadow-slate-900/15 p-2.5 flex items-center gap-3">
             <img src={variant?.image || product.image} alt="" className="w-11 h-11 rounded-xl object-cover" />
             <div className="min-w-0 flex-1">
               <p className="text-xs font-bold text-slate-900 truncate">{product.name}</p>
@@ -835,7 +835,7 @@ export default function ProductPage({ id }: { id: number }) {
 
       {lightboxOpen && (
         <div
-          className="fixed inset-0 z-[80] bg-slate-950/80 backdrop-blur-sm p-4 md:p-8 flex items-center justify-center"
+          className="fixed inset-0 z-[80] bg-slate-950/80  p-4 md:p-8 flex items-center justify-center"
           role="dialog"
           aria-modal="true"
           aria-label={`${product.name} image gallery`}
@@ -845,7 +845,7 @@ export default function ProductPage({ id }: { id: number }) {
             type="button"
             onClick={() => setLightboxOpen(false)}
             aria-label="Close image gallery"
-            className="absolute top-5 right-5 w-10 h-10 rounded-full bg-white/90 text-slate-700 text-xl hover:bg-white z-10"
+            className="absolute top-5 right-5 w-10 h-10 rounded-full bg-white text-slate-700 text-xl hover:bg-white z-10"
           >
             ×
           </button>
@@ -855,7 +855,7 @@ export default function ProductPage({ id }: { id: number }) {
                 type="button"
                 onClick={() => setImgIdx((i) => (i - 1 + gallery.length) % gallery.length)}
                 aria-label="Previous image"
-                className="absolute left-2 md:-left-14 w-10 h-10 rounded-full bg-white/90 text-slate-700 text-2xl shadow-lg hover:bg-white z-10"
+                className="absolute left-2 md:-left-14 w-10 h-10 rounded-full bg-white text-slate-700 text-2xl shadow-lg hover:bg-white z-10"
               >
                 ‹
               </button>
@@ -873,7 +873,7 @@ export default function ProductPage({ id }: { id: number }) {
                 type="button"
                 onClick={() => setImgIdx((i) => (i + 1) % gallery.length)}
                 aria-label="Next image"
-                className="absolute right-2 md:-right-14 w-10 h-10 rounded-full bg-white/90 text-slate-700 text-2xl shadow-lg hover:bg-white z-10"
+                className="absolute right-2 md:-right-14 w-10 h-10 rounded-full bg-white text-slate-700 text-2xl shadow-lg hover:bg-white z-10"
               >
                 ›
               </button>
@@ -907,7 +907,7 @@ function DeliveryEstimate() {
   };
   const start = beforeCutoff ? 2 : 3;
   return (
-    <div className="glass-soft rounded-xl px-4 py-3 mb-6 flex items-start gap-3">
+    <div className="surface-muted rounded-xl px-4 py-3 mb-6 flex items-start gap-3">
       <span className="text-xl">🚚</span>
       <div className="text-sm">
         <p className="font-semibold text-slate-800">

@@ -88,7 +88,7 @@ export default function PolicyPage() {
       <p className="text-xs text-slate-400 mb-8">Last updated: {policy.updated}</p>
       <div className="space-y-4">
         {sections.map(([h, body]) => (
-          <section key={h} className="glass rounded-2xl p-5">
+          <section key={h} className="surface rounded-2xl p-5">
             <h2 className="font-bold text-slate-900 mb-1.5">{h}</h2>
             <p className="text-sm text-slate-600 leading-relaxed">{body}</p>
           </section>

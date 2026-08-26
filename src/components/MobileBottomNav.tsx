@@ -12,7 +12,7 @@ export default function MobileBottomNav() {
     "flex flex-col items-center justify-center gap-1 flex-1 py-2 text-[10px] font-semibold transition-colors";
 
   return (
-    <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur border-t border-slate-200 flex shadow-[0_-4px_16px_rgba(0,0,0,0.07)]">
+    <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white  border-t border-slate-200 flex shadow-[0_-4px_16px_rgba(0,0,0,0.07)]">
       <Link to="/" className={`${item} ${path === "/" ? "text-emerald-600" : "text-slate-400"}`}>
         <HomeIcon size={20} />
         Home

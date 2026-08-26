@@ -35,7 +35,7 @@ export function ReviewsSummary() {
       </h2>
       <div className="grid lg:grid-cols-3 gap-5">
         {/* summary card */}
-        <div className="glass rounded-2xl p-6">
+        <div className="surface rounded-2xl p-6">
           <div className="flex items-end gap-3 mb-4">
             <span className="text-5xl font-black text-slate-900">4.7</span>
             <div className="pb-1">
@@ -58,7 +58,7 @@ export function ReviewsSummary() {
         </div>
         {/* review cards */}
         {REVIEWS.slice(0, 2).map((r) => (
-          <div key={r.name} className="glass rounded-2xl p-6 flex flex-col">
+          <div key={r.name} className="surface rounded-2xl p-6 flex flex-col">
             <div className="flex items-center gap-3 mb-3">
               <div className="w-10 h-10 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold">
                 {r.name.charAt(0)}
@@ -110,7 +110,7 @@ export function NewArrivalsCarousel() {
         <select
           value={sort}
           onChange={(e) => setSort(e.target.value)}
-          className="rounded-xl glass-soft px-3 py-2 text-sm outline-none"
+          className="rounded-xl surface-muted px-3 py-2 text-sm outline-none"
         >
           <option value="featured">Featured</option>
           <option value="price-asc">Price: Low → High</option>
@@ -248,7 +248,7 @@ export function VideoStrip() {
           </div>
         ))}
         {/* review side tab */}
-        <div className="snap-start shrink-0 w-44 h-72 rounded-2xl glass p-5 flex flex-col">
+        <div className="snap-start shrink-0 w-44 h-72 rounded-2xl surface p-5 flex flex-col">
           <Stars rating={5} size="text-sm" />
           <p className="text-xs text-slate-600 mt-2 leading-relaxed flex-1">
             "Watched the ANC test reel, ordered the same day. It performs exactly like the video."
@@ -279,7 +279,7 @@ export function FaqSection() {
       <h2 className="text-2xl md:text-3xl font-black text-slate-900 mb-6 text-center">Frequently Asked Questions</h2>
       <div className="space-y-3">
         {FAQS.map((f, i) => (
-          <div key={i} className="glass rounded-2xl overflow-hidden">
+          <div key={i} className="surface rounded-2xl overflow-hidden">
             <button
               onClick={() => setOpen(open === i ? null : i)}
               className="w-full flex items-center justify-between px-5 py-4 text-left"

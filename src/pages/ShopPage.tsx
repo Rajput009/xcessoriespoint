@@ -26,7 +26,7 @@ const PRICE_BANDS = [
 
 function Skeleton() {
   return (
-    <div className="glass-soft rounded-2xl overflow-hidden animate-pulse">
+    <div className="surface-muted rounded-2xl overflow-hidden animate-pulse">
       <div className="aspect-square bg-slate-100" />
       <div className="p-4 space-y-2.5">
         <div className="h-3 bg-slate-100 rounded w-1/3" />
@@ -121,7 +121,7 @@ export default function ShopPage() {
       className={`text-left px-4 py-2.5 rounded-lg text-sm font-medium transition whitespace-nowrap ${
         cat === id
           ? "bg-emerald-600 text-white neon-glow-soft"
-          : "glass-soft text-slate-600 hover:text-emerald-700 lg:bg-transparent lg:border-transparent lg:hover:bg-white/50"
+          : "surface-muted text-slate-600 hover:text-emerald-700 lg:bg-transparent lg:border-transparent lg:hover:bg-white/50"
       }`}
     >
       {name}
@@ -165,12 +165,12 @@ export default function ShopPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search in shop…"
-              className="flex-1 rounded-xl glass-soft px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-300/60"
+              className="flex-1 rounded-xl surface-muted px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-300/60"
             />
             <select
               value={sort}
               onChange={(e) => setSort(e.target.value)}
-              className="rounded-xl glass-soft px-3 py-2.5 text-sm outline-none"
+              className="rounded-xl surface-muted px-3 py-2.5 text-sm outline-none"
             >
               {SORTS.map((s) => (
                 <option key={s.id} value={s.id}>{s.label}</option>
@@ -183,7 +183,7 @@ export default function ShopPage() {
             <select
               value={priceBand}
               onChange={(e) => setPriceBand(e.target.value)}
-              className="rounded-full glass-soft px-3 py-1.5 text-xs font-semibold outline-none"
+              className="rounded-full surface-muted px-3 py-1.5 text-xs font-semibold outline-none"
             >
               {PRICE_BANDS.map((b) => (
                 <option key={b.id} value={b.id}>{b.label}</option>
@@ -192,7 +192,7 @@ export default function ShopPage() {
             <button
               onClick={() => setInStockOnly((v) => !v)}
               className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition ${
-                inStockOnly ? "bg-emerald-600 text-white neon-glow-soft" : "glass-soft text-slate-600"
+                inStockOnly ? "bg-emerald-600 text-white neon-glow-soft" : "surface-muted text-slate-600"
               }`}
             >
               ✓ In stock
@@ -200,7 +200,7 @@ export default function ShopPage() {
             <button
               onClick={() => setTopRatedOnly((v) => !v)}
               className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition ${
-                topRatedOnly ? "bg-emerald-600 text-white neon-glow-soft" : "glass-soft text-slate-600"
+                topRatedOnly ? "bg-emerald-600 text-white neon-glow-soft" : "surface-muted text-slate-600"
               }`}
             >
               ★ 4+ rated
@@ -209,7 +209,7 @@ export default function ShopPage() {
 
           {/* synonym interpretation notice (Urdu / Roman-Urdu / market terms) */}
           {searchQuery.trim() && !fuzzyUsed && interpretedAs && list.length > 0 && (
-            <div className="glass-soft rounded-xl px-4 py-2.5 mb-4 text-sm text-slate-600">
+            <div className="surface-muted rounded-xl px-4 py-2.5 mb-4 text-sm text-slate-600">
               Showing results for "<span className="font-bold text-emerald-700">{interpretedAs}</span>"
               <span className="text-slate-400"> (searched: "{searchQuery}")</span>
             </div>
@@ -217,7 +217,7 @@ export default function ShopPage() {
 
           {/* typo-tolerance notices */}
           {searchQuery.trim() && fuzzyUsed && list.length > 0 && (
-            <div className="glass-soft rounded-xl px-4 py-2.5 mb-4 text-sm text-slate-600">
+            <div className="surface-muted rounded-xl px-4 py-2.5 mb-4 text-sm text-slate-600">
               No exact matches for "<span className="font-bold">{searchQuery}</span>" — showing the closest matches.
               {suggestion && (
                 <>
@@ -298,7 +298,7 @@ export default function ShopPage() {
                 <div className="text-center mt-8">
                   <button
                     onClick={() => setVisible((v) => v + 12)}
-                    className="px-8 py-3 rounded-full glass font-bold text-slate-700 hover:text-emerald-700 hover:shadow-lg transition-all"
+                    className="px-8 py-3 rounded-full surface font-bold text-slate-700 hover:text-emerald-700 hover:shadow-lg transition-all"
                   >
                     Load more ({list.length - visible} remaining)
                   </button>

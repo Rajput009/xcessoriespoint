@@ -45,7 +45,7 @@ function SearchSuggestions({ query, onPick }: { query: string; onPick: () => voi
   if (q.length < 2) {
     const featured = products.filter((p) => p.bestSeller || p.featured).slice(0, 3);
     return (
-      <div className="absolute top-full left-0 right-0 mt-2 glass !bg-white/90 rounded-2xl shadow-xl shadow-slate-900/10 overflow-hidden z-50 p-4">
+      <div className="absolute top-full left-0 right-0 mt-2 surface !bg-white rounded-2xl shadow-xl shadow-slate-900/10 overflow-hidden z-50 p-4">
         <p className="text-[11px] font-black uppercase tracking-[0.16em] text-emerald-700 mb-3">Popular searches</p>
         <div className="flex flex-wrap gap-2">
           {POPULAR_SEARCHES.map((term) => (
@@ -56,7 +56,7 @@ function SearchSuggestions({ query, onPick }: { query: string; onPick: () => voi
                 e.preventDefault();
                 chooseSearch(term);
               }}
-              className="glass-soft rounded-full px-3 py-1.5 text-xs font-semibold text-slate-700 hover:text-emerald-700 hover:bg-emerald-50 transition-colors"
+              className="surface-muted rounded-full px-3 py-1.5 text-xs font-semibold text-slate-700 hover:text-emerald-700 hover:bg-emerald-50 transition-colors"
             >
               {term}
             </button>
@@ -97,7 +97,7 @@ function SearchSuggestions({ query, onPick }: { query: string; onPick: () => voi
   const fuzzy = res.method === "fuzzy" || res.method === "synonym";
   if (matches.length === 0) return null;
   return (
-    <div className="absolute top-full left-0 right-0 mt-2 glass !bg-white/90 rounded-2xl shadow-xl shadow-slate-900/10 overflow-hidden z-50">
+    <div className="absolute top-full left-0 right-0 mt-2 surface !bg-white rounded-2xl shadow-xl shadow-slate-900/10 overflow-hidden z-50">
       {fuzzy && (
         <p className="px-4 pt-2.5 pb-1 text-[11px] font-semibold text-slate-400">
           {res.interpretedAs ? `Showing "${res.interpretedAs}"` : `Closest matches for "${trimmed}"`}
@@ -176,7 +176,7 @@ function CollectionDrawer({ open, onClose }: { open: boolean; onClose: () => voi
       />
       <aside
         id="collection-drawer"
-        className="collection-drawer relative h-full w-[min(92vw,430px)] bg-white/95 border-r border-white/70 rounded-r-3xl shadow-2xl shadow-emerald-950/20 slide-in-left flex flex-col"
+        className="collection-drawer relative h-full w-[min(92vw,430px)] bg-white border-r border-white/70 rounded-r-3xl shadow-2xl shadow-emerald-950/20 slide-in-left flex flex-col"
       >
         <div className="relative px-5 pt-6 pb-5 border-b border-white/60">
           <p className="text-[11px] font-black uppercase tracking-[0.2em] text-emerald-700 mb-1">The collection</p>
@@ -185,7 +185,7 @@ function CollectionDrawer({ open, onClose }: { open: boolean; onClose: () => voi
             type="button"
             onClick={onClose}
             aria-label="Close collection menu"
-            className="absolute top-5 right-5 w-9 h-9 rounded-full bg-white/60 text-slate-500 hover:text-emerald-700 hover:bg-white transition-colors flex items-center justify-center"
+            className="absolute top-5 right-5 w-9 h-9 rounded-full bg-white text-slate-500 hover:text-emerald-700 hover:bg-white transition-colors flex items-center justify-center"
           >
             <span className="text-2xl font-light leading-none" aria-hidden="true">×</span>
           </button>
@@ -203,7 +203,7 @@ function CollectionDrawer({ open, onClose }: { open: boolean; onClose: () => voi
                   aria-controls={`collection-${row.id}`}
                   onClick={() => hasProducts && setExpanded(isExpanded ? null : row.id)}
                   className={`w-full min-h-[64px] px-9 flex items-center justify-between gap-4 text-left transition-colors ${
-                    isExpanded ? "bg-emerald-50/70" : "bg-transparent hover:bg-white/55"
+                    isExpanded ? "bg-emerald-50/70" : "bg-transparent hover:bg-slate-50"
                   }`}
                 >
                   <span className={`text-[18px] leading-tight font-medium ${
@@ -222,7 +222,7 @@ function CollectionDrawer({ open, onClose }: { open: boolean; onClose: () => voi
                 </button>
 
                 {isExpanded && (
-                  <div id={`collection-${row.id}`} className="bg-white/35 px-4 py-2 border-t border-white/50">
+                  <div id={`collection-${row.id}`} className="bg-white px-4 py-2 border-t border-white/50">
                     {loading ? (
                       Array.from({ length: 4 }).map((_, i) => (
                         <div key={i} className="flex items-center gap-3 px-3 py-3 animate-pulse">
@@ -236,7 +236,7 @@ function CollectionDrawer({ open, onClose }: { open: boolean; onClose: () => voi
                           key={p.id}
                           type="button"
                           onClick={() => goTo(`/product/${p.id}`)}
-                          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left hover:bg-white/70 transition-colors group"
+                          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left hover:bg-white transition-colors group"
                         >
                           <img src={p.image} alt="" loading="lazy" className="w-10 h-10 rounded-lg object-cover bg-white shrink-0" />
                           <span className="min-w-0 flex-1">
@@ -256,7 +256,7 @@ function CollectionDrawer({ open, onClose }: { open: boolean; onClose: () => voi
           })}
         </div>
 
-        <div className="p-5 border-t border-white/60 bg-white/35">
+        <div className="p-5 border-t border-white/60 bg-white">
           <button
             type="button"
             onClick={() => goTo("/shop")}
@@ -306,7 +306,7 @@ export default function Header() {
 
   const iconBtn = `relative w-10 h-10 flex items-center justify-center rounded-full transition-colors ${
     overHero
-      ? "text-slate-700 hover:bg-white/60"
+      ? "text-slate-700 hover:bg-white"
       : "text-slate-600 hover:text-emerald-700 hover:bg-emerald-50"
   }`;
   const badge =
@@ -317,7 +317,7 @@ export default function Header() {
       <header className="fixed top-0 inset-x-0 z-40">
       {/* announcement bar */}
       <div
-        className={`bg-emerald-950/75 backdrop-blur text-emerald-100 text-xs font-medium overflow-hidden transition-all duration-300 ${
+        className={`bg-emerald-950 text-emerald-100 text-xs font-medium overflow-hidden transition-all duration-300 ${
           scrolled ? "max-h-0" : "max-h-8"
         }`}
       >
@@ -335,10 +335,10 @@ export default function Header() {
       <div
         className={`transition-all duration-500 ${
           overHero
-            ? "bg-white/35 backdrop-blur-xl border-b border-white/45"
+            ? "bg-white border-b border-slate-200"
             : scrolled
-            ? "bg-white/80 backdrop-blur-xl shadow-lg shadow-slate-900/5"
-            : "bg-white/80 backdrop-blur-xl border-b border-slate-100"
+            ? "bg-white shadow-lg shadow-slate-900/5"
+            : "bg-white border-b border-slate-100"
         }`}
       >
         {/* ---------- Desktop ---------- */}
@@ -373,7 +373,7 @@ export default function Header() {
               </button>
               <button
                 onClick={() => openModal("cart")}
-                className="flex items-center gap-2.5 pl-3 pr-4 h-10 rounded-full bg-slate-900/90 backdrop-blur text-white hover:bg-emerald-700 transition-colors group"
+                className="flex items-center gap-2.5 pl-3 pr-4 h-10 rounded-full bg-slate-900 text-white hover:bg-emerald-700 transition-colors group"
                 aria-label="Cart"
               >
                 <span className="relative">
@@ -389,7 +389,7 @@ export default function Header() {
               <button
                 onClick={() => openModal(user ? "account" : "auth")}
                 className={`flex items-center gap-2 h-10 px-3 rounded-full text-sm font-semibold transition-colors ${
-                  overHero ? "text-slate-700 hover:bg-white/60" : "text-slate-600 hover:text-emerald-700 hover:bg-emerald-50"
+                  overHero ? "text-slate-700 hover:bg-white" : "text-slate-600 hover:text-emerald-700 hover:bg-emerald-50"
                 }`}
               >
                 <UserIcon size={19} />
@@ -414,7 +414,7 @@ export default function Header() {
                 aria-controls="collection-drawer"
                 className={`whitespace-nowrap text-sm font-bold px-4 h-11 rounded-full flex items-center gap-2 transition-all ${
                   overHero
-                    ? "bg-white/60 backdrop-blur-md border border-white/70 text-emerald-800 hover:bg-white/85"
+                    ? "bg-white border border-slate-200 text-emerald-800 hover:bg-emerald-50"
                     : "text-white bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 shadow-md shadow-emerald-600/20"
                 }`}
               >
@@ -437,7 +437,7 @@ export default function Header() {
                   placeholder="Search earbuds, چارجر, handsfree…"
                   className={`w-full h-11 rounded-full pl-12 pr-12 text-sm outline-none transition-all ${
                     overHero
-                      ? "bg-white/60 backdrop-blur-md border border-white/75 placeholder-slate-500 text-slate-700 focus:bg-white/85 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+                      ? "bg-white border border-slate-200 placeholder-slate-500 text-slate-700 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
                       : "border-2 border-slate-100 bg-slate-50 focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100"
                   }`}
                 />
@@ -468,7 +468,7 @@ export default function Header() {
               </button>
               <button
                 onClick={() => setMobileSearch((s) => !s)}
-                className={`${iconBtn} ${mobileSearch ? "bg-white/50" : ""}`}
+                className={`${iconBtn} ${mobileSearch ? "bg-slate-100" : ""}`}
                 aria-label="Toggle search"
               >
                 <SearchIcon size={20} />
@@ -504,7 +504,7 @@ export default function Header() {
                 placeholder="Search products…"
                 className={`w-full rounded-full pl-10 pr-4 py-2.5 text-sm outline-none ${
                   overHero
-                    ? "bg-white/60 backdrop-blur-md border border-white/70 placeholder-slate-500 text-slate-700 focus:bg-white/85 focus:border-emerald-500"
+                    ? "bg-white  border border-white/70 placeholder-slate-500 text-slate-700 focus:bg-white focus:border-emerald-500"
                     : "border-2 border-slate-100 bg-slate-50 focus:border-emerald-500 focus:bg-white"
                 }`}
               />

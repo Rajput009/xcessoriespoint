@@ -34,14 +34,14 @@ export default function ExitIntentOffer() {
 
   return (
     <div className="fixed inset-0 z-[80] flex items-center justify-center p-4" onClick={() => setOpen(false)}>
-      <div className="absolute inset-0 bg-emerald-950/40 backdrop-blur-md" />
+      <div className="absolute inset-0 bg-emerald-950/40 " />
       <div
-        className="relative glass !bg-white/85 rounded-3xl shadow-2xl shadow-emerald-950/25 max-w-md w-full p-8 text-center fade-up"
+        className="relative surface !bg-white rounded-3xl shadow-2xl shadow-emerald-950/25 max-w-md w-full p-8 text-center fade-up"
         onClick={(e) => e.stopPropagation()}
       >
         <button
           onClick={() => setOpen(false)}
-          className="absolute top-4 right-4 w-8 h-8 rounded-full hover:bg-white/80 text-slate-400"
+          className="absolute top-4 right-4 w-8 h-8 rounded-full hover:bg-white text-slate-400"
           aria-label="Close"
         >
           ✕
@@ -67,7 +67,7 @@ export default function ExitIntentOffer() {
           </button>
           <button
             onClick={() => setOpen(false)}
-            className="px-5 py-3 rounded-xl glass-soft text-sm font-semibold text-slate-600"
+            className="px-5 py-3 rounded-xl surface-muted text-sm font-semibold text-slate-600"
           >
             Maybe later
           </button>

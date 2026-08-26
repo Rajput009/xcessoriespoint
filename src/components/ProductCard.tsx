@@ -42,9 +42,9 @@ export default function ProductCard({ product }: { product: Product }) {
   };
 
   return (
-    <div className="group glass rounded-2xl overflow-hidden hover:shadow-xl hover:shadow-emerald-500/15 hover:-translate-y-1 transition-all duration-300 flex flex-col">
+    <div className="group surface rounded-2xl overflow-hidden hover:shadow-lg hover:shadow-slate-900/10 hover:-translate-y-0.5 transition-all duration-200 flex flex-col">
       {/* Image stage — contain keeps watches, earbuds and chargers from being cropped. */}
-      <div className="relative aspect-square overflow-hidden bg-white/60">
+      <div className="relative aspect-square overflow-hidden bg-white">
         <Link to={`/product/${product.id}`} className="relative block w-full h-full">
           <img
             src={product.image}
@@ -96,7 +96,7 @@ export default function ProductCard({ product }: { product: Product }) {
           className={`absolute top-3 right-3 w-9 h-9 rounded-full flex items-center justify-center shadow transition-all focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 ${
             wished
               ? "bg-emerald-600 text-white"
-              : "bg-white/95 text-slate-500 hover:text-emerald-600 hover:bg-white"
+              : "bg-white text-slate-500 hover:text-emerald-600 hover:bg-white"
           } md:opacity-0 md:group-hover:opacity-100 opacity-100`}
         >
           {wished ? "♥" : "♡"}
@@ -211,8 +211,8 @@ export default function ProductCard({ product }: { product: Product }) {
                     onClick={() => handleAdd(v.id, v.label)}
                     className={`px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition inline-flex items-center gap-1.5 focus:outline-none focus:ring-2 focus:ring-emerald-500 ${
                       v.stock <= 0
-                        ? "glass-soft text-slate-300 line-through cursor-not-allowed"
-                        : "glass-soft text-slate-700 hover:ring-2 hover:ring-emerald-400 hover:text-emerald-700"
+                        ? "surface-muted text-slate-300 line-through cursor-not-allowed"
+                        : "surface-muted text-slate-700 hover:ring-2 hover:ring-emerald-400 hover:text-emerald-700"
                     }`}
                   >
                     {swatchFor(v) && (
