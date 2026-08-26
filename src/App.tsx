@@ -61,7 +61,7 @@ function NotFound() {
   const { products } = useProducts();
   const best = products.filter((p) => p.bestSeller).slice(0, 4);
   return (
-    <main className="pt-40 pb-20 px-6 max-w-7xl mx-auto">
+    <main id="main-content" className="pt-40 pb-20 px-6 max-w-7xl mx-auto">
       <div className="text-center mb-12">
         <div className="text-6xl mb-4">🧭</div>
         <h1 className="text-3xl font-black text-slate-900 mb-2">Page not found</h1>
@@ -156,6 +156,12 @@ export default function App() {
     <ErrorBoundary>
       <RouterProvider>
         <StoreProvider>
+          <a
+            href="#main-content"
+            className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[200] focus:rounded-md focus:bg-slate-900 focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-white"
+          >
+            Skip to main content
+          </a>
           <PixelManager />
           <Routes />
           <Modals />

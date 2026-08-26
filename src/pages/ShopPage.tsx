@@ -129,7 +129,7 @@ export default function ShopPage() {
   );
 
   return (
-    <main className="pt-[120px] md:pt-44 max-w-7xl mx-auto px-6 pb-10">
+    <main id="main-content" className="pt-[120px] md:pt-44 max-w-7xl mx-auto px-6 pb-10">
       {/* breadcrumb */}
       <nav className="text-xs text-slate-400 mb-3">
         <Link to="/" className="hover:text-emerald-600">Home</Link>

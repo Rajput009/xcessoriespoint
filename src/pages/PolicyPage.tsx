@@ -78,7 +78,7 @@ export default function PolicyPage() {
   const sections = normalizeSections(policy.sections);
 
   return (
-    <main className="pt-[120px] md:pt-44 max-w-3xl mx-auto px-6 pb-16">
+    <main id="main-content" className="pt-[120px] md:pt-44 max-w-3xl mx-auto px-6 pb-16">
       <nav className="text-xs text-slate-400 mb-4">
         <Link to="/" className="hover:text-emerald-600">Home</Link>
         <span className="mx-1.5">/</span>

@@ -9,6 +9,8 @@ export default function Toasts() {
       {toasts.map((t) => (
         <div
           key={t.id}
+          role={t.type === "error" ? "alert" : "status"}
+          aria-live={t.type === "error" ? "assertive" : "polite"}
           onClick={() => dismiss(t.id)}
           className={`fade-up flex items-center gap-2.5 px-4 py-3 rounded-2xl  border text-sm font-medium text-white cursor-pointer select-none transition-all hover:opacity-90 ${
             t.type === "error"

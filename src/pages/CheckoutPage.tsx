@@ -449,7 +449,7 @@ export default function CheckoutPage() {
         </aside>
 
         {/* ---------- left: the form ---------- */}
-        <main className="lg:order-1">
+        <main id="main-content" className="lg:order-1">
           <div className="max-w-[560px] lg:ml-auto px-5 lg:px-10 py-8 lg:py-10">
             {/* breadcrumb (single-page checkout — every step is on this page) */}
             <nav className="flex flex-wrap items-center gap-2 text-[13px] text-slate-400 mb-6">
@@ -794,7 +794,7 @@ function ThankYou({
           </div>
         </aside>
 
-        <main className="lg:order-1">
+        <main id="main-content" className="lg:order-1">
           <div className="max-w-[560px] lg:ml-auto px-5 lg:px-10 py-10 fade-up">
             <div className="flex items-start gap-4">
               <span className="w-11 h-11 rounded-full bg-emerald-600 text-white flex items-center justify-center text-xl shrink-0">✓</span>

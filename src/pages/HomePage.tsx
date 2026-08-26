@@ -15,7 +15,7 @@ import {
 
 export default function HomePage() {
   return (
-    <main>
+    <main id="main-content">
       <HeroSection />
       <CategoryIcons />
       <BestSelling />

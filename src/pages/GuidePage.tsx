@@ -93,7 +93,7 @@ export default function GuidePage({ slug }: { slug: string }) {
 
   if (state === "loading")
     return (
-      <main className="pt-[120px] md:pt-44 max-w-3xl mx-auto px-6 pb-16">
+      <main id="main-content" className="pt-[120px] md:pt-44 max-w-3xl mx-auto px-6 pb-16">
         <div className="h-9 w-2/3 bg-slate-100 rounded animate-pulse mb-6" />
         {[0, 1, 2].map((i) => (
           <div key={i} className="h-20 bg-slate-100 rounded-xl animate-pulse mb-4" />
@@ -103,7 +103,7 @@ export default function GuidePage({ slug }: { slug: string }) {
 
   if (state === "missing" || !guide)
     return (
-      <main className="pt-40 pb-20 px-6 max-w-7xl mx-auto text-center">
+      <main id="main-content" className="pt-40 pb-20 px-6 max-w-7xl mx-auto text-center">
         <h1 className="text-3xl font-black text-slate-900 mb-2">Guide not found</h1>
         <Link to="/" className="px-6 py-2.5 rounded-lg bg-emerald-600 text-white font-semibold hover:bg-emerald-700">
           Back to the store
@@ -116,7 +116,7 @@ export default function GuidePage({ slug }: { slug: string }) {
   const others = allGuides.filter((g) => g.slug !== slug).slice(0, 4);
 
   return (
-    <main className="pt-[120px] md:pt-44 max-w-3xl mx-auto px-6 pb-16">
+    <main id="main-content" className="pt-[120px] md:pt-44 max-w-3xl mx-auto px-6 pb-16">
       {/* breadcrumb */}
       <nav className="text-xs text-slate-400 mb-4">
         <Link to="/" className="hover:text-emerald-600">Home</Link>

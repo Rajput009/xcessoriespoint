@@ -135,7 +135,7 @@ export default function CategoryPage({ id, band }: { id: string; band?: string }
   if (band) {
     if (bandState === "loading")
       return (
-        <main className="pt-[120px] md:pt-44 max-w-7xl mx-auto px-6 pb-16">
+        <main id="main-content" className="pt-[120px] md:pt-44 max-w-7xl mx-auto px-6 pb-16">
           <div className="h-8 w-72 bg-slate-100 rounded animate-pulse mb-6" />
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             {[0, 1, 2].map((i) => (
@@ -147,7 +147,7 @@ export default function CategoryPage({ id, band }: { id: string; band?: string }
 
     if (bandState === "empty" || !bandData)
       return (
-        <main className="pt-40 pb-20 px-6 max-w-7xl mx-auto text-center">
+        <main id="main-content" className="pt-40 pb-20 px-6 max-w-7xl mx-auto text-center">
           <h1 className="text-3xl font-black text-slate-900 mb-2">Nothing to rank here yet</h1>
           <p className="text-sm text-slate-500 mb-6">
             We only publish buying guides once we can recommend at least three in-stock picks.
@@ -160,7 +160,7 @@ export default function CategoryPage({ id, band }: { id: string; band?: string }
 
     const year = new Date().getFullYear();
     return (
-      <main className="pt-[120px] md:pt-44 max-w-7xl mx-auto px-6 pb-16">
+      <main id="main-content" className="pt-[120px] md:pt-44 max-w-7xl mx-auto px-6 pb-16">
         {/* breadcrumb */}
         <nav className="text-xs text-slate-400 mb-3">
           <Link to="/" className="hover:text-emerald-600">Home</Link>
@@ -239,7 +239,7 @@ export default function CategoryPage({ id, band }: { id: string; band?: string }
   /* ================= hub render ================= */
   if (!loading && !cat)
     return (
-      <main className="pt-40 pb-20 px-6 max-w-7xl mx-auto text-center">
+      <main id="main-content" className="pt-40 pb-20 px-6 max-w-7xl mx-auto text-center">
         <h1 className="text-3xl font-black text-slate-900 mb-2">Category not found</h1>
         <Link to="/shop" className="px-6 py-2.5 rounded-lg bg-emerald-600 text-white font-semibold hover:bg-emerald-700">
           Browse all products
@@ -248,7 +248,7 @@ export default function CategoryPage({ id, band }: { id: string; band?: string }
     );
 
   return (
-    <main className="pt-[120px] md:pt-44 max-w-7xl mx-auto px-6 pb-16">
+    <main id="main-content" className="pt-[120px] md:pt-44 max-w-7xl mx-auto px-6 pb-16">
       {/* breadcrumb */}
       <nav className="text-xs text-slate-400 mb-3">
         <Link to="/" className="hover:text-emerald-600">Home</Link>

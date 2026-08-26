@@ -1305,8 +1305,19 @@ route("GET", "/admin/analytics", (ctx) => {
 
 /* ---- reviews ---- */
 route("GET", "/products/:id/reviews", (ctx) =>
-  db.prepare("SELECT id, name, rating, text, createdAt FROM reviews WHERE productId = ? AND status = 'approved' ORDER BY createdAt DESC")
-    .all(ctx.params.id)
+  db.prepare(
+    `SELECT r.id, r.name, r.rating, r.text, r.createdAt,
+            CASE WHEN r.email <> '' AND EXISTS (
+              SELECT 1 FROM orders o
+              JOIN order_items oi ON oi.orderId = o.id
+              WHERE oi.productId = r.productId
+                AND lower(o.email) = lower(r.email)
+                AND o.status NOT IN ('Cancelled', 'Failed')
+            ) THEN 1 ELSE 0 END AS verified
+     FROM reviews r
+     WHERE r.productId = ? AND r.status = 'approved'
+     ORDER BY r.createdAt DESC`
+  ).all(ctx.params.id).map((r) => ({ ...r, verified: !!r.verified }))
 );
 route("POST", "/products/:id/reviews", (ctx) => {
   rateLimit(ctx, "reviews");

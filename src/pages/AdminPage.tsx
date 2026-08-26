@@ -98,7 +98,7 @@ export default function AdminPage() {
         </div>
       </aside>
 
-      <main className="flex-1 p-5 lg:p-8 overflow-x-auto">
+      <main id="main-content" className="flex-1 p-5 lg:p-8 overflow-x-auto">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-black text-slate-900 capitalize">{section}</h1>
           <div className="flex items-center gap-3 text-sm">

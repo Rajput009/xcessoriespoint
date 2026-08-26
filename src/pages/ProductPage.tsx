@@ -16,6 +16,7 @@ interface Review {
   rating: number;
   text: string;
   createdAt: string;
+  verified?: boolean;
 }
 
 const CATEGORY_PERKS: Record<string, string[]> = {
@@ -90,6 +91,14 @@ export default function ProductPage({ id }: { id: number }) {
     () => products.filter((p) => p.category === product?.category && p.id !== id).slice(0, 4),
     [products, product, id]
   );
+  const reviewBreakdown = useMemo(
+    () => [5, 4, 3, 2, 1].map((rating) => ({
+      rating,
+      count: reviews.filter((review) => review.rating === rating).length,
+    })),
+    [reviews]
+  );
+  const verifiedReviewCount = reviews.filter((review) => review.verified).length;
 
   const gallery = product
     ? (() => {
@@ -211,14 +220,14 @@ export default function ProductPage({ id }: { id: number }) {
 
   if (loading)
     return (
-      <main className="pt-[120px] md:pt-44 max-w-7xl mx-auto px-6 pb-16">
+      <main id="main-content" className="pt-[120px] md:pt-44 max-w-7xl mx-auto px-6 pb-16">
         <div className="surface-muted rounded-3xl h-96 animate-pulse" />
       </main>
     );
 
   if (!product)
     return (
-      <main className="pt-[120px] md:pt-44 max-w-7xl mx-auto px-6 pb-16 text-center">
+      <main id="main-content" className="pt-[120px] md:pt-44 max-w-7xl mx-auto px-6 pb-16 text-center">
         <div className="text-5xl mb-4">🔎</div>
         <h1 className="text-2xl font-black text-slate-900 mb-2">Product not found</h1>
         <Link to="/shop" className="text-emerald-600 font-semibold hover:underline">← Back to shop</Link>
@@ -299,7 +308,7 @@ export default function ProductPage({ id }: { id: number }) {
   };
 
   return (
-    <main className="pt-[120px] md:pt-44 max-w-7xl mx-auto px-6 pb-16">
+    <main id="main-content" className="pt-[120px] md:pt-44 max-w-7xl mx-auto px-6 pb-16">
       {/* breadcrumb */}
       <nav className="text-xs text-slate-400 mb-4">
         <Link to="/" className="hover:text-emerald-600">Home</Link>
@@ -569,9 +578,9 @@ export default function ProductPage({ id }: { id: number }) {
           {/* qty + actions */}
           <div className="flex items-center gap-3 mb-5">
             <div className="flex items-center surface-muted rounded-xl">
-              <button onClick={() => setQty((q) => Math.max(1, q - 1))} className="w-10 h-11 text-slate-600 hover:text-emerald-700 font-bold">−</button>
-              <span className="w-10 text-center font-bold">{qty}</span>
-              <button onClick={() => setQty((q) => Math.min(Math.max(1, availableStock), q + 1))} className="w-10 h-11 text-slate-600 hover:text-emerald-700 font-bold">+</button>
+              <button type="button" onClick={() => setQty((q) => Math.max(1, q - 1))} aria-label="Decrease quantity" className="w-10 h-11 text-slate-600 hover:text-emerald-700 font-bold">−</button>
+              <span className="w-10 text-center font-bold" aria-live="polite">{qty}</span>
+              <button type="button" onClick={() => setQty((q) => Math.min(Math.max(1, availableStock), q + 1))} aria-label="Increase quantity" className="w-10 h-11 text-slate-600 hover:text-emerald-700 font-bold">+</button>
             </div>
             <button
               disabled={out}
@@ -703,14 +712,35 @@ export default function ProductPage({ id }: { id: number }) {
       {/* reviews */}
       <section className="mt-16 grid lg:grid-cols-2 gap-8">
         <div>
-          <div className="surface-muted rounded-2xl p-4 mb-4 flex items-center gap-4">
-            <span className="text-3xl font-black text-slate-900">{product.reviews > 0 ? product.rating.toFixed(1) : "—"}</span>
-            <div>
-              <Stars rating={product.rating} />
-              <p className="text-xs text-slate-500 mt-0.5">
-                {product.reviews > 0 ? `Based on ${product.reviews} review${product.reviews === 1 ? "" : "s"}` : "Be the first to review this product"}
-              </p>
+          <div className="surface-muted rounded-2xl p-4 mb-4">
+            <div className="flex items-center gap-4">
+              <span className="text-3xl font-black text-slate-900">{product.reviews > 0 ? product.rating.toFixed(1) : "—"}</span>
+              <div>
+                <Stars rating={product.rating} />
+                <p className="text-xs text-slate-500 mt-0.5">
+                  {product.reviews > 0 ? `Based on ${product.reviews} review${product.reviews === 1 ? "" : "s"}` : "Be the first to review this product"}
+                </p>
+              </div>
             </div>
+            {reviews.length > 0 && (
+              <div className="mt-3 space-y-1.5" aria-label="Rating breakdown">
+                {reviewBreakdown.map(({ rating, count }) => {
+                  const percentage = Math.round((count / reviews.length) * 100);
+                  return (
+                    <div key={rating} className="flex items-center gap-2 text-[11px] text-slate-500">
+                      <span className="w-7 shrink-0">{rating}★</span>
+                      <div className="h-1.5 flex-1 rounded-full bg-slate-100 overflow-hidden">
+                        <div className="h-full rounded-full bg-amber-400" style={{ width: `${percentage}%` }} />
+                      </div>
+                      <span className="w-5 text-right tabular-nums">{count}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+            {verifiedReviewCount > 0 && (
+              <p className="text-[11px] font-semibold text-emerald-700 mt-3">✓ {verifiedReviewCount} verified purchase{verifiedReviewCount === 1 ? "" : "s"}</p>
+            )}
           </div>
           <h2 className="text-xl font-black text-slate-900 mb-4">Customer Reviews ({reviews.length})</h2>
           {reviews.length === 0 ? (
@@ -724,6 +754,7 @@ export default function ProductPage({ id }: { id: number }) {
                       {r.name.charAt(0)}
                     </span>
                     <span className="font-semibold text-slate-900 text-sm">{r.name}</span>
+                    {r.verified && <span className="text-[10px] font-bold text-emerald-700">✓ Verified purchase</span>}
                     <span className="text-xs text-slate-400 ml-auto">{r.createdAt?.slice(0, 10)}</span>
                   </div>
                   <Stars rating={r.rating} size="text-xs" />
