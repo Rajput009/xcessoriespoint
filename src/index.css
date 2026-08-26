@@ -1,7 +1,17 @@
 @import "tailwindcss";
 
 html { scroll-behavior: smooth; }
-body { @apply bg-slate-50 text-slate-800 antialiased; }
+body {
+  @apply bg-slate-50 text-slate-800 antialiased;
+  background-color: #f8fafc;
+  /* Subtle paper-like texture: enough depth to avoid a flat canvas, without
+     competing with products or looking like a decorative overlay. */
+  background-image:
+    radial-gradient(circle at 1px 1px, rgba(15, 23, 42, 0.035) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.75), rgba(248, 250, 252, 0.15));
+  background-size: 24px 24px, 100% 100%;
+  background-attachment: fixed;
+}
 
 /* ---- professional storefront surfaces ---- */
 /* Shared retail surfaces keep cards clean, solid and easy to scan. */
