@@ -28,6 +28,25 @@ const CATEGORY_PERKS: Record<string, string[]> = {
   cables: ["Lifetime warranty on cables", "100% copper cores", "Tangle-free braided nylon"],
 };
 
+function PaymentOptions() {
+  return (
+    <div className="mt-6 rounded-xl border border-slate-200 bg-white p-4">
+      <p className="text-center text-[10px] font-bold uppercase tracking-[0.16em] text-slate-500">Official payment options</p>
+      <div className="mt-3 grid grid-cols-2 gap-2">
+        <div className="rounded-md border border-slate-200 bg-slate-50 px-2.5 py-2 text-center">
+          <p className="text-xs font-bold text-slate-800">Cash on Delivery</p>
+          <p className="mt-0.5 text-[10px] font-semibold text-emerald-700">Available nationwide</p>
+        </div>
+        <div className="rounded-md border border-slate-200 bg-slate-50 px-2.5 py-2 text-center">
+          <p className="text-xs font-bold text-slate-800">WhatsApp COD</p>
+          <p className="mt-0.5 text-[10px] font-semibold text-emerald-700">Confirm in minutes</p>
+        </div>
+      </div>
+      <p className="mt-2 text-center text-[10px] text-slate-400">Card and mobile-wallet payments are coming soon.</p>
+    </div>
+  );
+}
+
 type ProductInfoTab = "description" | "delivery" | "returns";
 
 function ProductInfoTabs({ product, perks }: { product: Product; perks: string[] }) {
@@ -127,6 +146,7 @@ export default function ProductPage({ id }: { id: number }) {
   const [revRating, setRevRating] = useState(5);
   const [revText, setRevText] = useState("");
   const [revBusy, setRevBusy] = useState(false);
+  const [soldWeek, setSoldWeek] = useState(0);
   const [topVariantId, setTopVariantId] = useState<number | null>(null);
   const variantTouched = useRef(false);
   const [showSticky, setShowSticky] = useState(false);
@@ -227,6 +247,7 @@ export default function ProductPage({ id }: { id: number }) {
     fetch(`/api/products/${product.id}/stats`)
       .then((r) => (r.ok ? r.json() : { soldThisWeek: 0, topVariantId: null }))
       .then((d) => {
+        setSoldWeek(d.soldThisWeek ?? 0);
         const topId = d.topVariantId ?? null;
         setTopVariantId(topId);
         // pre-select the best-selling variant unless the shopper already chose one
@@ -300,6 +321,12 @@ export default function ProductPage({ id }: { id: number }) {
   const availableStock = variant ? variant.stock : product.stock;
   const low = availableStock > 0 && availableStock <= 15;
   const out = availableStock <= 0;
+  // A real meter based on recent orders and remaining stock; it stays hidden
+  // until there is actual sales data instead of inventing urgency.
+  const recentSalesTotal = soldWeek + availableStock;
+  const soldPercent = soldWeek > 0 && recentSalesTotal > 0
+    ? Math.round((soldWeek / recentSalesTotal) * 100)
+    : null;
   const perks = CATEGORY_PERKS[product.category] ?? [];
   const summary = product.description?.split(/[.!?]/)[0]?.trim() || "A thoughtfully selected accessory for everyday use.";
 
@@ -476,6 +503,18 @@ export default function ProductPage({ id }: { id: number }) {
           <p className={`text-sm font-semibold mb-5 ${out ? "text-red-600" : low ? "text-amber-600" : "text-emerald-600"}`}>
             {out ? "✕ Out of stock" : low ? `⚠ Only ${availableStock} left — order soon` : "✓ In stock, ready to ship"}
           </p>
+
+          {soldPercent !== null && !out && (
+            <div className="mb-5">
+              <div className="flex items-center justify-between gap-3 text-[11px] font-semibold text-slate-500 mb-1.5">
+                <span>{soldPercent}% sold recently</span>
+                <span>Only {availableStock} left</span>
+              </div>
+              <div className="h-2 rounded-full bg-slate-100 overflow-hidden">
+                <div className="h-full rounded-full bg-emerald-600 transition-all" style={{ width: `${soldPercent}%` }} />
+              </div>
+            </div>
+          )}
 
           {product.variants && product.variants.length > 0 && (
             <div className="mb-6" id="xp-variants">
@@ -664,6 +703,7 @@ export default function ProductPage({ id }: { id: number }) {
           <p className="text-center text-xs text-slate-500 mb-4">
             COD nationwide · 7-day returns · Phone confirmation
           </p>
+          <PaymentOptions />
           </div>
 
         </div>
