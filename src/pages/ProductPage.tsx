@@ -1,14 +1,15 @@
-import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { Link, useRouter } from "../router";
 import { useAuth, useCart, useProducts, useToast, useWishlist, fmt } from "../context/store";
 import ProductCard, { Stars } from "../components/ProductCard";
-import { HeartIcon } from "../components/icons";
+import { HeartIcon, TruckIcon } from "../components/icons";
 import RecentlyViewed from "../components/RecentlyViewed";
 import { swatchFor, allColorVariants, swatchStyle } from "../lib/swatch";
 import { track } from "../lib/tracking";
 import { pixelTrack } from "../lib/pixel";
 import { setMeta } from "../lib/seo";
 import { buildOrderMessage, openWhatsApp } from "../lib/whatsapp";
+import type { Product } from "../types";
 
 interface Review {
   id: number;
@@ -27,37 +28,88 @@ const CATEGORY_PERKS: Record<string, string[]> = {
   cables: ["Lifetime warranty on cables", "100% copper cores", "Tangle-free braided nylon"],
 };
 
-const QUICK_SPECS: Record<string, [string, string][]> = {
-  audio: [["Type", "Wireless audio"], ["Connectivity", "Bluetooth"], ["Warranty", "6 months"], ["Delivery", "2–5 working days"]],
-  wearables: [["Compatibility", "Android & iOS"], ["Tracking", "Fitness & health"], ["Warranty", "6 months"], ["Delivery", "2–5 working days"]],
-  power: [["Category", "Power & charging"], ["Protection", "Over-charge safe"], ["Warranty", "6 months"], ["Delivery", "2–5 working days"]],
-  cases: [["Protection", "Everyday impact"], ["Finish", "Slim profile"], ["Warranty", "Product guarantee"], ["Delivery", "2–5 working days"]],
-  cables: [["Build", "Braided nylon"], ["Core", "Copper"], ["Warranty", "Lifetime"], ["Delivery", "2–5 working days"]],
-};
+type ProductInfoTab = "description" | "delivery" | "returns";
 
-function InfoAccordion({
-  title,
-  children,
-  defaultOpen = false,
-}: {
-  title: string;
-  children: ReactNode;
-  defaultOpen?: boolean;
-}) {
-  const [open, setOpen] = useState(defaultOpen);
+function ProductInfoTabs({ product, perks }: { product: Product; perks: string[] }) {
+  const [tab, setTab] = useState<ProductInfoTab>("description");
+  const tabs: { id: ProductInfoTab; label: string }[] = [
+    { id: "description", label: "Description" },
+    { id: "delivery", label: "Delivery Policy" },
+    { id: "returns", label: "Return & Exchange" },
+  ];
+
   return (
-    <div className="surface-muted rounded-xl overflow-hidden">
-      <button
-        type="button"
-        onClick={() => setOpen((value) => !value)}
-        aria-expanded={open}
-        className="w-full flex items-center justify-between gap-4 px-4 py-3.5 text-left hover:bg-slate-50 transition-colors"
-      >
-        <span className="text-sm font-bold text-slate-900">{title}</span>
-        <span className={`text-emerald-600 text-lg leading-none transition-transform ${open ? "rotate-45" : ""}`} aria-hidden="true">＋</span>
-      </button>
-      {open && <div className="border-t border-slate-200 px-4 py-4">{children}</div>}
-    </div>
+    <section className="mt-10 border-t border-slate-200 pt-7">
+      <div className="mb-7 space-y-3 text-[13px] text-slate-600">
+        <p className="flex items-center gap-2.5">
+          <span className="text-base text-slate-700" aria-hidden="true">◷</span>
+          Orders ship within 2–5 business days.
+        </p>
+        <p className="flex items-center gap-2.5">
+          <TruckIcon size={16} className="text-emerald-700" aria-hidden="true" />
+          <span>Hooray! Free Shipping Over <strong className="font-semibold text-slate-800">Rs 5,000</strong></span>
+        </p>
+      </div>
+
+      <div className="overflow-x-auto no-scrollbar border-b border-slate-200">
+        <div className="flex min-w-max items-end gap-1">
+          {tabs.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              role="tab"
+              aria-selected={tab === item.id}
+              onClick={() => setTab(item.id)}
+              className={`rounded-t-lg border px-5 py-3 text-xs font-semibold transition-colors ${
+                tab === item.id
+                  ? "border-slate-200 border-b-white bg-white text-slate-900 -mb-px"
+                  : "border-transparent bg-slate-200 text-slate-600 hover:bg-slate-100"
+              }`}
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="pt-7 text-[13px] leading-7 text-slate-500" role="tabpanel">
+        {tab === "description" && (
+          <div className="space-y-5">
+            <div>
+              <h2 className="mb-2 text-sm font-bold text-slate-800">{product.name}</h2>
+              <p>{product.description || "A thoughtfully selected accessory designed for everyday use."}</p>
+            </div>
+            {perks.length > 0 && (
+              <div>
+                <h3 className="mb-2 text-sm font-bold text-slate-800">Key Features</h3>
+                <ul className="space-y-1.5">
+                  {perks.map((perk) => (
+                    <li key={perk} className="flex items-start gap-2">
+                      <span className="mt-1 text-emerald-700" aria-hidden="true">✓</span>
+                      <span>{perk}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        )}
+        {tab === "delivery" && (
+          <div className="space-y-3">
+            <h2 className="text-sm font-bold text-slate-800">Delivery Policy</h2>
+            <p>Orders are dispatched after confirmation. Lahore and Karachi usually arrive in 2–3 working days; other cities generally take 3–5 working days.</p>
+            <p>Cash on Delivery is available nationwide. Shipping is free on orders over Rs 5,000.</p>
+          </div>
+        )}
+        {tab === "returns" && (
+          <div className="space-y-3">
+            <h2 className="text-sm font-bold text-slate-800">Return & Exchange</h2>
+            <p>Request an eligible return within 7 days of delivery. Please keep the product, packaging and accessories in their original condition.</p>
+            <p>If an item arrives damaged or incorrect, contact support before sending it back so we can arrange a replacement or refund.</p>
+          </div>
+        )}
+      </div>
+    </section>
   );
 }
 
@@ -245,12 +297,6 @@ export default function ProductPage({ id }: { id: number }) {
   const low = availableStock > 0 && availableStock <= 15;
   const out = availableStock <= 0;
   const perks = CATEGORY_PERKS[product.category] ?? [];
-  const quickSpecs = QUICK_SPECS[product.category] ?? [
-    ["Delivery", "2–5 working days"],
-    ["Payment", "Cash on Delivery"],
-    ["Returns", "7 days"],
-    ["Support", "Nationwide"],
-  ];
   const summary = product.description?.split(/[.!?]/)[0]?.trim() || "A thoughtfully selected accessory for everyday use.";
 
   /* ---- order this product straight on WhatsApp ---- */
@@ -563,7 +609,6 @@ export default function ProductPage({ id }: { id: number }) {
             </div>
           )}
 
-          {!out && <DeliveryEstimate />}
 
           {/* qty + actions */}
           <div className="flex items-center gap-3 mb-5">
@@ -616,52 +661,10 @@ export default function ProductPage({ id }: { id: number }) {
           </p>
           </div>
 
-          <div className="mt-4 space-y-2 mb-6">
-            <InfoAccordion title="Description" defaultOpen>
-              <p className="text-sm text-slate-600 leading-relaxed">{product.description || "A thoughtfully selected accessory designed for everyday use."}</p>
-            </InfoAccordion>
-
-            <InfoAccordion title="Why you’ll like it">
-              <ul className="space-y-2">
-                {perks.map((f) => (
-                  <li key={f} className="flex items-center gap-2.5 text-sm text-slate-600">
-                    <span className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-xs shrink-0">✓</span>
-                    {f}
-                  </li>
-                ))}
-              </ul>
-            </InfoAccordion>
-
-            <InfoAccordion title="Shipping & returns">
-              <ul className="space-y-2 text-sm text-slate-600 leading-relaxed">
-                <li>Cash on Delivery is available nationwide.</li>
-                <li>Free shipping over Rs 5,000.</li>
-                <li>Easy 7-day returns for eligible products.</li>
-              </ul>
-            </InfoAccordion>
-          </div>
-
         </div>
       </div>
 
-      {/* quick specifications — scannable facts before the long-form details */}
-      <section className="mt-12">
-        <div className="flex items-end justify-between gap-4 mb-4">
-          <div>
-            <p className="text-[11px] font-black uppercase tracking-[0.2em] text-emerald-700 mb-1">At a glance</p>
-            <h2 className="text-2xl font-black text-slate-900">Product details</h2>
-          </div>
-          <span className="hidden sm:block text-xs text-slate-400">Simple facts, quick decision</span>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {quickSpecs.map(([label, value]) => (
-            <div key={label} className="surface-muted rounded-xl px-4 py-3.5">
-              <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400">{label}</p>
-              <p className="text-sm font-bold text-slate-800 mt-1">{value}</p>
-            </div>
-          ))}
-        </div>
-      </section>
+      <ProductInfoTabs product={product} perks={perks} />
 
       {/* reviews */}
       <section className="mt-16 grid lg:grid-cols-2 gap-8">
@@ -853,39 +856,5 @@ export default function ProductPage({ id }: { id: number }) {
         </div>
       )}
     </main>
-  );
-}
-
-
-/* ---------- dynamic delivery estimate ---------- */
-function DeliveryEstimate() {
-  const now = new Date();
-  const cutoff = new Date(now);
-  cutoff.setHours(17, 0, 0, 0); // 5 PM same-day dispatch cutoff
-  const beforeCutoff = now < cutoff;
-  const msLeft = cutoff.getTime() - now.getTime();
-  const hLeft = Math.floor(msLeft / 3600000);
-  const mLeft = Math.floor((msLeft % 3600000) / 60000);
-  const fmtDay = (offset: number) => {
-    const d = new Date(now);
-    d.setDate(d.getDate() + offset);
-    return d.toLocaleDateString("en-PK", { weekday: "short", day: "numeric", month: "short" });
-  };
-  const start = beforeCutoff ? 2 : 3;
-  return (
-    <div className="surface-muted rounded-xl px-4 py-3 mb-6 flex items-start gap-3">
-      <span className="text-xl">🚚</span>
-      <div className="text-sm">
-        <p className="font-semibold text-slate-800">
-          Get it by <span className="text-emerald-700">{fmtDay(start)} – {fmtDay(start + 2)}</span>
-        </p>
-        <p className="text-xs text-slate-500 mt-0.5">
-          {beforeCutoff
-            ? `⏱ Order within ${hLeft}h ${mLeft}m for same-day dispatch`
-            : "Orders placed now ship tomorrow morning"}
-          {" · Lahore & Karachi 2–3 days, other cities 3–5"}
-        </p>
-      </div>
-    </div>
   );
 }
