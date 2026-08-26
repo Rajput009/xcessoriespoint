@@ -159,6 +159,9 @@ export default function ProductPage({ id }: { id: number }) {
         return imgs;
       })()
     : [];
+  const productSku = product?.variants?.find((item) => item.id === variantId)?.sku
+    ?? product?.variants?.find((item) => item.sku)?.sku
+    ?? null;
 
   useEffect(() => {
     if (!product) return;
@@ -192,6 +195,7 @@ export default function ProductPage({ id }: { id: number }) {
           "@context": "https://schema.org",
           "@type": "Product",
           name: product.name,
+          ...(productSku ? { sku: productSku } : {}),
           image: product.image ? location.origin + product.image : undefined,
           description: product.description || undefined,
           category: catName,
@@ -446,7 +450,10 @@ export default function ProductPage({ id }: { id: number }) {
             <Link to={`/category/${product.category}`} className="text-xs font-bold uppercase tracking-widest text-emerald-600 hover:underline">
             {catName}
           </Link>
-          <h1 className="text-3xl md:text-4xl font-black text-slate-900 mt-2 mb-3">{product.name}</h1>
+          <h1 className="text-2xl md:text-4xl font-black uppercase text-slate-900 mt-2 mb-3">
+            {product.name}
+            {productSku && <span className="text-slate-500"> | {productSku}</span>}
+          </h1>
           <div className="flex items-center gap-2 mb-4 flex-wrap">
             <Stars rating={product.rating} />
             <span className="text-xs text-slate-500">({product.reviews})</span>
@@ -461,14 +468,9 @@ export default function ProductPage({ id }: { id: number }) {
               <span className="text-lg text-slate-400 line-through">{fmt(comparePrice)}</span>
             )}
             {discountPercent > 0 && (
-              <span className="text-[11px] font-black uppercase tracking-wide text-emerald-700">{discountPercent}% off</span>
+              <span className="inline-flex items-center rounded-full bg-orange-500 px-2 py-1 text-[10px] font-black uppercase tracking-wide text-white">-{discountPercent}%</span>
             )}
           </div>
-          {comparePrice && (
-            <p className="text-sm font-bold text-emerald-700 mb-4">
-              You save {fmt(comparePrice - unitPrice)}
-            </p>
-          )}
 
           {/* stock */}
           <p className={`text-sm font-semibold mb-5 ${out ? "text-red-600" : low ? "text-amber-600" : "text-emerald-600"}`}>
