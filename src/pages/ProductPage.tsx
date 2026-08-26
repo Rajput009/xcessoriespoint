@@ -46,7 +46,7 @@ function InfoAccordion({
 }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
-    <div className="surface-muted rounded-2xl overflow-hidden">
+    <div className="surface-muted rounded-xl overflow-hidden">
       <button
         type="button"
         onClick={() => setOpen((value) => !value)}
@@ -320,10 +320,10 @@ export default function ProductPage({ id }: { id: number }) {
         <span className="text-slate-600 font-medium">{product.name}</span>
       </nav>
 
-      <div className="grid lg:grid-cols-2 gap-8 lg:gap-12">
+      <div className="grid lg:grid-cols-[minmax(0,1.15fr)_minmax(360px,0.85fr)] gap-8 lg:gap-12 items-start">
         {/* gallery */}
         <div>
-          <div className="surface rounded-3xl overflow-hidden relative">
+          <div className="surface rounded-xl shadow-none overflow-hidden relative">
             {product.badge && (
               <span className="absolute top-4 left-4 z-10 bg-emerald-700 text-white text-sm font-bold px-3 py-1.5 rounded-lg shadow-md shadow-emerald-700/25">
                 {product.badge}
@@ -377,7 +377,7 @@ export default function ProductPage({ id }: { id: number }) {
                   key={src + i}
                   onClick={() => setImgIdx(i)}
                   aria-label={`Image ${i + 1}`}
-                  className={`shrink-0 w-18 h-18 md:w-20 md:h-20 rounded-xl overflow-hidden tranion-all ${
+                  className={`shrink-0 w-18 h-18 md:w-20 md:h-20 rounded-xl overflow-hidden transition-all ${
                     i === imgIdx
                       ? "ring-2 ring-emerald-500 ring-offset-2 ring-offset-transparent"
                       : "opacity-60 hover:opacity-100 surface-muted"
@@ -398,7 +398,7 @@ export default function ProductPage({ id }: { id: number }) {
 
         {/* purchase panel */}
         <div>
-          <div className="surface rounded-3xl p-5 md:p-6 lg:sticky lg:top-24 self-start">
+          <div className="surface rounded-xl shadow-none p-5 md:p-6 lg:sticky lg:top-24 self-start">
             <Link to={`/category/${product.category}`} className="text-xs font-bold uppercase tracking-widest text-emerald-600 hover:underline">
             {catName}
           </Link>
@@ -701,7 +701,7 @@ export default function ProductPage({ id }: { id: number }) {
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {quickSpecs.map(([label, value]) => (
-            <div key={label} className="surface-muted rounded-2xl px-4 py-3.5">
+            <div key={label} className="surface-muted rounded-xl px-4 py-3.5">
               <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400">{label}</p>
               <p className="text-sm font-bold text-slate-800 mt-1">{value}</p>
             </div>
@@ -712,7 +712,7 @@ export default function ProductPage({ id }: { id: number }) {
       {/* reviews */}
       <section className="mt-16 grid lg:grid-cols-2 gap-8">
         <div>
-          <div className="surface-muted rounded-2xl p-4 mb-4">
+          <div className="surface-muted rounded-xl p-4 mb-4">
             <div className="flex items-center gap-4">
               <span className="text-3xl font-black text-slate-900">{product.reviews > 0 ? product.rating.toFixed(1) : "—"}</span>
               <div>
@@ -748,7 +748,7 @@ export default function ProductPage({ id }: { id: number }) {
           ) : (
             <div className="space-y-3">
               {reviews.map((r) => (
-                <div key={r.id} className="surface rounded-2xl p-4">
+                <div key={r.id} className="surface rounded-xl shadow-none p-4">
                   <div className="flex items-center gap-2.5 mb-1.5">
                     <span className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-sm font-bold">
                       {r.name.charAt(0)}
@@ -766,7 +766,7 @@ export default function ProductPage({ id }: { id: number }) {
         </div>
         <div>
           <h2 className="text-xl font-black text-slate-900 mb-4">Write a Review</h2>
-          <form onSubmit={submitReview} className="surface rounded-2xl p-5 space-y-3">
+          <form onSubmit={submitReview} className="surface rounded-xl shadow-none p-5 space-y-3">
             <input
               value={revName}
               onChange={(e) => setRevName(e.target.value)}
@@ -853,12 +853,14 @@ export default function ProductPage({ id }: { id: number }) {
 
       {/* related */}
       {related.length > 0 && (
-        <section className="mt-16">
-          <p className="text-[11px] font-black uppercase tracking-[0.2em] text-violet-600 mb-1">You might also like</p>
-          <h2 className="text-2xl font-black text-slate-900 mb-6">Related Products</h2>
+        <section className="mt-16 border-t border-slate-200 pt-10">
+          <div className="text-center mb-6">
+            <p className="text-[11px] font-black uppercase tracking-[0.2em] text-emerald-700 mb-1">You might also like</p>
+            <h2 className="text-2xl font-black text-slate-900">Related Products</h2>
+          </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {related.map((p) => (
-              <ProductCard key={p.id} product={p} />
+              <ProductCard key={p.id} product={p} compact />
             ))}
           </div>
         </section>

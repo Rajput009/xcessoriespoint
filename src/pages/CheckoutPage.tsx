@@ -11,10 +11,10 @@ import { buildOrderMessage, openWhatsApp, paymentLabel, WHATSAPP_NUMBER } from "
 const CITIES = ["Lahore", "Karachi", "Islamabad", "Rawalpindi", "Faisalabad", "Multan", "Peshawar", "Quetta", "Sialkot", "Gujranwala", "Hyderabad", "Other"];
 
 const PAY_METHODS = [
-  { id: "cod", label: "Cash on Delivery (COD)", desc: "Pay the courier when your parcel arrives.", icon: "💵" },
-  { id: "whatsapp", label: "Order on WhatsApp (COD)", desc: "We open WhatsApp with your order ready to send — no card needed.", icon: "💬" },
-  { id: "card", label: "Debit / Credit Card", desc: "Visa, Mastercard — secure demo gateway.", icon: "💳" },
-  { id: "wallet", label: "JazzCash / Easypaisa", desc: "Mobile wallet transfer.", icon: "📲" },
+  { id: "cod", label: "Cash on Delivery", desc: "Pay the courier when your parcel arrives.", icon: "💵", available: true },
+  { id: "whatsapp", label: "Confirm on WhatsApp", desc: "We prepare your order and confirm it with you on WhatsApp.", icon: "💬", available: true },
+  { id: "card", label: "Debit / Credit Card", desc: "Online card payments will be available soon.", icon: "💳", available: false },
+  { id: "wallet", label: "JazzCash / Easypaisa", desc: "Mobile wallet payments will be available soon.", icon: "📲", available: false },
 ];
 
 /* Shopify-style field styling */
@@ -89,10 +89,11 @@ export default function CheckoutPage() {
   const [city, setCity] = useState(saved.city || "Lahore");
   const [postalCode, setPostalCode] = useState(saved.postalCode || "");
   const [notes, setNotes] = useState(saved.notes || "");
-  // ?via=whatsapp deep-links straight to the WhatsApp option of the one checkout form
-  const [payment, setPayment] = useState(
-    new URLSearchParams(window.location.search).get("via") === "whatsapp" ? "whatsapp" : saved.payment || "cod"
-  );
+  // ?via=whatsapp deep-links straight to the WhatsApp option; card/wallet
+  // selections from older sessions fall back to the supported COD flow.
+  const viaWhatsApp = new URLSearchParams(window.location.search).get("via") === "whatsapp";
+  const initialPayment = viaWhatsApp || saved.payment === "whatsapp" ? "whatsapp" : "cod";
+  const [payment, setPayment] = useState(initialPayment);
   const [saveInfo, setSaveInfo] = useState(saved.saveInfo ?? true);
   const [newsletter, setNewsletter] = useState(saved.newsletter ?? false);
   const [showErrors, setShowErrors] = useState(false);
@@ -155,6 +156,9 @@ export default function CheckoutPage() {
   const shipFee = cfgNum(cfg?.shippingFee, 250);
   const shipping = coupon?.freeShip || total >= shipThreshold || total === 0 ? 0 : shipFee;
   const grand = Math.max(0, total - discount + shipping);
+  const deliveryRange = /lahore|karachi/i.test(city)
+    ? cfg?.deliveryDaysCity ?? "2-3"
+    : cfg?.deliveryDaysOther ?? "3-5";
 
   // coupon prefilled by the exit-intent offer
   useEffect(() => {
@@ -189,6 +193,7 @@ export default function CheckoutPage() {
 
   /* ---------------- validation ---------------- */
   const isWhatsApp = payment === "whatsapp";
+  const needsEmail = payment === "card" || payment === "wallet";
   // accept how Pakistanis actually type numbers: +92 / 0092 / spaces / dashes.
   // normalization lives HERE (single source of truth) so the stored value is
   // always canonical and the validator below can't drift from the input mask
@@ -202,7 +207,7 @@ export default function CheckoutPage() {
   const normalizedPhone = normalizePhone(phone);
   const errors = {
     name: !name.trim() ? "Enter a name" : null,
-    email: !email.trim() ? (isWhatsApp ? null : "Enter an email address") : /^\S+@\S+\.\S+$/.test(email) ? null : "Enter a valid email",
+    email: !email.trim() ? (needsEmail ? "Enter an email address" : null) : /^\S+@\S+\.\S+$/.test(email) ? null : "Enter a valid email",
     phone: !/^03[0-9]{9}$/.test(normalizedPhone) ? "Enter a valid phone (03xx xxxxxxx)" : null,
     address: !address.trim() ? "Enter an address" : null,
   };
@@ -331,7 +336,7 @@ export default function CheckoutPage() {
         {items.map(({ product, qty, variantId, variantLabel }) => (
           <li key={`${product.id}:${variantId ?? 0}`} className="flex items-center gap-4">
             <div className="relative shrink-0">
-              <img src={product.image} alt="" className="w-14 h-14 rounded-lg object-cover border border-slate-200 bg-white" />
+              <img src={product.image} alt="" className="w-14 h-14 rounded-lg object-contain border border-slate-200 bg-white p-1" />
               <span className="absolute -top-2 -right-2 min-w-[20px] h-5 px-1 rounded-full bg-slate-500 text-white text-[11px] font-bold flex items-center justify-center">
                 {qty}
               </span>
@@ -347,14 +352,14 @@ export default function CheckoutPage() {
                 </span>
               )}
               <div className="mt-1 flex items-center gap-2">
-                <button onClick={() => setQty(product.id, qty - 1, variantId)} className="w-6 h-6 rounded border border-slate-300 text-slate-600 leading-none">
+                <button type="button" onClick={() => setQty(product.id, qty - 1, variantId)} aria-label={`Decrease ${product.name} quantity`} className="w-6 h-6 rounded border border-slate-300 text-slate-600 leading-none">
                   −
                 </button>
                 <span className="text-xs font-semibold w-4 text-center">{qty}</span>
-                <button onClick={() => setQty(product.id, qty + 1, variantId)} className="w-6 h-6 rounded border border-slate-300 text-slate-600 leading-none">
+                <button type="button" onClick={() => setQty(product.id, qty + 1, variantId)} aria-label={`Increase ${product.name} quantity`} className="w-6 h-6 rounded border border-slate-300 text-slate-600 leading-none">
                   +
                 </button>
-                <button onClick={() => remove(product.id, variantId)} className="ml-1 text-[11px] text-slate-400 hover:text-red-500">
+                <button type="button" onClick={() => remove(product.id, variantId)} className="ml-1 text-[11px] text-slate-400 hover:text-red-500">
                   Remove
                 </button>
               </div>
@@ -511,17 +516,7 @@ export default function CheckoutPage() {
                   </div>
                   <div className="space-y-3">
                     <Field
-                      label="Email"
-                      type="email"
-                      inputMode="email"
-                      autoComplete="email"
-                      value={email}
-                      onChange={setEmail}
-                      optional={isWhatsApp}
-                      error={showErrors ? errors.email : null}
-                    />
-                    <Field
-                      label="Phone (03xx xxxxxxx)"
+                      label="Mobile number (03xx xxxxxxx)"
                       inputMode="tel"
                       autoComplete="tel"
                       value={phone}
@@ -530,6 +525,16 @@ export default function CheckoutPage() {
                       // last digit off pasted international numbers
                       onChange={setPhone}
                       error={showErrors ? errors.phone : null}
+                    />
+                    <Field
+                      label="Email address"
+                      type="email"
+                      inputMode="email"
+                      autoComplete="email"
+                      value={email}
+                      onChange={setEmail}
+                      optional={!needsEmail}
+                      error={showErrors ? errors.email : null}
                     />
                     <label className="flex items-center gap-2.5 text-[13px] text-slate-600">
                       <input type="checkbox" checked={newsletter} onChange={(e) => setNewsletter(e.target.checked)} className="w-4 h-4 accent-emerald-600" />
@@ -608,7 +613,7 @@ export default function CheckoutPage() {
                   <div className="flex items-center justify-between rounded-md border-2 border-emerald-600 bg-emerald-50/60 px-4 py-3.5">
                     <span className="text-sm">
                       <span className="block font-semibold text-slate-900">Standard courier</span>
-                      <span className="block text-xs text-slate-500">TCS / Leopards · {cfg?.deliveryDaysOther ?? "3-5"} working days</span>
+                      <span className="block text-xs text-slate-500">TCS / Leopards · {deliveryRange} working days</span>
                     </span>
                     <span className="text-sm font-semibold">{shipping === 0 ? "FREE" : fmt(shipping)}</span>
                   </div>
@@ -617,22 +622,38 @@ export default function CheckoutPage() {
                 {/* payment */}
                 <section className="mb-8" id="xp-payment">
                   <h2 className="text-[17px] font-semibold">Payment</h2>
-                  <p className="text-[13px] text-slate-500 mb-3">All transactions are secure and encrypted.</p>
+                  <p className="text-[13px] text-slate-500 mb-3">
+                    {isWhatsApp ? "We’ll confirm your order with you on WhatsApp." : "No online payment required — pay cash when your parcel arrives."}
+                  </p>
                   <div className="rounded-md border border-slate-300 divide-y divide-slate-200 overflow-hidden">
-                    {PAY_METHODS.map((m) => (
-                      <div key={m.id}>
-                        <label
-                          className={`flex items-center gap-3 px-4 py-3.5 cursor-pointer transition ${
-                            payment === m.id ? "bg-emerald-50/70" : "hover:bg-slate-50"
-                          }`}
-                        >
-                          <input type="radio" name="pay" checked={payment === m.id} onChange={() => setPayment(m.id)} className="w-4 h-4 accent-emerald-600" />
-                          <span className="text-lg">{m.icon}</span>
-                          <span className="flex-1">
-                            <span className="block text-sm font-semibold text-slate-900">{m.label}</span>
-                            <span className="block text-xs text-slate-500">{m.desc}</span>
-                          </span>
-                        </label>
+                    {PAY_METHODS.map((m) => {
+                      const disabled = !m.available;
+                      return (
+                        <div key={m.id}>
+                          <label
+                            className={`flex items-center gap-3 px-4 py-3.5 transition ${
+                              disabled
+                                ? "cursor-not-allowed opacity-55"
+                                : payment === m.id
+                                ? "cursor-pointer bg-emerald-50/70"
+                                : "cursor-pointer hover:bg-slate-50"
+                            }`}
+                          >
+                            <input
+                              type="radio"
+                              name="pay"
+                              disabled={disabled}
+                              checked={payment === m.id}
+                              onChange={() => setPayment(m.id)}
+                              className="w-4 h-4 accent-emerald-600"
+                            />
+                            <span className="text-lg">{m.icon}</span>
+                            <span className="flex-1">
+                              <span className="block text-sm font-semibold text-slate-900">{m.label}</span>
+                              <span className="block text-xs text-slate-500">{m.desc}</span>
+                            </span>
+                            {disabled && <span className="text-[10px] font-bold uppercase tracking-wide text-slate-400">Coming soon</span>}
+                          </label>
                         {payment === m.id && m.id === "whatsapp" && (
                           <div className="bg-[#f6fdf8] border-t border-emerald-100 px-4 py-4">
                             <p className="text-[13px] text-slate-600 mb-2">
@@ -644,15 +665,16 @@ export default function CheckoutPage() {
                             </pre>
                           </div>
                         )}
-                        {payment === m.id && (m.id === "card" || m.id === "wallet") && (
-                          <div className="bg-slate-50 border-t border-slate-200 px-4 py-4 text-xs text-slate-500">
-                            Demo gateway — you'll be redirected to a secure page after placing the order.
-                          </div>
-                        )}
-                      </div>
-                    ))}
+                        </div>
+                      );
+                    })}
                   </div>
                 </section>
+
+                <div className="mb-4 rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3">
+                  <p className="text-sm font-bold text-emerald-900">💵 Cash on Delivery across Pakistan</p>
+                  <p className="mt-1 text-xs leading-relaxed text-emerald-800">We’ll call to confirm your order before dispatch. Pay the courier only after you receive the parcel.</p>
+                </div>
 
                 {/* submit */}
                 <button
@@ -670,7 +692,7 @@ export default function CheckoutPage() {
                       Complete order on WhatsApp · {fmt(grand)}
                     </span>
                   ) : (
-                    `Pay now · ${fmt(grand)}`
+                    <span>Place COD order · {fmt(grand)}</span>
                   )}
                 </button>
 

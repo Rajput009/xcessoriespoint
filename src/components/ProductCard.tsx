@@ -15,7 +15,7 @@ export function Stars({ rating, size = "text-sm" }: { rating: number; size?: str
   );
 }
 
-export default function ProductCard({ product }: { product: Product }) {
+export default function ProductCard({ product, compact = false }: { product: Product; compact?: boolean }) {
   const { add } = useCart();
   const { toggle, has } = useWishlist();
   const { categories } = useProducts();
@@ -42,7 +42,7 @@ export default function ProductCard({ product }: { product: Product }) {
   };
 
   return (
-    <div className="group surface rounded-2xl overflow-hidden hover:shadow-lg hover:shadow-slate-900/10 hover:-translate-y-0.5 transition-all duration-200 flex flex-col">
+    <div className="group surface rounded-xl shadow-none overflow-hidden hover:shadow-md hover:shadow-slate-900/10 hover:-translate-y-0.5 transition-all duration-200 flex flex-col">
       {/* Image stage — contain keeps watches, earbuds and chargers from being cropped. */}
       <div className="relative aspect-square overflow-hidden bg-white">
         <Link to={`/product/${product.id}`} className="relative block w-full h-full">
@@ -84,29 +84,31 @@ export default function ProductCard({ product }: { product: Product }) {
             ) : null}
           </span>
         </Link>
-        <button
-          type="button"
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            toggle(product.id);
-          }}
-          aria-pressed={wished}
-          aria-label={wished ? `Remove ${product.name} from wishlist` : `Add ${product.name} to wishlist`}
-          className={`absolute top-3 right-3 w-9 h-9 rounded-full flex items-center justify-center shadow transition-all focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 ${
-            wished
-              ? "bg-emerald-600 text-white"
-              : "bg-white text-slate-500 hover:text-emerald-600 hover:bg-white"
-          } md:opacity-0 md:group-hover:opacity-100 opacity-100`}
-        >
-          {wished ? "♥" : "♡"}
-        </button>
+        {!compact && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              toggle(product.id);
+            }}
+            aria-pressed={wished}
+            aria-label={wished ? `Remove ${product.name} from wishlist` : `Add ${product.name} to wishlist`}
+            className={`absolute top-3 right-3 w-9 h-9 rounded-full flex items-center justify-center shadow transition-all focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 ${
+              wished
+                ? "bg-emerald-600 text-white"
+                : "bg-white text-slate-500 hover:text-emerald-600 hover:bg-white"
+            } md:opacity-0 md:group-hover:opacity-100 opacity-100`}
+          >
+            {wished ? "♥" : "♡"}
+          </button>
+        )}
       </div>
 
       <div className="p-4 flex flex-col flex-1">
-        <p className="text-xs uppercase tracking-wide font-bold mb-1 flex items-center text-emerald-700">
+        <p className="text-xs uppercase tracking-wide font-bold mb-1 flex items-center text-slate-400">
           <span className="truncate">{catName}</span>
-          {hasVariants && (
+          {hasVariants && !compact && (
             <span className="ml-auto flex items-center gap-1 shrink-0" title={product.variants!.map((v) => v.label).join(" · ")}>
               {allColorVariants(product.variants!) ? (
                 product.variants!.slice(0, 4).map((v) =>
@@ -158,7 +160,7 @@ export default function ProductCard({ product }: { product: Product }) {
           </p>
         </div>
 
-        {pickerOpen && hasVariants ? (
+        {!compact && (pickerOpen && hasVariants ? (
           <div className="fade-up">
             <div className="flex items-center gap-1.5 mb-1">
               <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400 flex-1">
@@ -245,7 +247,7 @@ export default function ProductCard({ product }: { product: Product }) {
           >
             {soldOut ? "Sold out" : added ? "Added ✓" : hasVariants ? "Choose options" : "Add to Cart"}
           </button>
-        )}
+        ))}
       </div>
     </div>
   );
