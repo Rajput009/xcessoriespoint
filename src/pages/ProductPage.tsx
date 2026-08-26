@@ -270,14 +270,14 @@ export default function ProductPage({ id }: { id: number }) {
 
   if (loading)
     return (
-      <main id="main-content" className="pt-[120px] md:pt-44 max-w-7xl mx-auto px-6 pb-16">
+      <main id="main-content" className="pt-20 md:pt-44 max-w-7xl mx-auto px-6 pb-16">
         <div className="surface-muted rounded-3xl h-96 animate-pulse" />
       </main>
     );
 
   if (!product)
     return (
-      <main id="main-content" className="pt-[120px] md:pt-44 max-w-7xl mx-auto px-6 pb-16 text-center">
+      <main id="main-content" className="pt-20 md:pt-44 max-w-7xl mx-auto px-6 pb-16 text-center">
         <div className="text-5xl mb-4">🔎</div>
         <h1 className="text-2xl font-black text-slate-900 mb-2">Product not found</h1>
         <Link to="/shop" className="text-emerald-600 font-semibold hover:underline">← Back to shop</Link>
@@ -352,7 +352,7 @@ export default function ProductPage({ id }: { id: number }) {
   };
 
   return (
-    <main id="main-content" className="pt-[120px] md:pt-44 max-w-7xl mx-auto px-6 pb-16">
+    <main id="main-content" className="pt-20 md:pt-44 max-w-7xl mx-auto px-6 pb-16">
       {/* breadcrumb */}
       <nav className="text-xs text-slate-400 mb-4">
         <Link to="/" className="hover:text-emerald-600">Home</Link>
@@ -449,7 +449,10 @@ export default function ProductPage({ id }: { id: number }) {
           <h1 className="text-3xl md:text-4xl font-black text-slate-900 mt-2 mb-3">{product.name}</h1>
           <div className="flex items-center gap-2 mb-4 flex-wrap">
             <Stars rating={product.rating} />
-            <span className="text-sm text-slate-500">{product.rating} · {product.reviews} reviews</span>
+            <span className="text-xs text-slate-500">({product.reviews})</span>
+            <a href="#reviews" className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 hover:text-emerald-700 hover:underline">
+              View all reviews
+            </a>
           </div>
           <p className="text-sm text-slate-600 leading-relaxed mb-4">{summary}</p>
           <div className="flex items-baseline gap-3 mb-1.5 flex-wrap">
@@ -667,7 +670,7 @@ export default function ProductPage({ id }: { id: number }) {
       <ProductInfoTabs product={product} perks={perks} />
 
       {/* reviews */}
-      <section className="mt-16 grid lg:grid-cols-2 gap-8">
+      <section id="reviews" className="scroll-mt-24 mt-16 grid lg:grid-cols-2 gap-8">
         <div>
           <div className="surface-muted rounded-xl p-4 mb-4">
             <div className="flex items-center gap-4">

@@ -13,10 +13,10 @@ const ANNOUNCEMENTS = [
   { icon: <PhoneIcon size={14} />, text: "COD available nationwide · 7-day returns" },
 ];
 
-function Logo({ compact = false }: { compact?: boolean }) {
+function Logo({ compact = false, light = false }: { compact?: boolean; light?: boolean }) {
   return (
-    <span className={`font-black tracking-tight whitespace-nowrap text-slate-900 ${compact ? "[font-size:clamp(1rem,4.8vw,1.2rem)]" : "text-2xl"}`}>
-      Xccessories<span className="text-emerald-700">Point</span>
+    <span className={`font-black tracking-tight whitespace-nowrap ${light ? "text-white" : "text-slate-900"} ${compact ? "[font-size:clamp(1rem,4.8vw,1.2rem)]" : "text-2xl"}`}>
+      Xccessories<span className={light ? "text-lime-300" : "text-emerald-700"}>Point</span>
     </span>
   );
 }
@@ -277,7 +277,8 @@ export default function Header() {
   const { user } = useAuth();
   const { openModal, searchQuery, setSearchQuery } = useUI();
   const { categories } = useProducts();
-  const { navigate } = useRouter();
+  const { navigate, path } = useRouter();
+  const productPage = path.startsWith("/product/");
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
@@ -297,6 +298,9 @@ export default function Header() {
   };
 
   const iconBtn = "relative w-10 h-10 flex items-center justify-center rounded-full text-slate-600 transition-colors hover:text-emerald-700 hover:bg-emerald-50";
+  const mobileIconBtn = productPage
+    ? "relative w-10 h-10 flex items-center justify-center rounded-full text-white transition-colors hover:bg-white/15"
+    : iconBtn;
   const badge =
     "absolute -top-0.5 -right-0.5 bg-emerald-600 text-white text-[10px] font-bold min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center ring-2 ring-white/60";
 
@@ -305,7 +309,7 @@ export default function Header() {
       <header className="fixed top-0 inset-x-0 z-40 bg-white">
         {/* small utility bar */}
         <div
-          className={`bg-emerald-950 text-emerald-100 text-xs font-medium overflow-hidden transition-all duration-300 ${
+          className={`${productPage ? "hidden md:block" : ""} bg-emerald-950 text-emerald-100 text-xs font-medium overflow-hidden transition-all duration-300 ${
             scrolled ? "max-h-0 opacity-0" : "max-h-8 opacity-100"
           }`}
         >
@@ -386,13 +390,13 @@ export default function Header() {
             </div>
 
             {/* mobile: compact utility row */}
-            <div className="md:hidden py-2.5">
+            <div className={`md:hidden py-2.5 ${productPage ? "bg-emerald-600 -mx-4 px-4" : ""}`}>
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-1 shrink-0">
                   <button
                     type="button"
                     onClick={() => setCollectionOpen(true)}
-                    className={iconBtn}
+                    className={mobileIconBtn}
                     aria-label="Browse categories"
                     aria-expanded={collectionOpen}
                     aria-controls="collection-drawer"
@@ -402,21 +406,21 @@ export default function Header() {
                   <button
                     type="button"
                     onClick={() => setMobileSearch((value) => !value)}
-                    className={`${iconBtn} ${mobileSearch ? "bg-slate-100" : ""}`}
+                    className={`${mobileIconBtn} ${mobileSearch ? "bg-white/15" : ""}`}
                     aria-label="Toggle search"
                   >
                     <SearchIcon size={20} />
                   </button>
                 </div>
                 <Link to="/" className="min-w-0 text-center" aria-label="XccessoriesPoint home">
-                  <Logo compact />
+                  <Logo compact light={productPage} />
                 </Link>
                 <div className="flex items-center gap-0.5 shrink-0">
-                  <button onClick={() => openModal("cart")} className={iconBtn} aria-label="Cart">
+                  <button onClick={() => openModal("cart")} className={mobileIconBtn} aria-label="Cart">
                     <CartIcon size={20} />
                     {count > 0 && <span className={`badge-pop ${badge}`}>{count}</span>}
                   </button>
-                  <button onClick={() => openModal(user ? "account" : "auth")} className={iconBtn} aria-label="Account">
+                  <button onClick={() => openModal(user ? "account" : "auth")} className={mobileIconBtn} aria-label="Account">
                     <UserIcon size={20} />
                   </button>
                 </div>
