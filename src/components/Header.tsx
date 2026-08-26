@@ -2,11 +2,10 @@ import { useCallback, useEffect, useState } from "react";
 import { Link, useRouter } from "../router";
 import { useCart, useWishlist, useAuth, useUI, useProducts, fmt } from "../context/store";
 import {
-  SearchIcon, HeartIcon, CartIcon, UserIcon, PhoneIcon, MapPinIcon,
+  SearchIcon, HeartIcon, CartIcon, UserIcon, PhoneIcon,
   MenuIcon, ZapIcon, TruckIcon,
 } from "./icons";
 import { smartSearch } from "../lib/fuzzy";
-import { useStoreConfig } from "../lib/config";
 
 const ANNOUNCEMENTS = [
   { icon: <TruckIcon size={14} />, text: "Free shipping on orders over Rs 5,000" },
@@ -14,14 +13,10 @@ const ANNOUNCEMENTS = [
   { icon: <PhoneIcon size={14} />, text: "COD available nationwide · 7-day returns" },
 ];
 
-function Logo({ compact = false, light = false }: { compact?: boolean; light?: boolean }) {
+function Logo({ compact = false }: { compact?: boolean }) {
   return (
-    <span
-      className={`font-black tracking-tight whitespace-nowrap transition-colors duration-500 ${
-        light ? "text-white drop-shadow-[0_1px_6px_rgba(0,0,0,0.25)]" : "text-slate-900"
-      } ${compact ? "[font-size:clamp(1rem,4.8vw,1.2rem)]" : "text-2xl"}`}
-    >
-      Xccessories<span className={light ? "text-lime-300" : "text-emerald-700"}>Point</span>
+    <span className={`font-black tracking-tight whitespace-nowrap text-slate-900 ${compact ? "[font-size:clamp(1rem,4.8vw,1.2rem)]" : "text-2xl"}`}>
+      Xccessories<span className="text-emerald-700">Point</span>
     </span>
   );
 }
@@ -277,12 +272,12 @@ export default function Header() {
   const [announce, setAnnounce] = useState(0);
   const [collectionOpen, setCollectionOpen] = useState(false);
   const closeCollection = useCallback(() => setCollectionOpen(false), []);
-  const cfg = useStoreConfig();
   const { count, total } = useCart();
   const { ids } = useWishlist();
   const { user } = useAuth();
   const { openModal, searchQuery, setSearchQuery } = useUI();
-  const { navigate, path } = useRouter();
+  const { categories } = useProducts();
+  const { navigate } = useRouter();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
@@ -296,222 +291,169 @@ export default function Header() {
     return () => clearInterval(t);
   }, []);
 
-  // Let the hero backdrop continue behind the navigation on the homepage.
-  const overHero = path === "/" && !scrolled;
-
   const submitSearch = (e: React.FormEvent) => {
     e.preventDefault();
     navigate("/shop" + (searchQuery ? `?q=${encodeURIComponent(searchQuery)}` : ""));
   };
 
-  const iconBtn = `relative w-10 h-10 flex items-center justify-center rounded-full transition-colors ${
-    overHero
-      ? "text-slate-700 hover:bg-white"
-      : "text-slate-600 hover:text-emerald-700 hover:bg-emerald-50"
-  }`;
+  const iconBtn = "relative w-10 h-10 flex items-center justify-center rounded-full text-slate-600 transition-colors hover:text-emerald-700 hover:bg-emerald-50";
   const badge =
     "absolute -top-0.5 -right-0.5 bg-emerald-600 text-white text-[10px] font-bold min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center ring-2 ring-white/60";
 
   return (
     <>
-      <header className="fixed top-0 inset-x-0 z-40">
-      {/* announcement bar */}
-      <div
-        className={`bg-emerald-950 text-emerald-100 text-xs font-medium overflow-hidden transition-all duration-300 ${
-          scrolled ? "max-h-0" : "max-h-8"
-        }`}
-      >
-        <button
-          key={announce}
-          onClick={() => navigate("/shop")}
-          className="fade-up h-8 w-full flex items-center justify-center gap-2 hover:text-white transition-colors"
+      <header className="fixed top-0 inset-x-0 z-40 bg-white">
+        {/* small utility bar */}
+        <div
+          className={`bg-emerald-950 text-emerald-100 text-xs font-medium overflow-hidden transition-all duration-300 ${
+            scrolled ? "max-h-0 opacity-0" : "max-h-8 opacity-100"
+          }`}
         >
-          {ANNOUNCEMENTS[announce].icon}
-          <span className="tracking-wide">{ANNOUNCEMENTS[announce].text}</span>
-          <span className="opacity-60">→</span>
-        </button>
-      </div>
-
-      <div
-        className={`transition-all duration-500 ${
-          overHero
-            ? "bg-white border-b border-slate-200"
-            : scrolled
-            ? "bg-white shadow-lg shadow-slate-900/5"
-            : "bg-white border-b border-slate-100"
-        }`}
-      >
-        {/* ---------- Desktop ---------- */}
-        <div className="hidden md:block max-w-7xl mx-auto px-6">
-          <div className="grid grid-cols-3 items-center py-3">
-            {/* left contact info — collapses on scroll */}
-            <div
-              className={`flex items-center gap-5 text-xs overflow-hidden transition-all duration-300 ${
-                scrolled ? "opacity-0 max-w-0" : "opacity-100 max-w-md"
-              } ${overHero ? "text-slate-600 font-medium" : "text-slate-500"}`}
-            >
-              <span className="flex items-center gap-1.5 whitespace-nowrap">
-                <MapPinIcon size={14} className="text-emerald-600" />
-                <span>Lahore · Karachi</span>
-              </span>
-              <span className="flex items-center gap-1.5 whitespace-nowrap">
-                <PhoneIcon size={14} className="text-emerald-600" />
-                <span>{cfg?.supportPhone || "+92 300 0000000"}</span>
-              </span>
-            </div>
-
-            {/* center logo */}
-            <Link to="/" className="justify-self-center">
-              <Logo />
-            </Link>
-
-            {/* right actions */}
-            <div className="justify-self-end flex items-center gap-1.5">
-              <button onClick={() => openModal("wishlist")} className={iconBtn} aria-label="Wishlist">
-                <HeartIcon size={20} filled={ids.length > 0} className={ids.length > 0 ? "text-emerald-700" : undefined} />
-                {ids.length > 0 && <span className={badge}>{ids.length}</span>}
-              </button>
-              <button
-                onClick={() => openModal("cart")}
-                className="flex items-center gap-2.5 pl-3 pr-4 h-10 rounded-full bg-slate-900 text-white hover:bg-emerald-700 transition-colors group"
-                aria-label="Cart"
-              >
-                <span className="relative">
-                  <CartIcon size={18} />
-                  {count > 0 && (
-                    <span key={count} className="badge-pop absolute -top-2 -right-2.5 bg-emerald-500 text-white text-[10px] font-bold min-w-[16px] h-4 px-0.5 rounded-full flex items-center justify-center">
-                      {count}
-                    </span>
-                  )}
-                </span>
-                <span className="text-sm font-bold tabular-nums">{fmt(total)}</span>
-              </button>
-              <button
-                onClick={() => openModal(user ? "account" : "auth")}
-                className={`flex items-center gap-2 h-10 px-3 rounded-full text-sm font-semibold transition-colors ${
-                  overHero ? "text-slate-700 hover:bg-white" : "text-slate-600 hover:text-emerald-700 hover:bg-emerald-50"
-                }`}
-              >
-                <UserIcon size={19} />
-                <span>{user ? user.name.split(" ")[0] : "Sign in"}</span>
-              </button>
-            </div>
-          </div>
-
-          {/* search row — hidden on scroll */}
-          <div
-            className={`transition-all duration-300 ${
-              scrolled
-                ? "max-h-0 opacity-0 overflow-hidden"
-                : `max-h-20 opacity-100 pb-3.5 ${showSug ? "overflow-visible" : "overflow-hidden"}`
-            }`}
+          <button
+            type="button"
+            onClick={() => navigate("/shop")}
+            className="h-8 w-full flex items-center justify-center gap-2 hover:text-white transition-colors"
           >
-            <div className="flex items-center gap-4">
+            {ANNOUNCEMENTS[announce].icon}
+            <span className="tracking-wide">{ANNOUNCEMENTS[announce].text}</span>
+            <span className="opacity-60">→</span>
+          </button>
+        </div>
+
+        <div className="bg-white border-b border-slate-200 shadow-sm">
+          <div className="max-w-7xl mx-auto px-4 md:px-6">
+            {/* desktop: one clear shopping row */}
+            <div className={`hidden md:flex items-center gap-4 ${scrolled ? "h-16" : "h-[72px]"}`}>
+              <Link to="/" className="shrink-0" aria-label="XccessoriesPoint home">
+                <Logo />
+              </Link>
+
               <button
                 type="button"
                 onClick={() => setCollectionOpen(true)}
                 aria-expanded={collectionOpen}
                 aria-controls="collection-drawer"
-                className={`whitespace-nowrap text-sm font-bold px-4 h-11 rounded-full flex items-center gap-2 transition-all ${
-                  overHero
-                    ? "bg-white border border-slate-200 text-emerald-800 hover:bg-emerald-50"
-                    : "text-white bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 shadow-md shadow-emerald-600/20"
-                }`}
+                className="hidden lg:flex shrink-0 items-center gap-2 rounded-lg bg-emerald-700 px-4 h-11 text-sm font-bold text-white shadow-sm hover:bg-emerald-800 transition-colors"
               >
-                <MenuIcon size={16} />
-                Browse all collection
+                <MenuIcon size={17} />
+                Browse categories
               </button>
-              <form onSubmit={submitSearch} className="flex-1 relative">
+
+              <form onSubmit={submitSearch} className="relative flex-1 min-w-0">
                 {showSug && <SearchSuggestions query={searchQuery} onPick={() => setShowSug(false)} />}
-                <SearchIcon
-                  size={17}
-                  className={`absolute left-5 top-1/2 -translate-y-1/2 pointer-events-none ${
-                    overHero ? "text-slate-500" : "text-slate-400"
-                  }`}
-                />
+                <SearchIcon size={17} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                 <input
                   value={searchQuery}
                   onChange={(e) => { setSearchQuery(e.target.value); setShowSug(true); }}
                   onFocus={() => setShowSug(true)}
                   onBlur={() => setTimeout(() => setShowSug(false), 150)}
-                  placeholder="Search earbuds, چارجر, handsfree…"
-                  className={`w-full h-11 rounded-full pl-12 pr-12 text-sm outline-none transition-all ${
-                    overHero
-                      ? "bg-white border border-slate-200 placeholder-slate-500 text-slate-700 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
-                      : "border-2 border-slate-100 bg-slate-50 focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100"
-                  }`}
+                  placeholder="Search products, categories…"
+                  className="w-full h-11 rounded-lg border border-slate-200 bg-slate-50 pl-11 pr-12 text-sm text-slate-800 outline-none transition-colors placeholder:text-slate-400 focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100"
                 />
                 <button
                   type="submit"
-                  className="absolute right-1.5 top-1/2 -translate-y-1/2 bg-emerald-700 text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-emerald-800 transition-colors"
                   aria-label="Search"
+                  className="absolute right-1.5 top-1/2 -translate-y-1/2 flex h-8 w-8 items-center justify-center rounded-md bg-emerald-700 text-white hover:bg-emerald-800 transition-colors"
                 >
                   <SearchIcon size={15} />
                 </button>
               </form>
-            </div>
-          </div>
-        </div>
 
-        {/* ---------- Mobile ---------- */}
-        <div className="md:hidden px-4 py-2.5">
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-1 shrink-0">
-              <button
-                onClick={() => setCollectionOpen(true)}
-                className={`${iconBtn} ${collectionOpen ? "bg-emerald-50 text-emerald-700" : ""}`}
-                aria-label="Browse categories"
-                aria-expanded={collectionOpen}
-                aria-controls="collection-drawer"
-              >
-                <MenuIcon size={20} />
-              </button>
-              <button
-                onClick={() => setMobileSearch((s) => !s)}
-                className={`${iconBtn} ${mobileSearch ? "bg-slate-100" : ""}`}
-                aria-label="Toggle search"
-              >
-                <SearchIcon size={20} />
-              </button>
+              <div className="flex items-center gap-1 shrink-0">
+                <button onClick={() => openModal("wishlist")} className={iconBtn} aria-label="Wishlist">
+                  <HeartIcon size={20} filled={ids.length > 0} className={ids.length > 0 ? "text-emerald-700" : undefined} />
+                  {ids.length > 0 && <span className={badge}>{ids.length}</span>}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => openModal("cart")}
+                  className="relative flex h-11 items-center gap-2 rounded-lg bg-slate-900 px-3.5 text-white hover:bg-emerald-700 transition-colors"
+                  aria-label="Cart"
+                >
+                  <CartIcon size={18} />
+                  {count > 0 && <span className={badge}>{count}</span>}
+                  <span className="hidden xl:inline text-sm font-bold tabular-nums">{fmt(total)}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => openModal(user ? "account" : "auth")}
+                  className="hidden lg:flex h-11 items-center gap-2 rounded-lg px-3 text-sm font-semibold text-slate-600 hover:bg-emerald-50 hover:text-emerald-700 transition-colors"
+                >
+                  <UserIcon size={19} />
+                  <span>{user ? user.name.split(" ")[0] : "Sign in"}</span>
+                </button>
+              </div>
             </div>
-            <Link to="/" className="min-w-0 text-center">
-              <Logo compact />
-            </Link>
-            <div className="flex items-center gap-0.5 shrink-0">
-              <button onClick={() => openModal("cart")} className={iconBtn} aria-label="Cart">
-                <CartIcon size={20} />
-                {count > 0 && <span key={count} className={`badge-pop ${badge}`}>{count}</span>}
-              </button>
-              <button
-                onClick={() => openModal(user ? "account" : "auth")}
-                className={iconBtn}
-                aria-label="Account"
-              >
-                <UserIcon size={20} />
-              </button>
+
+            {/* mobile: compact utility row */}
+            <div className="md:hidden py-2.5">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-1 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => setCollectionOpen(true)}
+                    className={iconBtn}
+                    aria-label="Browse categories"
+                    aria-expanded={collectionOpen}
+                    aria-controls="collection-drawer"
+                  >
+                    <MenuIcon size={20} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setMobileSearch((value) => !value)}
+                    className={`${iconBtn} ${mobileSearch ? "bg-slate-100" : ""}`}
+                    aria-label="Toggle search"
+                  >
+                    <SearchIcon size={20} />
+                  </button>
+                </div>
+                <Link to="/" className="min-w-0 text-center" aria-label="XccessoriesPoint home">
+                  <Logo compact />
+                </Link>
+                <div className="flex items-center gap-0.5 shrink-0">
+                  <button onClick={() => openModal("cart")} className={iconBtn} aria-label="Cart">
+                    <CartIcon size={20} />
+                    {count > 0 && <span className={`badge-pop ${badge}`}>{count}</span>}
+                  </button>
+                  <button onClick={() => openModal(user ? "account" : "auth")} className={iconBtn} aria-label="Account">
+                    <UserIcon size={20} />
+                  </button>
+                </div>
+              </div>
+              {mobileSearch && (
+                <form onSubmit={submitSearch} className="mt-2 relative fade-up">
+                  {showSug && <SearchSuggestions query={searchQuery} onPick={() => { setShowSug(false); setMobileSearch(false); }} />}
+                  <SearchIcon size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                  <input
+                    autoFocus
+                    value={searchQuery}
+                    onChange={(e) => { setSearchQuery(e.target.value); setShowSug(true); }}
+                    onFocus={() => setShowSug(true)}
+                    onBlur={() => setTimeout(() => setShowSug(false), 150)}
+                    placeholder="Search products…"
+                    className="w-full rounded-lg border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm outline-none focus:border-emerald-500 focus:bg-white"
+                  />
+                </form>
+              )}
             </div>
+
+            {/* category links keep the catalog one click away on desktop */}
+            <nav
+              aria-label="Shop by category"
+              className={`hidden lg:flex items-center gap-7 border-t border-slate-100 transition-all duration-200 ${
+                scrolled ? "max-h-0 opacity-0 overflow-hidden border-t-0" : "max-h-12 py-2.5 opacity-100"
+              }`}
+            >
+              <Link to="/shop" className="text-xs font-bold uppercase tracking-wide text-emerald-700 hover:text-emerald-900">Shop all</Link>
+              {categories.map((category) => (
+                <Link key={category.id} to={`/category/${category.id}`} className="text-sm font-medium text-slate-600 hover:text-emerald-700 transition-colors">
+                  {category.name}
+                </Link>
+              ))}
+            </nav>
           </div>
-          {mobileSearch && (
-            <form onSubmit={submitSearch} className="mt-2 fade-up relative">
-              {showSug && <SearchSuggestions query={searchQuery} onPick={() => { setShowSug(false); setMobileSearch(false); }} />}
-              <SearchIcon size={16} className={`absolute left-4 top-1/2 -translate-y-1/2 ${overHero ? "text-emerald-950/60" : "text-slate-400"}`} />
-              <input
-                autoFocus
-                value={searchQuery}
-                onChange={(e) => { setSearchQuery(e.target.value); setShowSug(true); }}
-                onFocus={() => setShowSug(true)}
-                onBlur={() => setTimeout(() => setShowSug(false), 150)}
-                placeholder="Search products…"
-                className={`w-full rounded-full pl-10 pr-4 py-2.5 text-sm outline-none ${
-                  overHero
-                    ? "bg-white  border border-white/70 placeholder-slate-500 text-slate-700 focus:bg-white focus:border-emerald-500"
-                    : "border-2 border-slate-100 bg-slate-50 focus:border-emerald-500 focus:bg-white"
-                }`}
-              />
-            </form>
-          )}
         </div>
-      </div>
       </header>
       <CollectionDrawer open={collectionOpen} onClose={closeCollection} />
     </>
