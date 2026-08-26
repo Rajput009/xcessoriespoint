@@ -288,89 +288,65 @@ const CAT_IMG: Record<string, { img: string; count: string; tint: string; text: 
 
 export function CategoryIcons() {
   const { categories } = useProducts();
-  const scrollerRef = useRef<HTMLDivElement>(null);
-
-  const scrollBy = (dir: number) =>
-    scrollerRef.current?.scrollBy({ left: dir * 320, behavior: "smooth" });
 
   return (
-    <section className="max-w-7xl mx-auto px-6 pt-24 pb-10">
-      <div className="flex items-end justify-between mb-6">
+    <section className="max-w-7xl mx-auto px-6 pt-16 pb-10">
+      <div className="flex items-end justify-between gap-4 mb-6">
         <div>
-          <p className="text-[11px] font-black uppercase tracking-[0.2em] text-violet-600 mb-1">Pick your lane</p>
+          <p className="text-[11px] font-black uppercase tracking-[0.2em] text-emerald-700 mb-1">Explore the range</p>
           <h2 className="text-2xl md:text-3xl font-black text-slate-900">Shop by Category</h2>
-          <p className="text-sm text-slate-500 mt-1">Everything your devices need, sorted.</p>
+          <p className="text-sm text-slate-500 mt-1">Find the right tech for the way you live.</p>
         </div>
-        <div className="hidden md:flex gap-2">
-          <button
-            onClick={() => scrollBy(-1)}
-            className="w-9 h-9 rounded-full surface-muted text-slate-600 hover:text-emerald-700 hover:shadow-md flex items-center justify-center transition-all"
-            aria-label="Scroll left"
-          >
-            ‹
-          </button>
-          <button
-            onClick={() => scrollBy(1)}
-            className="w-9 h-9 rounded-full border border-slate-200 bg-white text-slate-500 hover:border-emerald-500 hover:text-emerald-600 flex items-center justify-center transition-colors"
-            aria-label="Scroll right"
-          >
-            ›
-          </button>
-        </div>
+        <Link to="/shop" className="hidden sm:inline-flex items-center gap-1 text-sm font-bold text-emerald-700 hover:text-emerald-900">
+          View all <span aria-hidden="true">→</span>
+        </Link>
       </div>
 
-      <div
-        ref={scrollerRef}
-        className="flex gap-4 overflow-x-auto no-scrollbar snap-x snap-mandatory pb-2 -mx-6 px-6"
-      >
-        {categories.map((c) => {
+      <div className="grid grid-cols-2 md:grid-cols-4 md:grid-rows-2 gap-3">
+        {categories.map((c, i) => {
           const meta = CAT_IMG[c.id];
-          // admin-set tile image wins, then the built-in art, else we render the emoji
           const tile = c.image || meta?.img;
+          const featured = i === 0;
           return (
             <Link
               key={c.id}
               to={`/category/${c.id}`}
-              className="group snap-start shrink-0 w-36 md:w-44 flex flex-col rounded-2xl surface-muted overflow-hidden hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-500/15 hover:ring-2 hover:ring-emerald-400/50 transition-all"
+              className={`group relative min-h-[150px] overflow-hidden rounded-xl border border-slate-200 ${
+                featured ? "col-span-2 md:row-span-2 min-h-[230px] md:min-h-[320px] bg-slate-900 text-white" : "bg-slate-100 text-slate-900"
+              }`}
             >
-              <span className={`relative block aspect-square p-3 ${meta?.tint ?? "bg-white"}`}>
-                {tile ? (
-                  <img
-                    src={tile}
-                    alt={c.name}
-                    width={440}
-                    height={440}
-                    loading="lazy"
-                    decoding="async"
-                    className={`w-full h-full group-hover:scale-110 transition-transform duration-500 ${
-                      c.image && !meta ? "object-cover rounded-xl" : "object-contain"
-                    }`}
-                  />
-                ) : (
-                  <span className="w-full h-full flex items-center justify-center text-4xl group-hover:scale-110 transition-transform duration-500">
-                    {c.icon || "🗂"}
-                  </span>
-                )}
-              </span>
-              <span className="px-2 pt-2 pb-3 text-center border-t border-white/50">
-                <span className={`block text-xs font-black uppercase tracking-wide text-slate-900 transition-colors ${meta?.text ?? ""}`}>
-                  {c.name}
-                </span>
-                <span className="block text-[10px] text-slate-400 mt-0.5">{meta?.count ?? "Shop the range"}</span>
+              {tile ? (
+                <img
+                  src={tile}
+                  alt=""
+                  width={600}
+                  height={600}
+                  loading="lazy"
+                  decoding="async"
+                  className={`absolute inset-0 h-full w-full transition-transform duration-500 group-hover:scale-105 ${
+                    c.image && !meta ? "object-cover" : "object-contain p-5"
+                  }`}
+                />
+              ) : (
+                <span className="absolute inset-0 flex items-center justify-center text-5xl" aria-hidden="true">{c.icon || "🗂"}</span>
+              )}
+              <span className={`absolute inset-0 ${featured ? "bg-gradient-to-t from-slate-950/90 via-slate-950/20 to-transparent" : "bg-gradient-to-t from-white/95 via-white/15 to-transparent"}`} />
+              <span className="absolute inset-x-0 bottom-0 p-4">
+                <span className={`block font-black ${featured ? "text-xl" : "text-base"}`}>{c.name}</span>
+                <span className={`block text-xs mt-0.5 ${featured ? "text-slate-300" : "text-slate-500"}`}>{meta?.count ?? "Shop the range"}</span>
               </span>
             </Link>
           );
         })}
-        {/* view-all tile */}
         <Link
           to="/shop"
-          className="group snap-start shrink-0 w-36 md:w-44 rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-700 text-white flex flex-col items-center justify-center gap-2 hover:-translate-y-1 hover:shadow-lg transition-all"
+          className="group min-h-[150px] rounded-xl border border-emerald-700 bg-emerald-700 p-5 text-white flex flex-col justify-between hover:bg-emerald-800 transition-colors"
         >
-          <span className="w-10 h-10 rounded-full bg-white/15 flex items-center justify-center text-lg group-hover:bg-white/25 transition-colors">
-            →
+          <span className="text-3xl font-light" aria-hidden="true">→</span>
+          <span>
+            <span className="block text-base font-black">All products</span>
+            <span className="block text-xs text-emerald-100 mt-0.5">See the full collection</span>
           </span>
-          <span className="text-xs font-black uppercase tracking-wide">View all</span>
-          <span className="text-[10px] text-emerald-100">Full catalog</span>
         </Link>
       </div>
     </section>
@@ -385,7 +361,7 @@ export function BestSelling() {
   const list = useMemo(() => {
     let l = products.filter((p) => p.bestSeller || p.rating >= 4.4);
     if (tab !== "all") l = l.filter((p) => p.category === tab);
-    return l.slice(0, 5);
+    return l.slice(0, 4);
   }, [products, tab]);
 
   return (
@@ -427,7 +403,7 @@ export function BestSelling() {
       {list.length === 0 ? (
         <p className="text-sm text-slate-500 py-10 text-center">No matching best sellers.</p>
       ) : (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
           {list.map((p) => (
             <ProductCard key={p.id} product={p} />
           ))}
