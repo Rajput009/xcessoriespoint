@@ -44,7 +44,7 @@ export default function ProductCard({ product, compact = false }: { product: Pro
   return (
     <div className="group surface rounded-xl shadow-none overflow-hidden hover:shadow-md hover:shadow-slate-900/10 hover:-translate-y-0.5 transition-all duration-200 flex flex-col">
       {/* Image stage — contain keeps watches, earbuds and chargers from being cropped. */}
-      <div className="relative aspect-square overflow-hidden bg-white">
+      <div className="relative aspect-square overflow-hidden">
         <Link to={`/product/${product.id}`} className="relative block w-full h-full">
           <img
             src={product.image}
