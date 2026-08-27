@@ -16,7 +16,7 @@ const ANNOUNCEMENTS = [
 function Logo({ compact = false, light = false }: { compact?: boolean; light?: boolean }) {
   return (
     <span className={`font-black tracking-tight whitespace-nowrap ${light ? "text-white" : "text-slate-900"} ${compact ? "[font-size:clamp(1rem,4.8vw,1.2rem)]" : "text-2xl"}`}>
-      Xccessories<span className={light ? "text-lime-300" : "text-emerald-700"}>Point</span>
+      Xccessories<span className={light ? "text-sky-300" : "text-blue-700"}>Point</span>
     </span>
   );
 }
@@ -41,7 +41,7 @@ function SearchSuggestions({ query, onPick }: { query: string; onPick: () => voi
     const featured = products.filter((p) => p.bestSeller || p.featured).slice(0, 3);
     return (
       <div className="absolute top-full left-0 right-0 mt-2 surface !bg-white rounded-2xl shadow-xl shadow-slate-900/10 overflow-hidden z-50 p-4">
-        <p className="text-[11px] font-black uppercase tracking-[0.16em] text-emerald-700 mb-3">Popular searches</p>
+        <p className="text-[11px] font-black uppercase tracking-[0.16em] text-blue-700 mb-3">Popular searches</p>
         <div className="flex flex-wrap gap-2">
           {POPULAR_SEARCHES.map((term) => (
             <button
@@ -51,7 +51,7 @@ function SearchSuggestions({ query, onPick }: { query: string; onPick: () => voi
                 e.preventDefault();
                 chooseSearch(term);
               }}
-              className="surface-muted rounded-full px-3 py-1.5 text-xs font-semibold text-slate-700 hover:text-emerald-700 hover:bg-emerald-50 transition-colors"
+              className="surface-muted rounded-full px-3 py-1.5 text-xs font-semibold text-slate-700 hover:text-blue-700 hover:bg-blue-50 transition-colors"
             >
               {term}
             </button>
@@ -70,12 +70,12 @@ function SearchSuggestions({ query, onPick }: { query: string; onPick: () => voi
                     onPick();
                     navigate(`/product/${p.id}`);
                   }}
-                  className="w-full flex items-center gap-3 rounded-xl px-2 py-2 hover:bg-emerald-50/80 text-left transition-colors"
+                  className="w-full flex items-center gap-3 rounded-xl px-2 py-2 hover:bg-blue-50/80 text-left transition-colors"
                 >
                   <img src={p.image} alt="" className="w-9 h-9 rounded-lg object-cover" />
                   <span className="flex-1 min-w-0">
                     <span className="block text-sm font-semibold text-slate-900 truncate">{p.name}</span>
-                    <span className="block text-xs text-emerald-700 font-bold">{fmt(p.price)}</span>
+                    <span className="block text-xs text-blue-700 font-bold">{fmt(p.price)}</span>
                   </span>
                   <span className="text-slate-300" aria-hidden="true">→</span>
                 </button>
@@ -107,12 +107,12 @@ function SearchSuggestions({ query, onPick }: { query: string; onPick: () => voi
             onPick();
             navigate(`/product/${p.id}`);
           }}
-          className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-emerald-50/80 text-left transition-colors"
+          className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-blue-50/80 text-left transition-colors"
         >
           <img src={p.image} alt="" className="w-10 h-10 rounded-lg object-cover" />
           <span className="flex-1 min-w-0">
             <span className="block text-sm font-semibold text-slate-900 truncate">{p.name}</span>
-            <span className="block text-xs text-emerald-700 font-bold">{fmt(p.price)}</span>
+            <span className="block text-xs text-blue-700 font-bold">{fmt(p.price)}</span>
           </span>
           {p.badge && <span className="text-[10px] font-bold text-rose-500">{p.badge}</span>}
         </button>
@@ -167,20 +167,20 @@ function CollectionDrawer({ open, onClose }: { open: boolean; onClose: () => voi
         type="button"
         aria-label="Close collection menu"
         onClick={onClose}
-        className="absolute inset-0 bg-emerald-950/20"
+        className="absolute inset-0 bg-blue-950/20"
       />
       <aside
         id="collection-drawer"
-        className="collection-drawer relative h-full w-[min(92vw,430px)] bg-white border-r border-white/70 rounded-r-3xl shadow-2xl shadow-emerald-950/20 slide-in-left flex flex-col"
+        className="collection-drawer relative h-full w-[min(92vw,430px)] bg-white border-r border-white/70 rounded-r-3xl shadow-2xl shadow-blue-950/20 slide-in-left flex flex-col"
       >
         <div className="relative px-5 pt-6 pb-5 border-b border-white/60">
-          <p className="text-[11px] font-black uppercase tracking-[0.2em] text-emerald-700 mb-1">The collection</p>
+          <p className="text-[11px] font-black uppercase tracking-[0.2em] text-blue-700 mb-1">The collection</p>
           <p className="text-lg font-black text-slate-950">All categories</p>
           <button
             type="button"
             onClick={onClose}
             aria-label="Close collection menu"
-            className="absolute top-5 right-5 w-9 h-9 rounded-full bg-white text-slate-500 hover:text-emerald-700 hover:bg-white transition-colors flex items-center justify-center"
+            className="absolute top-5 right-5 w-9 h-9 rounded-full bg-white text-slate-500 hover:text-blue-700 hover:bg-white transition-colors flex items-center justify-center"
           >
             <span className="text-2xl font-light leading-none" aria-hidden="true">×</span>
           </button>
@@ -198,7 +198,7 @@ function CollectionDrawer({ open, onClose }: { open: boolean; onClose: () => voi
                   aria-controls={`collection-${row.id}`}
                   onClick={() => hasProducts && setExpanded(isExpanded ? null : row.id)}
                   className={`w-full min-h-[64px] px-9 flex items-center justify-between gap-4 text-left transition-colors ${
-                    isExpanded ? "bg-emerald-50/70" : "bg-transparent hover:bg-slate-50"
+                    isExpanded ? "bg-blue-50/70" : "bg-transparent hover:bg-slate-50"
                   }`}
                 >
                   <span className={`text-[18px] leading-tight font-medium ${
@@ -208,7 +208,7 @@ function CollectionDrawer({ open, onClose }: { open: boolean; onClose: () => voi
                   </span>
                   {hasProducts && (
                     <span
-                      className={`w-2.5 h-2.5 shrink-0 border-r-2 border-b-2 border-emerald-600 rotate-45 -translate-y-1 transition-transform ${
+                      className={`w-2.5 h-2.5 shrink-0 border-r-2 border-b-2 border-blue-600 rotate-45 -translate-y-1 transition-transform ${
                         isExpanded ? "rotate-[225deg] translate-y-1" : ""
                       }`}
                       aria-hidden="true"
@@ -235,10 +235,10 @@ function CollectionDrawer({ open, onClose }: { open: boolean; onClose: () => voi
                         >
                           <img src={p.image} alt="" loading="lazy" className="w-10 h-10 rounded-lg object-cover bg-white shrink-0" />
                           <span className="min-w-0 flex-1">
-                            <span className="block text-sm font-medium text-slate-800 truncate group-hover:text-emerald-700">{p.name}</span>
+                            <span className="block text-sm font-medium text-slate-800 truncate group-hover:text-blue-700">{p.name}</span>
                             <span className="block text-xs font-bold text-slate-500 mt-0.5">{fmt(p.price)}</span>
                           </span>
-                          <span className="text-slate-300 group-hover:text-emerald-600" aria-hidden="true">→</span>
+                          <span className="text-slate-300 group-hover:text-blue-600" aria-hidden="true">→</span>
                         </button>
                       ))
                     ) : (
@@ -255,7 +255,7 @@ function CollectionDrawer({ open, onClose }: { open: boolean; onClose: () => voi
           <button
             type="button"
             onClick={() => goTo("/shop")}
-            className="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-sm font-bold shadow-md shadow-emerald-600/20 hover:from-emerald-700 hover:to-teal-700 transition-all"
+            className="w-full py-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm font-bold shadow-md shadow-blue-600/20 hover:from-blue-700 hover:to-indigo-700 transition-all"
           >
             View full shop →
           </button>
@@ -300,19 +300,19 @@ export default function Header() {
 
   const iconBtn = heroHeader
     ? "relative w-10 h-10 flex items-center justify-center rounded-full text-white transition-colors hover:bg-white/15"
-    : "relative w-10 h-10 flex items-center justify-center rounded-full text-slate-600 transition-colors hover:text-emerald-700 hover:bg-emerald-50";
+    : "relative w-10 h-10 flex items-center justify-center rounded-full text-slate-600 transition-colors hover:text-blue-700 hover:bg-blue-50";
   const mobileIconBtn = productPage || heroHeader
     ? "relative w-10 h-10 flex items-center justify-center rounded-full text-white transition-colors hover:bg-white/15"
     : iconBtn;
   const badge =
-    "absolute -top-0.5 -right-0.5 bg-emerald-600 text-white text-[10px] font-bold min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center ring-2 ring-white/60";
+    "absolute -top-0.5 -right-0.5 bg-blue-600 text-white text-[10px] font-bold min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center ring-2 ring-white/60";
 
   return (
     <>
       <header className={`fixed top-0 inset-x-0 z-40 ${heroHeader ? "bg-transparent" : "bg-white"}`}>
         {/* small utility bar */}
         <div
-          className={`${productPage ? "hidden md:block" : ""} bg-emerald-950 text-emerald-100 text-xs font-medium overflow-hidden transition-all duration-300 ${
+          className={`${productPage ? "hidden md:block" : ""} bg-blue-950 text-blue-100 text-xs font-medium overflow-hidden transition-all duration-300 ${
             scrolled ? "max-h-0 opacity-0" : "max-h-8 opacity-100"
           }`}
         >
@@ -343,7 +343,7 @@ export default function Header() {
                 className={`hidden lg:flex shrink-0 items-center gap-2 rounded-lg px-4 h-11 text-sm font-bold transition-colors ${
                   heroHeader
                     ? "border border-white/30 bg-white/15 text-white hover:bg-white/25"
-                    : "bg-emerald-700 text-white shadow-sm hover:bg-emerald-800"
+                    : "bg-blue-700 text-white shadow-sm hover:bg-blue-800"
                 }`}
               >
                 <MenuIcon size={17} />
@@ -362,13 +362,13 @@ export default function Header() {
                   className={`w-full h-11 rounded-lg pl-11 pr-12 text-sm outline-none transition-colors ${
                     heroHeader
                       ? "border border-white/30 bg-white/15 text-white placeholder:text-white/70 focus:border-white focus:bg-white/25"
-                      : "border border-slate-200 bg-slate-50 text-slate-800 placeholder:text-slate-400 focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100"
+                      : "border border-slate-200 bg-slate-50 text-slate-800 placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
                   }`}
                 />
                 <button
                   type="submit"
                   aria-label="Search"
-                  className="absolute right-1.5 top-1/2 -translate-y-1/2 flex h-8 w-8 items-center justify-center rounded-md bg-emerald-700 text-white hover:bg-emerald-800 transition-colors"
+                  className="absolute right-1.5 top-1/2 -translate-y-1/2 flex h-8 w-8 items-center justify-center rounded-md bg-blue-700 text-white hover:bg-blue-800 transition-colors"
                 >
                   <SearchIcon size={15} />
                 </button>
@@ -376,13 +376,13 @@ export default function Header() {
 
               <div className="flex items-center gap-1 shrink-0">
                 <button onClick={() => openModal("wishlist")} className={iconBtn} aria-label="Wishlist">
-                  <HeartIcon size={20} filled={ids.length > 0} className={ids.length > 0 ? (heroHeader ? "text-lime-300" : "text-emerald-700") : undefined} />
+                  <HeartIcon size={20} filled={ids.length > 0} className={ids.length > 0 ? (heroHeader ? "text-sky-300" : "text-blue-700") : undefined} />
                   {ids.length > 0 && <span className={badge}>{ids.length}</span>}
                 </button>
                 <button
                   type="button"
                   onClick={() => openModal("cart")}
-                  className="relative flex h-11 items-center gap-2 rounded-lg bg-slate-900 px-3.5 text-white hover:bg-emerald-700 transition-colors"
+                  className="relative flex h-11 items-center gap-2 rounded-lg bg-slate-900 px-3.5 text-white hover:bg-blue-700 transition-colors"
                   aria-label="Cart"
                 >
                   <CartIcon size={18} />
@@ -393,7 +393,7 @@ export default function Header() {
                   type="button"
                   onClick={() => openModal(user ? "account" : "auth")}
                   className={`hidden lg:flex h-11 items-center gap-2 rounded-lg px-3 text-sm font-semibold transition-colors ${
-                    heroHeader ? "text-white hover:bg-white/15" : "text-slate-600 hover:bg-emerald-50 hover:text-emerald-700"
+                    heroHeader ? "text-white hover:bg-white/15" : "text-slate-600 hover:bg-blue-50 hover:text-blue-700"
                   }`}
                 >
                   <UserIcon size={19} />
@@ -404,7 +404,7 @@ export default function Header() {
 
             {/* mobile: compact utility row */}
             <div className={`md:hidden py-2.5 ${
-              productPage ? "bg-emerald-600 -mx-4 px-4" : heroHeader ? "bg-slate-950/15 -mx-4 px-4" : ""
+              productPage ? "bg-blue-600 -mx-4 px-4" : heroHeader ? "bg-slate-950/15 -mx-4 px-4" : ""
             }`}>
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-1 shrink-0">
@@ -454,7 +454,7 @@ export default function Header() {
                     className={`w-full rounded-lg py-2.5 pl-10 pr-4 text-sm outline-none ${
                       heroHeader
                         ? "border border-white/30 bg-white/15 text-white placeholder:text-white/70 focus:border-white focus:bg-white/25"
-                        : "border border-slate-200 bg-slate-50 focus:border-emerald-500 focus:bg-white"
+                        : "border border-slate-200 bg-slate-50 focus:border-blue-500 focus:bg-white"
                     }`}
                   />
                 </form>
@@ -472,9 +472,9 @@ export default function Header() {
                   : "max-h-12 border-slate-100 py-2.5 opacity-100"
               }`}
             >
-              <Link to="/shop" className={`text-xs font-bold uppercase tracking-wide transition-colors ${heroHeader ? "text-lime-300 hover:text-white" : "text-emerald-700 hover:text-emerald-900"}`}>Shop all</Link>
+              <Link to="/shop" className={`text-xs font-bold uppercase tracking-wide transition-colors ${heroHeader ? "text-sky-300 hover:text-white" : "text-blue-700 hover:text-blue-900"}`}>Shop all</Link>
               {categories.map((category) => (
-                <Link key={category.id} to={`/category/${category.id}`} className={`text-sm font-medium transition-colors ${heroHeader ? "text-white/80 hover:text-white" : "text-slate-600 hover:text-emerald-700"}`}>
+                <Link key={category.id} to={`/category/${category.id}`} className={`text-sm font-medium transition-colors ${heroHeader ? "text-white/80 hover:text-white" : "text-slate-600 hover:text-blue-700"}`}>
                   {category.name}
                 </Link>
               ))}

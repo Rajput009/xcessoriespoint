@@ -25,7 +25,7 @@ export default class ErrorBoundary extends Component<
             <div className="flex gap-3 justify-center">
               <button
                 onClick={() => this.setState({ error: null })}
-                className="px-5 py-2.5 rounded-lg bg-emerald-600 text-white font-semibold hover:bg-emerald-700"
+                className="px-5 py-2.5 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700"
               >
                 Try again
               </button>

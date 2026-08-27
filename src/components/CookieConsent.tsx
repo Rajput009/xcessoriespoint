@@ -35,7 +35,7 @@ export default function CookieConsent() {
 
   return (
     <div className="fixed inset-x-0 bottom-0 z-[90] p-4 md:p-6 pointer-events-none">
-      <div className="pointer-events-auto max-w-3xl mx-auto surface !bg-white rounded-3xl shadow-2xl shadow-emerald-950/15 p-5 md:p-6 fade-up">
+      <div className="pointer-events-auto max-w-3xl mx-auto surface !bg-white rounded-3xl shadow-2xl shadow-blue-950/15 p-5 md:p-6 fade-up">
         <div className="flex items-start gap-3 mb-3">
           <span className="text-2xl">🍪</span>
           <div>
@@ -44,7 +44,7 @@ export default function CookieConsent() {
               We use essential cookies to run the store (cart, login, checkout). With your
               permission we'd also like to use privacy-aware analytics to improve the shop.
               No payment data is ever stored in cookies.{" "}
-              <a href="/privacy" className="text-emerald-700 font-semibold underline decoration-dotted">
+              <a href="/privacy" className="text-blue-700 font-semibold underline decoration-dotted">
                 Privacy & cookie policy
               </a>
             </p>
@@ -54,7 +54,7 @@ export default function CookieConsent() {
         {customize && (
           <div className="mb-4 space-y-2 border-t border-slate-100 pt-3">
             <label className="flex items-center gap-3 text-sm">
-              <input type="checkbox" checked disabled className="accent-emerald-600" />
+              <input type="checkbox" checked disabled className="accent-blue-600" />
               <span>
                 <span className="font-semibold text-slate-900">Essential</span>{" "}
                 <span className="text-slate-500">— login, cart, checkout, security (always on)</span>
@@ -65,7 +65,7 @@ export default function CookieConsent() {
                 type="checkbox"
                 checked={analytics}
                 onChange={(e) => setAnalytics(e.target.checked)}
-                className="accent-emerald-600"
+                className="accent-blue-600"
               />
               <span>
                 <span className="font-semibold text-slate-900">Analytics</span>{" "}
@@ -77,7 +77,7 @@ export default function CookieConsent() {
                 type="checkbox"
                 checked={marketing}
                 onChange={(e) => setMarketing(e.target.checked)}
-                className="accent-emerald-600"
+                className="accent-blue-600"
               />
               <span>
                 <span className="font-semibold text-slate-900">Marketing</span>{" "}
@@ -90,7 +90,7 @@ export default function CookieConsent() {
         <div className="flex flex-wrap gap-2">
           <button
             onClick={() => finish({ essential: true, analytics: true, marketing: true })}
-            className="px-5 py-2.5 rounded-lg bg-emerald-600 text-white text-sm font-bold hover:bg-emerald-700"
+            className="px-5 py-2.5 rounded-lg bg-blue-600 text-white text-sm font-bold hover:bg-blue-700"
           >
             Accept all
           </button>
@@ -110,7 +110,7 @@ export default function CookieConsent() {
           ) : (
             <button
               onClick={() => setCustomize(true)}
-              className="px-5 py-2.5 rounded-lg text-sm font-semibold text-emerald-700 hover:underline"
+              className="px-5 py-2.5 rounded-lg text-sm font-semibold text-blue-700 hover:underline"
             >
               Customize
             </button>

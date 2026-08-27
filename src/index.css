@@ -30,8 +30,8 @@ body {
   border: 1px solid #1e293b;
   box-shadow: 0 4px 16px rgba(15, 23, 42, 0.12);
 }
-.neon-glow { box-shadow: 0 6px 18px rgba(16, 185, 129, 0.16); }
-.neon-glow-soft { box-shadow: 0 4px 12px rgba(16, 185, 129, 0.12); }
+.neon-glow { box-shadow: 0 6px 18px rgba(37, 99, 235, 0.18); }
+.neon-glow-soft { box-shadow: 0 4px 12px rgba(37, 99, 235, 0.14); }
 
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }

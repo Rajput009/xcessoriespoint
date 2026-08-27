@@ -58,8 +58,8 @@ function CountdownBoxes() {
 
 /* ---------- 1. Hero ---------- */
 // Promotional poster artwork stays fixed behind the live product content.
-// Brand-matched poster artwork: emerald, teal, slate and soft mint only.
-const HERO_BACKGROUND = "/img/hero-theme-poster.webp?v=1";
+// Brand-matched poster artwork: blue, indigo, slate and soft sky only.
+const HERO_BACKGROUND = "/img/hero-blue-poster.webp?v=1";
 
 /* Design defaults (marketing copy + art direction). When Admin → Settings sets
  * `heroSlide1..3` to product IDs, the price, image and link come from the LIVE
@@ -180,7 +180,7 @@ export function HeroSection() {
               >
                 {/* text */}
                 <div className="relative z-10 text-center lg:text-left order-2 lg:order-1">
-                  <p className="text-xs font-bold uppercase tracking-widest text-lime-300 mb-4">
+                  <p className="text-xs font-bold uppercase tracking-widest text-sky-300 mb-4">
                     {sl.tag}
                   </p>
                   <h1 className="text-2xl md:text-4xl font-black text-white leading-tight mb-4 drop-shadow-[0_3px_18px_rgba(0,0,0,0.45)]">
@@ -196,7 +196,7 @@ export function HeroSection() {
                   <button
                     onClick={() => navigate(sl.productId ? `/product/${sl.productId}` : `/category/${sl.cat}`)}
                     tabIndex={active ? 0 : -1}
-                    className="px-8 py-3.5 rounded-full bg-white text-slate-900 font-bold hover:bg-lime-300 hover:text-slate-950 transition-colors shadow-xl shadow-black/25"
+                    className="px-8 py-3.5 rounded-full bg-white text-slate-900 font-bold hover:bg-sky-300 hover:text-slate-950 transition-colors shadow-xl shadow-black/25"
                   >
                     Shop Now →
                   </button>
@@ -229,7 +229,7 @@ export function HeroSection() {
               onClick={() => setSlide(i)}
               aria-label={`Slide ${i + 1}`}
               className={`h-2 rounded-full transition-all ${
-                i === slide ? "w-8 bg-lime-300" : "w-2 bg-white/50 hover:bg-white/80"
+                i === slide ? "w-8 bg-sky-300" : "w-2 bg-white/50 hover:bg-white/80"
               }`}
             />
           ))}
@@ -241,7 +241,7 @@ export function HeroSection() {
             <button
               key={p.id}
               onClick={() => navigate("/shop")}
-              className="snap-start shrink-0 w-72 lg:w-auto bg-white border border-white/50 rounded-lg p-2 flex items-center gap-3 shadow-xl shadow-emerald-950/15 hover:bg-white hover:-translate-y-0.5 transition text-left"
+              className="snap-start shrink-0 w-72 lg:w-auto bg-white border border-white/50 rounded-lg p-2 flex items-center gap-3 shadow-xl shadow-blue-950/15 hover:bg-white hover:-translate-y-0.5 transition text-left"
             >
               <img src={p.image} alt="" className="w-16 h-16 rounded-lg object-cover ring-1 ring-white/50" />
               <div className="min-w-0">
@@ -263,7 +263,7 @@ export function HeroSection() {
 /* ---------- 2. CategoryIcons (compact scrollable image tiles) ---------- */
 const CAT_IMG: Record<string, { img: string; count: string; tint: string; text: string }> = {
   audio: { img: "/img/cat-audio.webp", count: "Earbuds & headphones", tint: "bg-violet-100/70", text: "group-hover:text-violet-700" },
-  wearables: { img: "/img/cat-wearables.webp", count: "Watches & bands", tint: "bg-emerald-100/70", text: "group-hover:text-emerald-700" },
+  wearables: { img: "/img/cat-wearables.webp", count: "Watches & bands", tint: "bg-blue-100/70", text: "group-hover:text-blue-700" },
   power: { img: "/img/cat-power.webp", count: "Banks & chargers", tint: "bg-amber-100/70", text: "group-hover:text-amber-700" },
   cases: { img: "/img/cat-cases.webp", count: "Covers & protection", tint: "bg-rose-100/70", text: "group-hover:text-rose-700" },
   cables: { img: "/img/cat-cables.webp", count: "Cables & hubs", tint: "bg-cyan-100/70", text: "group-hover:text-cyan-700" },
@@ -286,14 +286,14 @@ export function CategoryIcons() {
         <div className="hidden md:flex gap-2">
           <button
             onClick={() => scrollBy(-1)}
-            className="w-9 h-9 rounded-full surface-muted text-slate-600 hover:text-emerald-700 hover:shadow-md flex items-center justify-center transition-all"
+            className="w-9 h-9 rounded-full surface-muted text-slate-600 hover:text-blue-700 hover:shadow-md flex items-center justify-center transition-all"
             aria-label="Scroll left"
           >
             ‹
           </button>
           <button
             onClick={() => scrollBy(1)}
-            className="w-9 h-9 rounded-full border border-slate-200 bg-white text-slate-500 hover:border-emerald-500 hover:text-emerald-600 flex items-center justify-center transition-colors"
+            className="w-9 h-9 rounded-full border border-slate-200 bg-white text-slate-500 hover:border-blue-500 hover:text-blue-600 flex items-center justify-center transition-colors"
             aria-label="Scroll right"
           >
             ›
@@ -313,7 +313,7 @@ export function CategoryIcons() {
             <Link
               key={c.id}
               to={`/category/${c.id}`}
-              className="group snap-start shrink-0 w-36 md:w-44 flex flex-col rounded-2xl surface-muted overflow-hidden hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-500/15 hover:ring-2 hover:ring-emerald-400/50 transition-all"
+              className="group snap-start shrink-0 w-36 md:w-44 flex flex-col rounded-2xl surface-muted overflow-hidden hover:-translate-y-1 hover:shadow-xl hover:shadow-blue-500/15 hover:ring-2 hover:ring-blue-400/50 transition-all"
             >
               <span className={`relative block aspect-square p-3 ${meta?.tint ?? "bg-white"}`}>
                 {tile ? (
@@ -346,13 +346,13 @@ export function CategoryIcons() {
         {/* view-all tile */}
         <Link
           to="/shop"
-          className="group snap-start shrink-0 w-36 md:w-44 rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-700 text-white flex flex-col items-center justify-center gap-2 hover:-translate-y-1 hover:shadow-lg transition-all"
+          className="group snap-start shrink-0 w-36 md:w-44 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white flex flex-col items-center justify-center gap-2 hover:-translate-y-1 hover:shadow-lg transition-all"
         >
           <span className="w-10 h-10 rounded-full bg-white/15 flex items-center justify-center text-lg group-hover:bg-white/25 transition-colors">
             →
           </span>
           <span className="text-xs font-black uppercase tracking-wide">View all</span>
-          <span className="text-[10px] text-emerald-100">Full catalog</span>
+          <span className="text-[10px] text-blue-100">Full catalog</span>
         </Link>
       </div>
     </section>
@@ -387,8 +387,8 @@ export function BestSelling() {
                 onClick={() => setTab(c.id)}
                 className={`px-4 py-2 rounded-full text-sm font-semibold transition ${
                   tab === c.id
-                    ? "bg-emerald-600 text-white neon-glow-soft"
-                    : "surface-muted text-slate-600 hover:text-emerald-700"
+                    ? "bg-blue-600 text-white neon-glow-soft"
+                    : "surface-muted text-slate-600 hover:text-blue-700"
                 }`}
               >
                 {c.name}
@@ -449,7 +449,7 @@ function DealCard({ id }: { id: number }) {
             <span>Only {p.stock} left</span>
           </div>
           <div className="h-2 rounded-full bg-white/20 overflow-hidden">
-            <div className="h-full bg-lime-300" style={{ width: `${soldPct}%` }} />
+            <div className="h-full bg-sky-300" style={{ width: `${soldPct}%` }} />
           </div>
         </div>
         {saleEnd !== null && (
@@ -460,7 +460,7 @@ function DealCard({ id }: { id: number }) {
         <div className="flex gap-2 mt-3">
           <button
             onClick={() => add(p)}
-            className="flex-1 py-2 rounded-lg bg-white text-emerald-800 text-sm font-bold hover:bg-emerald-950 hover:text-white transition"
+            className="flex-1 py-2 rounded-lg bg-white text-blue-800 text-sm font-bold hover:bg-blue-950 hover:text-white transition"
           >
             Add to Cart
           </button>
@@ -492,20 +492,20 @@ export function DealsOfDay() {
   ];
   return (
     <section className="max-w-7xl mx-auto px-6 py-10">
-      <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-emerald-600 via-teal-600 to-emerald-800 p-5 md:p-8">
+      <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-blue-600 via-indigo-600 to-blue-800 p-5 md:p-8">
         {/* light blooms */}
         <div className="relative grid lg:grid-cols-3 gap-5">
           <div className="flex flex-col justify-center text-white py-4">
-            <p className="text-xs font-bold uppercase tracking-widest text-emerald-200 mb-2">
+            <p className="text-xs font-bold uppercase tracking-widest text-blue-200 mb-2">
               XccessoriesPoint
             </p>
             <h2 className="text-3xl font-black mb-3">Deals of the Day</h2>
-            <p className="text-emerald-100/90 text-sm mb-6">
+            <p className="text-blue-100/90 text-sm mb-6">
               Hand-picked offers refreshed every 24 hours. When they're gone, they're gone.
             </p>
             <button
               onClick={() => navigate("/shop")}
-              className="self-start px-6 py-2.5 rounded-full bg-white/20  border border-white/30 text-white font-bold hover:bg-white hover:text-emerald-800 transition"
+              className="self-start px-6 py-2.5 rounded-full bg-white/20  border border-white/30 text-white font-bold hover:bg-white hover:text-blue-800 transition"
             >
               View All Offers →
             </button>

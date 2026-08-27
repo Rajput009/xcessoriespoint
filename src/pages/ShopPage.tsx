@@ -120,8 +120,8 @@ export default function ShopPage() {
       onClick={() => setCat(id)}
       className={`text-left px-4 py-2.5 rounded-lg text-sm font-medium transition whitespace-nowrap ${
         cat === id
-          ? "bg-emerald-600 text-white neon-glow-soft"
-          : "surface-muted text-slate-600 hover:text-emerald-700 lg:bg-transparent lg:border-transparent lg:hover:bg-white/50"
+          ? "bg-blue-600 text-white neon-glow-soft"
+          : "surface-muted text-slate-600 hover:text-blue-700 lg:bg-transparent lg:border-transparent lg:hover:bg-white/50"
       }`}
     >
       {name}
@@ -132,7 +132,7 @@ export default function ShopPage() {
     <main id="main-content" className="pt-[120px] md:pt-44 max-w-7xl mx-auto px-6 pb-10">
       {/* breadcrumb */}
       <nav className="text-xs text-slate-400 mb-3">
-        <Link to="/" className="hover:text-emerald-600">Home</Link>
+        <Link to="/" className="hover:text-blue-600">Home</Link>
         <span className="mx-1.5">/</span>
         <span className="text-slate-600 font-medium">Shop</span>
       </nav>
@@ -165,7 +165,7 @@ export default function ShopPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search in shop…"
-              className="flex-1 rounded-xl surface-muted px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-300/60"
+              className="flex-1 rounded-xl surface-muted px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-300/60"
             />
             <select
               value={sort}
@@ -192,7 +192,7 @@ export default function ShopPage() {
             <button
               onClick={() => setInStockOnly((v) => !v)}
               className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition ${
-                inStockOnly ? "bg-emerald-600 text-white neon-glow-soft" : "surface-muted text-slate-600"
+                inStockOnly ? "bg-blue-600 text-white neon-glow-soft" : "surface-muted text-slate-600"
               }`}
             >
               ✓ In stock
@@ -200,7 +200,7 @@ export default function ShopPage() {
             <button
               onClick={() => setTopRatedOnly((v) => !v)}
               className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition ${
-                topRatedOnly ? "bg-emerald-600 text-white neon-glow-soft" : "surface-muted text-slate-600"
+                topRatedOnly ? "bg-blue-600 text-white neon-glow-soft" : "surface-muted text-slate-600"
               }`}
             >
               ★ 4+ rated
@@ -210,7 +210,7 @@ export default function ShopPage() {
           {/* synonym interpretation notice (Urdu / Roman-Urdu / market terms) */}
           {searchQuery.trim() && !fuzzyUsed && interpretedAs && list.length > 0 && (
             <div className="surface-muted rounded-xl px-4 py-2.5 mb-4 text-sm text-slate-600">
-              Showing results for "<span className="font-bold text-emerald-700">{interpretedAs}</span>"
+              Showing results for "<span className="font-bold text-blue-700">{interpretedAs}</span>"
               <span className="text-slate-400"> (searched: "{searchQuery}")</span>
             </div>
           )}
@@ -224,7 +224,7 @@ export default function ShopPage() {
                   {" "}Did you mean{" "}
                   <button
                     onClick={() => setSearchQuery(suggestion)}
-                    className="font-bold text-emerald-700 underline decoration-dotted hover:text-emerald-800"
+                    className="font-bold text-blue-700 underline decoration-dotted hover:text-blue-800"
                   >
                     {suggestion}
                   </button>
@@ -240,7 +240,7 @@ export default function ShopPage() {
               {loading ? "Loading products…" : `${list.length} product${list.length === 1 ? "" : "s"}`}
             </p>
             {(cat !== "all" || searchQuery || sort !== "featured" || priceBand !== "all" || inStockOnly || topRatedOnly) && (
-              <button onClick={clear} className="text-sm font-semibold text-emerald-600 hover:underline">
+              <button onClick={clear} className="text-sm font-semibold text-blue-600 hover:underline">
                 Clear filters
               </button>
             )}
@@ -263,7 +263,7 @@ export default function ShopPage() {
                     Did you mean{" "}
                     <button
                       onClick={() => setSearchQuery(suggestion)}
-                      className="font-bold text-emerald-700 underline decoration-dotted hover:text-emerald-800"
+                      className="font-bold text-blue-700 underline decoration-dotted hover:text-blue-800"
                     >
                       {suggestion}
                     </button>
@@ -274,7 +274,7 @@ export default function ShopPage() {
                 )}
                 <button
                   onClick={clear}
-                  className="px-6 py-2.5 rounded-lg bg-emerald-600 text-white font-semibold hover:bg-emerald-700"
+                  className="px-6 py-2.5 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700"
                 >
                   Clear filters
                 </button>
@@ -298,7 +298,7 @@ export default function ShopPage() {
                 <div className="text-center mt-8">
                   <button
                     onClick={() => setVisible((v) => v + 12)}
-                    className="px-8 py-3 rounded-full surface font-bold text-slate-700 hover:text-emerald-700 hover:shadow-lg transition-all"
+                    className="px-8 py-3 rounded-full surface font-bold text-slate-700 hover:text-blue-700 hover:shadow-lg transition-all"
                   >
                     Load more ({list.length - visible} remaining)
                   </button>

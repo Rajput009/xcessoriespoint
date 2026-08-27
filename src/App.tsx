@@ -68,7 +68,7 @@ function NotFound() {
         <p className="text-sm text-slate-500 mb-6">The page you're looking for doesn't exist — but these do:</p>
         <Link
           to="/shop"
-          className="px-6 py-2.5 rounded-lg bg-emerald-600 text-white font-semibold hover:bg-emerald-700"
+          className="px-6 py-2.5 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700"
         >
           Browse the shop
         </Link>

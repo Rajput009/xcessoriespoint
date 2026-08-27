@@ -19,7 +19,7 @@ const PAY_METHODS = [
 
 /* Shopify-style field styling */
 const field =
-  "w-full rounded-md border border-slate-300 bg-white px-3.5 py-3 text-[15px] text-slate-900 placeholder:text-transparent outline-none transition focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/25";
+  "w-full rounded-md border border-slate-300 bg-white px-3.5 py-3 text-[15px] text-slate-900 placeholder:text-transparent outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-600/25";
 
 /** Floating-label input, the way Shopify checkout renders its fields. */
 function Field({
@@ -372,14 +372,14 @@ export default function CheckoutPage() {
       {/* discount code */}
       <div className="mt-6">
         {coupon ? (
-          <div className="flex items-center justify-between rounded-md bg-emerald-50 border border-emerald-200 px-3 py-2">
-            <span className="text-[13px] font-semibold text-emerald-800">🏷️ {coupon.code} applied</span>
+          <div className="flex items-center justify-between rounded-md bg-blue-50 border border-blue-200 px-3 py-2">
+            <span className="text-[13px] font-semibold text-blue-800">🏷️ {coupon.code} applied</span>
             <button
               onClick={() => {
                 setCoupon(null);
                 setCouponInput("");
               }}
-              className="text-xs text-emerald-700 hover:underline"
+              className="text-xs text-blue-700 hover:underline"
             >
               Remove
             </button>
@@ -390,7 +390,7 @@ export default function CheckoutPage() {
               value={couponInput}
               onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
               placeholder="Discount code"
-              className="flex-1 min-w-0 rounded-md border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20"
+              className="flex-1 min-w-0 rounded-md border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20"
             />
             <button
               onClick={applyCoupon}
@@ -427,7 +427,7 @@ export default function CheckoutPage() {
       <header className="border-b border-slate-200 bg-white">
         <div className="max-w-[1180px] mx-auto px-5 lg:px-8 py-4 flex items-center justify-between">
           <Link to="/" className="text-xl font-black tracking-tight">
-            Xccessories<span className="text-emerald-600">Point</span>
+            Xccessories<span className="text-blue-600">Point</span>
           </Link>
           <span className="hidden sm:flex items-center gap-1.5 text-xs text-slate-500">🔒 Secure checkout</span>
         </div>
@@ -436,7 +436,7 @@ export default function CheckoutPage() {
       {/* mobile order summary accordion */}
       <div className="lg:hidden bg-[#fafafa] border-b border-slate-200">
         <button onClick={() => setSummaryOpen((v) => !v)} className="w-full max-w-[560px] mx-auto flex items-center justify-between px-5 py-4">
-          <span className="flex items-center gap-2 text-sm text-emerald-700 font-medium">
+          <span className="flex items-center gap-2 text-sm text-blue-700 font-medium">
             🛒 {summaryOpen ? "Hide" : "Show"} order summary
             <span className={`transition-transform ${summaryOpen ? "rotate-180" : ""}`}>▾</span>
           </span>
@@ -458,7 +458,7 @@ export default function CheckoutPage() {
           <div className="max-w-[560px] lg:ml-auto px-5 lg:px-10 py-8 lg:py-10">
             {/* breadcrumb (single-page checkout — every step is on this page) */}
             <nav className="flex flex-wrap items-center gap-2 text-[13px] text-slate-400 mb-6">
-              <Link to="/shop" className="text-emerald-700 hover:underline">Cart</Link>
+              <Link to="/shop" className="text-blue-700 hover:underline">Cart</Link>
               <span>›</span>
               <span className="text-slate-900 font-medium">Information</span>
               <span>›</span>
@@ -472,7 +472,7 @@ export default function CheckoutPage() {
                 <div className="text-5xl mb-3">🛒</div>
                 <p className="font-bold mb-1">Your cart is empty</p>
                 <p className="text-sm text-slate-500 mb-5">Add a few accessories and come back.</p>
-                <Link to="/shop" className="inline-block px-6 py-3 rounded-md bg-emerald-600 text-white font-semibold hover:bg-emerald-700">
+                <Link to="/shop" className="inline-block px-6 py-3 rounded-md bg-blue-600 text-white font-semibold hover:bg-blue-700">
                   Continue shopping
                 </Link>
               </div>
@@ -483,7 +483,7 @@ export default function CheckoutPage() {
                   <div className="flex items-baseline justify-between mb-1">
                     <h2 className="text-[17px] font-semibold">Contact</h2>
                     {!user && (
-                      <Link to="/" className="text-[13px] text-emerald-700 hover:underline">
+                      <Link to="/" className="text-[13px] text-blue-700 hover:underline">
                         Have an account? Log in
                       </Link>
                     )}
@@ -515,7 +515,7 @@ export default function CheckoutPage() {
                           error={showErrors ? errors.email : null}
                         />
                         <label className="flex items-center gap-2.5 text-[13px] text-slate-600">
-                          <input type="checkbox" checked={newsletter} onChange={(e) => setNewsletter(e.target.checked)} className="w-4 h-4 accent-emerald-600" />
+                          <input type="checkbox" checked={newsletter} onChange={(e) => setNewsletter(e.target.checked)} className="w-4 h-4 accent-blue-600" />
                           Email me with news and offers
                         </label>
                       </div>
@@ -534,7 +534,7 @@ export default function CheckoutPage() {
                           key={a.id}
                           type="button"
                           onClick={() => applySaved(a)}
-                          className="px-3 py-2 rounded-md border border-slate-300 text-left text-xs hover:border-emerald-500"
+                          className="px-3 py-2 rounded-md border border-slate-300 text-left text-xs hover:border-blue-500"
                         >
                           <span className="block font-bold text-slate-900">{a.city}</span>
                           <span className="block text-slate-500 max-w-[180px] truncate">{a.address}</span>
@@ -550,7 +550,7 @@ export default function CheckoutPage() {
                       <select
                         value={city}
                         onChange={(e) => setCity(e.target.value)}
-                        className="w-full rounded-md border border-slate-300 bg-white px-3.5 pt-6 pb-1.5 text-[15px] outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/25"
+                        className="w-full rounded-md border border-slate-300 bg-white px-3.5 pt-6 pb-1.5 text-[15px] outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-600/25"
                       >
                         {CITIES.map((c) => (
                           <option key={c}>{c}</option>
@@ -578,7 +578,7 @@ export default function CheckoutPage() {
                       </div>
                     </details>
                     <label className="flex items-center gap-2.5 text-[13px] text-slate-600">
-                      <input type="checkbox" checked={saveInfo} onChange={(e) => setSaveInfo(e.target.checked)} className="w-4 h-4 accent-emerald-600" />
+                      <input type="checkbox" checked={saveInfo} onChange={(e) => setSaveInfo(e.target.checked)} className="w-4 h-4 accent-blue-600" />
                       Save this information for next time
                     </label>
                   </div>
@@ -587,7 +587,7 @@ export default function CheckoutPage() {
                 {/* shipping method */}
                 <section className="mb-8">
                   <h2 className="text-[17px] font-semibold mb-3">Shipping method</h2>
-                  <div className="flex items-center justify-between rounded-md border-2 border-emerald-600 bg-emerald-50/60 px-4 py-3.5">
+                  <div className="flex items-center justify-between rounded-md border-2 border-blue-600 bg-blue-50/60 px-4 py-3.5">
                     <span className="text-sm">
                       <span className="block font-semibold text-slate-900">Standard courier</span>
                       <span className="block text-xs text-slate-500">TCS / Leopards · {deliveryRange} working days</span>
@@ -612,7 +612,7 @@ export default function CheckoutPage() {
                               disabled
                                 ? "cursor-not-allowed opacity-55"
                                 : payment === m.id
-                                ? "cursor-pointer bg-emerald-50/70"
+                                ? "cursor-pointer bg-blue-50/70"
                                 : "cursor-pointer hover:bg-slate-50"
                             }`}
                           >
@@ -622,7 +622,7 @@ export default function CheckoutPage() {
                               disabled={disabled}
                               checked={payment === m.id}
                               onChange={() => setPayment(m.id)}
-                              className="w-4 h-4 accent-emerald-600"
+                              className="w-4 h-4 accent-blue-600"
                             />
                             <span className="text-lg">{m.icon}</span>
                             <span className="flex-1">
@@ -632,12 +632,12 @@ export default function CheckoutPage() {
                             {disabled && <span className="text-[10px] font-bold uppercase tracking-wide text-slate-400">Coming soon</span>}
                           </label>
                         {payment === m.id && m.id === "whatsapp" && (
-                          <div className="bg-[#f6fdf8] border-t border-emerald-100 px-4 py-4">
+                          <div className="bg-[#f6fdf8] border-t border-blue-100 px-4 py-4">
                             <p className="text-[13px] text-slate-600 mb-2">
                               Placing the order opens WhatsApp with everything below pre-written to{" "}
                               <span className="font-semibold">+{WHATSAPP_NUMBER}</span> — just press send. Email is optional for this option.
                             </p>
-                            <pre className="max-h-40 overflow-auto whitespace-pre-wrap rounded-md border border-emerald-100 bg-white p-3 text-[11px] leading-relaxed text-slate-600">
+                            <pre className="max-h-40 overflow-auto whitespace-pre-wrap rounded-md border border-blue-100 bg-white p-3 text-[11px] leading-relaxed text-slate-600">
                               {waMessage}
                             </pre>
                           </div>
@@ -648,9 +648,9 @@ export default function CheckoutPage() {
                   </div>
                 </section>
 
-                <div className="mb-4 rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3">
-                  <p className="text-sm font-bold text-emerald-900">💵 Cash on Delivery across Pakistan</p>
-                  <p className="mt-1 text-xs leading-relaxed text-emerald-800">We’ll call to confirm your order before dispatch. Pay the courier only after you receive the parcel.</p>
+                <div className="mb-4 rounded-md border border-blue-200 bg-blue-50 px-4 py-3">
+                  <p className="text-sm font-bold text-blue-900">💵 Cash on Delivery across Pakistan</p>
+                  <p className="mt-1 text-xs leading-relaxed text-blue-800">We’ll call to confirm your order before dispatch. Pay the courier only after you receive the parcel.</p>
                 </div>
 
                 {/* submit */}
@@ -658,7 +658,7 @@ export default function CheckoutPage() {
                   onClick={submit}
                   disabled={busy}
                   className={`w-full rounded-md py-4 text-[15px] font-bold text-white transition disabled:opacity-60 ${
-                    isWhatsApp ? "bg-[#25D366] hover:brightness-95" : "bg-slate-900 hover:bg-emerald-700"
+                    isWhatsApp ? "bg-[#25D366] hover:brightness-95" : "bg-slate-900 hover:bg-blue-700"
                   }`}
                 >
                   {busy ? (
@@ -680,7 +680,7 @@ export default function CheckoutPage() {
                   <span>✓ No account needed</span>
                 </div>
 
-                <footer className="mt-8 border-t border-slate-200 pt-5 flex flex-wrap gap-4 text-[12px] text-emerald-700">
+                <footer className="mt-8 border-t border-slate-200 pt-5 flex flex-wrap gap-4 text-[12px] text-blue-700">
                   <Link to="/returns" className="hover:underline">Refund policy</Link>
                   <Link to="/privacy" className="hover:underline">Privacy policy</Link>
                   <Link to="/terms" className="hover:underline">Terms of service</Link>
@@ -696,7 +696,7 @@ export default function CheckoutPage() {
 
 function Row({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
   return (
-    <div className={`flex justify-between ${accent ? "text-emerald-700 font-semibold" : "text-slate-600"}`}>
+    <div className={`flex justify-between ${accent ? "text-blue-700 font-semibold" : "text-slate-600"}`}>
       <span>{label}</span>
       <span className={accent ? "" : "text-slate-900"}>{value}</span>
     </div>
@@ -765,7 +765,7 @@ function ThankYou({
       <header className="border-b border-slate-200">
         <div className="max-w-[1180px] mx-auto px-5 lg:px-8 py-4">
           <Link to="/" className="text-xl font-black tracking-tight">
-            Xccessories<span className="text-emerald-600">Point</span>
+            Xccessories<span className="text-blue-600">Point</span>
           </Link>
         </div>
       </header>
@@ -796,11 +796,11 @@ function ThankYou({
         <main id="main-content" className="lg:order-1">
           <div className="max-w-[560px] lg:ml-auto px-5 lg:px-10 py-10 fade-up">
             <div className="flex items-start gap-4">
-              <span className="w-11 h-11 rounded-full bg-emerald-600 text-white flex items-center justify-center text-xl shrink-0">✓</span>
+              <span className="w-11 h-11 rounded-full bg-blue-600 text-white flex items-center justify-center text-xl shrink-0">✓</span>
               <div>
                 <p className="text-sm text-slate-500">
                   Order <span className="font-semibold text-slate-700 select-all">{order.id}</span>
-                  <button onClick={onCopy} className="ml-2 text-xs font-bold text-emerald-700 hover:underline">Copy</button>
+                  <button onClick={onCopy} className="ml-2 text-xs font-bold text-blue-700 hover:underline">Copy</button>
                 </p>
                 <h1 className="text-2xl font-bold text-slate-900 mt-0.5">Thank you, {meta.name.split(" ")[0] || "friend"}!</h1>
               </div>
@@ -835,7 +835,7 @@ function ThankYou({
                       <div className="flex flex-col items-center">
                         <span
                           className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 ${
-                            s.done ? "bg-emerald-600 text-white" : "border-2 border-slate-200 text-transparent"
+                            s.done ? "bg-blue-600 text-white" : "border-2 border-slate-200 text-transparent"
                           }`}
                         >
                           ✓
@@ -843,7 +843,7 @@ function ThankYou({
                         {i < arr.length - 1 && <span className="w-px flex-1 bg-slate-200 my-0.5" />}
                       </div>
                       <div className={i < arr.length - 1 ? "pb-4" : ""}>
-                        <p className={`text-sm font-semibold leading-5 ${s.done ? "text-emerald-700" : "text-slate-700"}`}>
+                        <p className={`text-sm font-semibold leading-5 ${s.done ? "text-blue-700" : "text-slate-700"}`}>
                           {s.label}
                         </p>
                         <p className="text-xs text-slate-400">{s.sub}</p>
@@ -922,14 +922,14 @@ function ThankYou({
               <button onClick={() => printInvoice(order, meta, () => push("Popup blocked — allow popups to print the invoice", "error"))} className="flex-1 min-w-[160px] rounded-md border border-slate-300 py-3 text-sm font-semibold hover:bg-slate-50">
                 🧾 Download invoice
               </button>
-              <button onClick={onShop} className="flex-1 min-w-[160px] rounded-md bg-slate-900 py-3 text-sm font-semibold text-white hover:bg-emerald-700">
+              <button onClick={onShop} className="flex-1 min-w-[160px] rounded-md bg-slate-900 py-3 text-sm font-semibold text-white hover:bg-blue-700">
                 Continue shopping
               </button>
             </div>
 
             {/* one-click account upgrade — pre-filled with the details just used */}
             {showUpgrade && !acctDone && (
-              <div className="mt-5 rounded-lg border border-emerald-200 bg-emerald-50/60 p-5">
+              <div className="mt-5 rounded-lg border border-blue-200 bg-blue-50/60 p-5">
                 <p className="font-semibold text-slate-900 text-sm">Save your details & track orders</p>
                 <p className="text-xs text-slate-500 mt-0.5 mb-3">
                   Create a password for <span className="font-semibold text-slate-700">{meta.email}</span> — your
@@ -944,30 +944,30 @@ function ThankYou({
                       onKeyDown={(e) => e.key === "Enter" && createAccount()}
                       placeholder="Choose a password (6+ characters)"
                       autoComplete="new-password"
-                      className="flex-1 rounded-md border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-emerald-500 bg-white"
+                      className="flex-1 rounded-md border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-blue-500 bg-white"
                     />
                     <button
                       onClick={createAccount}
                       disabled={pwBusy}
-                      className="rounded-md bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-emerald-700 disabled:opacity-50 whitespace-nowrap"
+                      className="rounded-md bg-blue-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-blue-700 disabled:opacity-50 whitespace-nowrap"
                     >
                       {pwBusy ? "Creating…" : "Create account"}
                     </button>
                   </div>
                 ) : (
-                  <button onClick={() => setPwOpen(true)} className="text-sm font-bold text-emerald-700 hover:underline">
+                  <button onClick={() => setPwOpen(true)} className="text-sm font-bold text-blue-700 hover:underline">
                     Yes, save my details →
                   </button>
                 )}
               </div>
             )}
             {acctDone && (
-              <p className="mt-4 text-sm font-semibold text-emerald-700">✓ Account created — your address is saved for next time.</p>
+              <p className="mt-4 text-sm font-semibold text-blue-700">✓ Account created — your address is saved for next time.</p>
             )}
 
             <p className="mt-6 text-sm text-slate-500">
               Need help?{" "}
-              <button onClick={onHome} className="text-emerald-700 hover:underline">
+              <button onClick={onHome} className="text-blue-700 hover:underline">
                 Back to store
               </button>
             </p>

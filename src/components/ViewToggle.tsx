@@ -20,7 +20,7 @@ export default function ViewToggle({ view, onChange }: ViewToggleProps) {
         aria-pressed={view === "grid"}
         aria-label="Grid view"
         title="Grid view"
-        className={`flex h-8 w-8 items-center justify-center rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500 ${
+        className={`flex h-8 w-8 items-center justify-center rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 ${
           view === "grid" ? "bg-slate-900 text-white" : "text-slate-500 hover:bg-slate-100 hover:text-slate-900"
         }`}
       >
@@ -32,7 +32,7 @@ export default function ViewToggle({ view, onChange }: ViewToggleProps) {
         aria-pressed={view === "list"}
         aria-label="List view"
         title="List view"
-        className={`flex h-8 w-8 items-center justify-center rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500 ${
+        className={`flex h-8 w-8 items-center justify-center rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 ${
           view === "list" ? "bg-slate-900 text-white" : "text-slate-500 hover:bg-slate-100 hover:text-slate-900"
         }`}
       >

@@ -16,7 +16,7 @@ export default function FloatingButtons() {
     <>
       <button
         onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-        className="fixed bottom-36 md:bottom-6 right-4 z-30 w-12 h-12 rounded-full bg-slate-900 text-white shadow-lg hover:bg-emerald-600 transition-colors flex items-center justify-center fade-up"
+        className="fixed bottom-36 md:bottom-6 right-4 z-30 w-12 h-12 rounded-full bg-slate-900 text-white shadow-lg hover:bg-blue-600 transition-colors flex items-center justify-center fade-up"
         aria-label="Back to top"
       >
         <ArrowUpIcon size={20} />

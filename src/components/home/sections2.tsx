@@ -61,7 +61,7 @@ export function ReviewsSummary() {
         {REVIEWS.slice(0, 2).map((r) => (
           <div key={r.name} className="surface rounded-2xl p-6 flex flex-col">
             <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold">
+              <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold">
                 {r.name.charAt(0)}
               </div>
               <div>
@@ -72,7 +72,7 @@ export function ReviewsSummary() {
             </div>
             <Stars rating={r.rating} size="text-sm" />
             <p className="text-sm text-slate-600 mt-2 leading-relaxed">{r.text}</p>
-            <p className="mt-auto pt-3 text-xs text-emerald-600 font-semibold">✓ Verified purchase</p>
+            <p className="mt-auto pt-3 text-xs text-blue-600 font-semibold">✓ Verified purchase</p>
           </div>
         ))}
       </div>
@@ -137,7 +137,7 @@ export function NewArrivalsCarousel() {
             <button
               key={i}
               onClick={() => setBanner(i)}
-              className={`h-1.5 rounded-full transition-all ${i === banner ? "w-6 bg-emerald-600" : "w-1.5 bg-slate-300"}`}
+              className={`h-1.5 rounded-full transition-all ${i === banner ? "w-6 bg-blue-600" : "w-1.5 bg-slate-300"}`}
               aria-label={`Banner ${i + 1}`}
             />
           ))}
@@ -150,7 +150,7 @@ export function NewArrivalsCarousel() {
           <img src="/img/lifestyle.jpg" alt="Lifestyle" className="absolute inset-0 w-full h-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-t from-slate-900/70 via-transparent flex flex-col justify-end p-6 text-white">
             <p className="text-2xl font-black leading-tight">Your everyday carry, upgraded.</p>
-            <Link to="/shop" className="mt-3 text-sm font-bold text-emerald-300 hover:text-emerald-200">
+            <Link to="/shop" className="mt-3 text-sm font-bold text-blue-300 hover:text-blue-200">
               Explore all →
             </Link>
           </div>
@@ -206,7 +206,7 @@ export function VideoStrip() {
             <img src={r.img} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
             <div className="absolute inset-0 bg-gradient-to-t from-slate-900/70 via-transparent" />
             <div className="absolute inset-0 flex items-center justify-center">
-              <span className="w-12 h-12 rounded-full bg-white/90 flex items-center justify-center text-emerald-700 text-lg shadow-lg group-hover:scale-110 transition">
+              <span className="w-12 h-12 rounded-full bg-white/90 flex items-center justify-center text-blue-700 text-lg shadow-lg group-hover:scale-110 transition">
                 ▶
               </span>
             </div>
@@ -252,7 +252,7 @@ export function FaqSection() {
               aria-expanded={open === i}
             >
               <span className="font-bold text-slate-900 text-sm">{f.q}</span>
-              <span className={`text-emerald-600 transition-transform ${open === i ? "rotate-45" : ""}`}>＋</span>
+              <span className={`text-blue-600 transition-transform ${open === i ? "rotate-45" : ""}`}>＋</span>
             </button>
             {open === i && (
               <p className="px-5 pb-4 text-sm text-slate-600 leading-relaxed fade-up">{f.a}</p>

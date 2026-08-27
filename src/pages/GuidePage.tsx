@@ -105,7 +105,7 @@ export default function GuidePage({ slug }: { slug: string }) {
     return (
       <main id="main-content" className="pt-40 pb-20 px-6 max-w-7xl mx-auto text-center">
         <h1 className="text-3xl font-black text-slate-900 mb-2">Guide not found</h1>
-        <Link to="/" className="px-6 py-2.5 rounded-lg bg-emerald-600 text-white font-semibold hover:bg-emerald-700">
+        <Link to="/" className="px-6 py-2.5 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700">
           Back to the store
         </Link>
       </main>
@@ -119,7 +119,7 @@ export default function GuidePage({ slug }: { slug: string }) {
     <main id="main-content" className="pt-[120px] md:pt-44 max-w-3xl mx-auto px-6 pb-16">
       {/* breadcrumb */}
       <nav className="text-xs text-slate-400 mb-4">
-        <Link to="/" className="hover:text-emerald-600">Home</Link>
+        <Link to="/" className="hover:text-blue-600">Home</Link>
         <span className="mx-1.5">/</span>
         <span className="text-slate-600 font-medium">Buying Guides</span>
       </nav>
@@ -127,8 +127,8 @@ export default function GuidePage({ slug }: { slug: string }) {
       <h1 className="text-3xl md:text-4xl font-black text-slate-900 leading-tight">{guide.title}</h1>
 
       {/* TL;DR — the direct answer (snippet & AI-citation target) */}
-      <div className="mt-5 rounded-2xl border-l-4 border-emerald-500 bg-emerald-50/70 p-5">
-        <p className="text-xs font-bold uppercase tracking-wide text-emerald-700 mb-1">Quick answer</p>
+      <div className="mt-5 rounded-2xl border-l-4 border-blue-500 bg-blue-50/70 p-5">
+        <p className="text-xs font-bold uppercase tracking-wide text-blue-700 mb-1">Quick answer</p>
         <p className="text-sm md:text-base text-slate-700 leading-relaxed">{guide.tldr}</p>
       </div>
 
@@ -150,12 +150,12 @@ export default function GuidePage({ slug }: { slug: string }) {
           </p>
           <div className="flex flex-wrap gap-2">
             {cat && (
-              <Link to={`/category/${cat.id}`} className="px-5 py-2.5 rounded-xl bg-emerald-600 text-white text-sm font-bold hover:bg-emerald-700">
+              <Link to={`/category/${cat.id}`} className="px-5 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-bold hover:bg-blue-700">
                 Browse {cat.name} →
               </Link>
             )}
             {guide.relatedBand && cat && (
-              <Link to={`/category/${cat.id}/${guide.relatedBand}`} className="px-5 py-2.5 rounded-xl border border-slate-600 text-sm font-bold hover:border-emerald-500 hover:text-emerald-400 transition">
+              <Link to={`/category/${cat.id}/${guide.relatedBand}`} className="px-5 py-2.5 rounded-xl border border-slate-600 text-sm font-bold hover:border-blue-500 hover:text-blue-400 transition">
                 See ranked picks by budget →
               </Link>
             )}
@@ -182,7 +182,7 @@ export default function GuidePage({ slug }: { slug: string }) {
           <div className="flex flex-wrap gap-2">
             {others.map((g) => (
               <Link key={g.slug} to={`/guides/${g.slug}`}
-                className="px-4 py-2 rounded-full surface-muted text-sm font-medium text-slate-600 hover:text-emerald-700 transition">
+                className="px-4 py-2 rounded-full surface-muted text-sm font-medium text-slate-600 hover:text-blue-700 transition">
                 {g.title}
               </Link>
             ))}

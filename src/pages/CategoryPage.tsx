@@ -152,7 +152,7 @@ export default function CategoryPage({ id, band }: { id: string; band?: string }
           <p className="text-sm text-slate-500 mb-6">
             We only publish buying guides once we can recommend at least three in-stock picks.
           </p>
-          <Link to={`/category/${id}`} className="px-6 py-2.5 rounded-lg bg-emerald-600 text-white font-semibold hover:bg-emerald-700">
+          <Link to={`/category/${id}`} className="px-6 py-2.5 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700">
             Browse the full category
           </Link>
         </main>
@@ -163,18 +163,18 @@ export default function CategoryPage({ id, band }: { id: string; band?: string }
       <main id="main-content" className="pt-[120px] md:pt-44 max-w-7xl mx-auto px-6 pb-16">
         {/* breadcrumb */}
         <nav className="text-xs text-slate-400 mb-3">
-          <Link to="/" className="hover:text-emerald-600">Home</Link>
+          <Link to="/" className="hover:text-blue-600">Home</Link>
           <span className="mx-1.5">/</span>
-          <Link to="/shop" className="hover:text-emerald-600">Shop</Link>
+          <Link to="/shop" className="hover:text-blue-600">Shop</Link>
           <span className="mx-1.5">/</span>
-          <Link to={`/category/${bandData.categoryId}`} className="hover:text-emerald-600">{bandData.categoryName}</Link>
+          <Link to={`/category/${bandData.categoryId}`} className="hover:text-blue-600">{bandData.categoryName}</Link>
           <span className="mx-1.5">/</span>
           <span className="text-slate-600 font-medium">{bandData.bandLabel}</span>
         </nav>
 
         <h1 className="text-3xl md:text-4xl font-black text-slate-900">
           {bandData.categoryName} {bandData.bandLabel} in Pakistan
-          <span className="text-emerald-600"> — Top {bandData.total} ({year})</span>
+          <span className="text-blue-600"> — Top {bandData.total} ({year})</span>
         </h1>
         <p className="text-sm md:text-base text-slate-500 leading-relaxed mt-2 max-w-3xl">{bandData.intro}</p>
 
@@ -183,20 +183,20 @@ export default function CategoryPage({ id, band }: { id: string; band?: string }
             <li key={it.id}>
               <div className="flex items-start gap-4 surface rounded-2xl p-4 hover:shadow-lg transition">
                 <span className={`shrink-0 w-9 h-9 rounded-full flex items-center justify-center font-black text-sm ${
-                  it.rank <= 3 ? "bg-emerald-600 text-white" : "bg-slate-100 text-slate-500"
+                  it.rank <= 3 ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-500"
                 }`}>{it.rank}</span>
                 <img src={it.image} alt={it.name} width={112} height={112}
                   loading="lazy"
                   className="w-20 h-20 sm:w-28 sm:h-28 rounded-xl object-cover ring-1 ring-slate-200 shrink-0" />
                 <div className="min-w-0 flex-1">
-                  <Link to={`/product/${it.id}`} className="font-bold text-slate-900 hover:text-emerald-700 line-clamp-1">
+                  <Link to={`/product/${it.id}`} className="font-bold text-slate-900 hover:text-blue-700 line-clamp-1">
                     {it.name}
                   </Link>
                   <div className="flex items-center gap-2 mt-0.5">
                     <Stars rating={it.rating} />
                     <span className="text-xs text-slate-400">{it.reviews} reviews</span>
                   </div>
-                  <p className="text-xs font-semibold text-emerald-700 mt-1">{it.why}</p>
+                  <p className="text-xs font-semibold text-blue-700 mt-1">{it.why}</p>
                   <p className="text-sm text-slate-400 mt-1 hidden sm:block line-clamp-2">{it.description}</p>
                   <p className="mt-1.5 font-black text-slate-900">
                     Rs {it.price.toLocaleString("en-PK")}
@@ -205,7 +205,7 @@ export default function CategoryPage({ id, band }: { id: string; band?: string }
                 </div>
                 <Link
                   to={`/product/${it.id}`}
-                  className="shrink-0 self-center px-4 py-2 rounded-xl bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-700"
+                  className="shrink-0 self-center px-4 py-2 rounded-xl bg-blue-600 text-white text-xs font-bold hover:bg-blue-700"
                 >
                   View
                 </Link>
@@ -220,12 +220,12 @@ export default function CategoryPage({ id, band }: { id: string; band?: string }
             <h2 className="text-lg font-black text-slate-900 mb-3">Other budgets in {bandData.categoryName}</h2>
             <div className="flex flex-wrap gap-2">
               <Link to={`/category/${bandData.categoryId}`}
-                className="px-4 py-2 rounded-full surface-muted text-sm font-medium text-slate-600 hover:text-emerald-700 transition">
+                className="px-4 py-2 rounded-full surface-muted text-sm font-medium text-slate-600 hover:text-blue-700 transition">
                 All {bandData.categoryName}
               </Link>
               {bandData.siblings.map((s) => (
                 <Link key={s.url} to={s.url}
-                  className="px-4 py-2 rounded-full surface-muted text-sm font-medium text-slate-600 hover:text-emerald-700 transition">
+                  className="px-4 py-2 rounded-full surface-muted text-sm font-medium text-slate-600 hover:text-blue-700 transition">
                   {s.bandLabel}
                 </Link>
               ))}
@@ -241,7 +241,7 @@ export default function CategoryPage({ id, band }: { id: string; band?: string }
     return (
       <main id="main-content" className="pt-40 pb-20 px-6 max-w-7xl mx-auto text-center">
         <h1 className="text-3xl font-black text-slate-900 mb-2">Category not found</h1>
-        <Link to="/shop" className="px-6 py-2.5 rounded-lg bg-emerald-600 text-white font-semibold hover:bg-emerald-700">
+        <Link to="/shop" className="px-6 py-2.5 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700">
           Browse all products
         </Link>
       </main>
@@ -251,16 +251,16 @@ export default function CategoryPage({ id, band }: { id: string; band?: string }
     <main id="main-content" className="pt-[120px] md:pt-44 max-w-7xl mx-auto px-6 pb-16">
       {/* breadcrumb */}
       <nav className="text-xs text-slate-400 mb-3">
-        <Link to="/" className="hover:text-emerald-600">Home</Link>
+        <Link to="/" className="hover:text-blue-600">Home</Link>
         <span className="mx-1.5">/</span>
-        <Link to="/shop" className="hover:text-emerald-600">Shop</Link>
+        <Link to="/shop" className="hover:text-blue-600">Shop</Link>
         <span className="mx-1.5">/</span>
         <span className="text-slate-600 font-medium">{cat?.name ?? "…"}</span>
       </nav>
 
       <h1 className="text-3xl md:text-4xl font-black text-slate-900">
         {cat ? cat.name : "\u00A0"}
-        <span className="text-emerald-600"> in Pakistan</span>
+        <span className="text-blue-600"> in Pakistan</span>
       </h1>
       {cat?.description && (
         <p className="text-sm md:text-base text-slate-500 leading-relaxed mt-2 mb-4 max-w-3xl">{cat.description}</p>
@@ -276,16 +276,16 @@ export default function CategoryPage({ id, band }: { id: string; band?: string }
       {hubGuide && (
         <Link
           to={`/guides/${hubGuide.slug}`}
-          className="block rounded-2xl border border-emerald-100 bg-emerald-50/60 p-4 mb-8 hover:border-emerald-300 transition"
+          className="block rounded-2xl border border-blue-100 bg-blue-50/60 p-4 mb-8 hover:border-blue-300 transition"
         >
-          <p className="text-xs font-bold uppercase tracking-wide text-emerald-700 mb-0.5">📖 New to {cat?.name}?</p>
+          <p className="text-xs font-bold uppercase tracking-wide text-blue-700 mb-0.5">📖 New to {cat?.name}?</p>
           <p className="text-sm font-semibold text-slate-800">{hubGuide.title} →</p>
         </Link>
       )}
 
       {/* budget guides (programmatic pages, only live ones are linked) */}
       {hubBands.length > 0 && (
-        <section className="mb-10 rounded-2xl border border-emerald-100 bg-emerald-50/60 p-5">
+        <section className="mb-10 rounded-2xl border border-blue-100 bg-blue-50/60 p-5">
           <h2 className="text-sm font-black text-slate-900 mb-2">Shopping by budget?</h2>
           <p className="text-xs text-slate-500 mb-3">
             Ranked guides built from what's actually selling this week.
@@ -293,7 +293,7 @@ export default function CategoryPage({ id, band }: { id: string; band?: string }
           <div className="flex flex-wrap gap-2">
             {hubBands.map((b) => (
               <Link key={b.url} to={b.url}
-                className="px-4 py-2 rounded-full bg-white border border-emerald-200 text-sm font-semibold text-emerald-700 hover:bg-emerald-600 hover:text-white transition">
+                className="px-4 py-2 rounded-full bg-white border border-blue-200 text-sm font-semibold text-blue-700 hover:bg-blue-600 hover:text-white transition">
                 {b.bandLabel}
               </Link>
             ))}
@@ -322,7 +322,7 @@ export default function CategoryPage({ id, band }: { id: string; band?: string }
       ) : (
         <div className="surface-muted rounded-2xl p-10 text-center text-slate-500 text-sm">
           Nothing here yet — new stock lands weekly.
-          {" "}Check back soon or browse <Link to="/shop" className="font-bold text-emerald-600 hover:underline">all products</Link>.
+          {" "}Check back soon or browse <Link to="/shop" className="font-bold text-blue-600 hover:underline">all products</Link>.
         </div>
       )}
 
@@ -334,7 +334,7 @@ export default function CategoryPage({ id, band }: { id: string; band?: string }
             <Link
               key={c.id}
               to={`/category/${c.id}`}
-              className="px-4 py-2 rounded-full surface-muted text-sm font-medium text-slate-600 hover:text-emerald-700 transition"
+              className="px-4 py-2 rounded-full surface-muted text-sm font-medium text-slate-600 hover:text-blue-700 transition"
             >
               {c.icon} {c.name}
             </Link>
