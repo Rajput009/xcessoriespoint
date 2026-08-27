@@ -215,7 +215,7 @@ export default function ProductCard({ product, compact = false }: { product: Pro
             disabled={soldOut}
             aria-label={soldOut ? `${product.name} is sold out` : hasVariants ? `Choose options for ${product.name}` : `Add ${product.name} to cart`}
             onClick={openOptionsOrAdd}
-            className={`mt-3 flex w-full items-center justify-center rounded-md py-2.5 text-xs font-bold transition-all focus:outline-none focus:ring-2 focus:ring-emerald-500 md:hidden ${
+            className={`mt-3 flex w-full items-center justify-center rounded-md py-2.5 text-xs font-bold transition-all focus:outline-none focus:ring-2 focus:ring-emerald-500 ${
               soldOut
                 ? "cursor-not-allowed bg-slate-100 text-slate-400"
                 : added
@@ -223,7 +223,7 @@ export default function ProductCard({ product, compact = false }: { product: Pro
                 : "bg-emerald-600 text-white hover:bg-emerald-700"
             }`}
           >
-            {soldOut ? "Sold out" : added ? "Added ✓" : hasVariants ? "Choose options" : "Quick add"}
+            {soldOut ? "Sold out" : added ? "Added ✓" : hasVariants ? "Choose options" : "Add to Cart"}
           </button>
         )}
       </div>
