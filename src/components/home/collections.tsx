@@ -5,48 +5,37 @@ import type { Product } from "../../types";
 import ProductCard from "../ProductCard";
 import { PhoneIcon, TruckIcon } from "../icons";
 
-function brandOf(product: Product) {
-  return product.brand?.trim() || product.name.trim().split(/\s+/)[0] || "Other";
-}
+const BRAND_LOGOS = [
+  { name: "Anker", logo: "/img/brands/anker.png" },
+  { name: "Baseus", logo: "/img/brands/baseus.png" },
+  { name: "UGREEN", logo: "/img/brands/ugreen.png" },
+  { name: "Joyroom", logo: "/img/brands/joyroom.png" },
+  { name: "Xiaomi", logo: "/img/brands/xiaomi.svg" },
+  { name: "Samsung", logo: "/img/brands/samsung.svg" },
+  { name: "Apple", logo: "/img/brands/apple.svg" },
+];
 
 export function ShopByBrand() {
-  const { products } = useProducts();
-  const brands = useMemo(() => {
-    const groups = new Map<string, number>();
-    products.forEach((product) => {
-      const brand = brandOf(product);
-      groups.set(brand, (groups.get(brand) ?? 0) + 1);
-    });
-    return [...groups]
-      .filter(([, count]) => count >= 2)
-      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
-      .slice(0, 8);
-  }, [products]);
-
-  if (brands.length === 0) return null;
-
   return (
     <section className="max-w-7xl mx-auto px-6 py-10">
       <div className="flex items-end justify-between gap-4 mb-5">
-        <h2 className="text-2xl md:text-3xl font-black text-slate-900">Shop by Brand</h2>
+        <h2 className="text-2xl md:text-3xl font-black text-slate-900">Popular Brands</h2>
         <Link to="/shop" className="text-sm font-bold text-blue-700 hover:text-blue-900">
           View all →
         </Link>
       </div>
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-        {brands.map(([brand, count]) => (
+      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
+        {BRAND_LOGOS.map((brand) => (
           <Link
-            key={brand}
-            to={`/shop?q=${encodeURIComponent(brand)}`}
-            className="group flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-3.5 py-3.5 transition hover:border-blue-300 hover:shadow-md hover:shadow-blue-900/10"
+            key={brand.name}
+            to="/shop"
+            aria-label={`Browse ${brand.name}`}
+            className="group flex min-h-[76px] flex-col items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-3 transition hover:border-blue-300 hover:shadow-md hover:shadow-blue-900/10"
           >
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-sm font-black text-blue-700">
-              {brand.slice(0, 2).toUpperCase()}
+            <span className="flex h-9 w-full items-center justify-center">
+              <img src={brand.logo} alt={`${brand.name} logo`} className="max-h-8 max-w-[120px] object-contain" />
             </span>
-            <span className="min-w-0">
-              <span className="block truncate text-sm font-bold text-slate-900 group-hover:text-blue-700">{brand}</span>
-              <span className="block text-[11px] text-slate-400">{count} products</span>
-            </span>
+            <span className="text-[11px] font-bold text-slate-500 transition-colors group-hover:text-blue-700">{brand.name}</span>
           </Link>
         ))}
       </div>
