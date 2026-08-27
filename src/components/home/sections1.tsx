@@ -373,7 +373,7 @@ export function BestSelling() {
 
   return (
     <section className="max-w-7xl mx-auto px-6 py-10">
-      <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-6">
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
         <div>
 
           <h2 className="text-2xl md:text-3xl font-black text-slate-900">Best Selling</h2>
