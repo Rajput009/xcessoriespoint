@@ -59,7 +59,7 @@ function CountdownBoxes() {
 /* ---------- 1. Hero ---------- */
 // Promotional poster artwork stays fixed behind the live product content.
 // Brand-matched poster artwork: blue, indigo, slate and soft sky only.
-const HERO_BACKGROUND = "/img/hero-cobalt-tech.webp?v=1";
+const HERO_BACKGROUND = "/img/hero-electric-blue.webp?v=1";
 
 /* Design defaults (marketing copy + art direction). When Admin → Settings sets
  * `heroSlide1..3` to product IDs, the price, image and link come from the LIVE
