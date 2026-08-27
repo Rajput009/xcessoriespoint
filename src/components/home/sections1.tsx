@@ -279,7 +279,6 @@ export function CategoryIcons() {
     <section className="max-w-7xl mx-auto px-6 pt-24 pb-10">
       <div className="flex items-end justify-between mb-6">
         <div>
-          <p className="text-[11px] font-black uppercase tracking-[0.2em] text-violet-600 mb-1">Pick your lane</p>
           <h2 className="text-2xl md:text-3xl font-black text-slate-900">Shop by Category</h2>
           <p className="text-sm text-slate-500 mt-1">Everything your devices need, sorted.</p>
         </div>
