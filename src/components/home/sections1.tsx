@@ -376,7 +376,7 @@ export function BestSelling() {
       <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-6">
         <div>
 
-          <h2 className="text-2xl md:text-3xl font-black text-slate-900">Best Selling Products</h2>
+          <h2 className="text-2xl md:text-3xl font-black text-slate-900">Best Selling</h2>
         </div>
         <div className="flex flex-wrap items-center justify-end gap-3">
           {/* desktop tabs */}
