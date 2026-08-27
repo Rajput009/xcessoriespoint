@@ -103,9 +103,8 @@ export function NewArrivalsCarousel() {
     <section className="max-w-7xl mx-auto px-6 py-10">
       <div className="flex items-end justify-between gap-4 mb-6">
         <div>
-          <p className="text-[11px] font-black uppercase tracking-[0.2em] text-violet-600 mb-1">Just landed</p>
           <h2 className="text-2xl md:text-3xl font-black text-slate-900">New Arrivals</h2>
-          <p className="text-sm text-slate-500 mt-1">Just landed in the store.</p>
+          <p className="text-sm text-slate-500 mt-1">Fresh additions to the store.</p>
         </div>
         <select
           value={sort}
