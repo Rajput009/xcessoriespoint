@@ -10,6 +10,13 @@ import {
   VideoStrip,
   FaqSection,
 } from "../components/home/sections2";
+import {
+  ShopByBrand,
+  PopularCategoryShelves,
+  ShopByDevice,
+  ShopByNeed,
+  TrustStrip,
+} from "../components/home/collections";
 
 export default function HomePage() {
   return (
@@ -17,9 +24,14 @@ export default function HomePage() {
       <HeroSection />
       <CategoryIcons />
       <BestSelling />
+      <ShopByBrand />
+      <PopularCategoryShelves />
       <DealsOfDay />
       <ReviewsSummary />
       <NewArrivalsCarousel />
+      <ShopByDevice />
+      <ShopByNeed />
+      <TrustStrip />
       <VideoStrip />
       <FaqSection />
     </main>
