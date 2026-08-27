@@ -4,6 +4,7 @@ import { useCart, useProducts, useWishlist, fmt } from "../../context/store";
 import { useStoreConfig } from "../../lib/config";
 import { Stars } from "../ProductCard";
 import ProductCard from "../ProductCard";
+import ViewToggle, { type ProductView } from "../ViewToggle";
 
 /* ---------- countdown hook ---------- */
 export function useCountdown(target: number) {
@@ -362,6 +363,7 @@ export function CategoryIcons() {
 export function BestSelling() {
   const { products, categories } = useProducts();
   const [tab, setTab] = useState("all");
+  const [view, setView] = useState<ProductView>("grid");
 
   const list = useMemo(() => {
     let l = products.filter((p) => p.bestSeller || p.rating >= 4.4);
@@ -376,40 +378,43 @@ export function BestSelling() {
 
           <h2 className="text-2xl md:text-3xl font-black text-slate-900">Best Selling Products</h2>
         </div>
-        {/* desktop tabs */}
-        <div className="hidden md:flex gap-2">
-          {[{ id: "all", name: "All" }, ...categories].map((c) => (
-            <button
-              key={c.id}
-              onClick={() => setTab(c.id)}
-              className={`px-4 py-2 rounded-full text-sm font-semibold transition ${
-                tab === c.id
-                  ? "bg-emerald-600 text-white neon-glow-soft"
-                  : "surface-muted text-slate-600 hover:text-emerald-700"
-              }`}
-            >
-              {c.name}
-            </button>
-          ))}
+        <div className="flex flex-wrap items-center justify-end gap-3">
+          {/* desktop tabs */}
+          <div className="hidden md:flex gap-2">
+            {[{ id: "all", name: "All" }, ...categories].map((c) => (
+              <button
+                key={c.id}
+                onClick={() => setTab(c.id)}
+                className={`px-4 py-2 rounded-full text-sm font-semibold transition ${
+                  tab === c.id
+                    ? "bg-emerald-600 text-white neon-glow-soft"
+                    : "surface-muted text-slate-600 hover:text-emerald-700"
+                }`}
+              >
+                {c.name}
+              </button>
+            ))}
+          </div>
+          {/* mobile dropdown */}
+          <select
+            value={tab}
+            onChange={(e) => setTab(e.target.value)}
+            className="md:hidden rounded-xl surface-muted px-3 py-2 text-sm outline-none"
+          >
+            <option value="all">All categories</option>
+            {categories.map((c) => (
+              <option key={c.id} value={c.id}>{c.name}</option>
+            ))}
+          </select>
+          <ViewToggle view={view} onChange={setView} />
         </div>
-        {/* mobile dropdown */}
-        <select
-          value={tab}
-          onChange={(e) => setTab(e.target.value)}
-          className="md:hidden rounded-xl surface-muted px-3 py-2 text-sm outline-none"
-        >
-          <option value="all">All categories</option>
-          {categories.map((c) => (
-            <option key={c.id} value={c.id}>{c.name}</option>
-          ))}
-        </select>
       </div>
       {list.length === 0 ? (
         <p className="text-sm text-slate-500 py-10 text-center">No matching best sellers.</p>
       ) : (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+        <div className={view === "list" ? "grid grid-cols-1 gap-3" : "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4"}>
           {list.map((p) => (
-            <ProductCard key={p.id} product={p} />
+            <ProductCard key={p.id} product={p} view={view} />
           ))}
         </div>
       )}

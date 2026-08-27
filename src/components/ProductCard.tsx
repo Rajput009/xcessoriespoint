@@ -5,6 +5,7 @@ import { swatchFor, swatchStyle, allColorVariants } from "../lib/swatch";
 import { useCart, useWishlist, fmt } from "../context/store";
 import { useProducts } from "../context/store";
 import { CartIcon } from "./icons";
+import type { ProductView } from "./ViewToggle";
 
 export function Stars({ rating, size = "text-sm" }: { rating: number; size?: string }) {
   const rounded = Math.max(0, Math.min(5, Math.round(rating)));
@@ -16,7 +17,16 @@ export function Stars({ rating, size = "text-sm" }: { rating: number; size?: str
   );
 }
 
-export default function ProductCard({ product, compact = false }: { product: Product; compact?: boolean }) {
+export default function ProductCard({
+  product,
+  compact = false,
+  view = "grid",
+}: {
+  product: Product;
+  compact?: boolean;
+  view?: ProductView;
+}) {
+  const listView = view === "list";
   const { add } = useCart();
   const { toggle, has } = useWishlist();
   const { categories } = useProducts();
@@ -48,9 +58,9 @@ export default function ProductCard({ product, compact = false }: { product: Pro
   };
 
   return (
-    <article className="group min-w-0">
+    <article className={`group min-w-0 ${listView ? "flex items-start gap-3 rounded-xl border border-slate-200 bg-white p-2.5 shadow-sm" : ""}`}>
       {/* Image-first stage, like a premium retail catalogue. */}
-      <div className="relative aspect-square overflow-hidden rounded-2xl border border-slate-200 bg-slate-100">
+      <div className={`relative overflow-hidden border border-slate-200 bg-slate-100 ${listView ? "w-28 shrink-0 aspect-square rounded-lg sm:w-36" : "aspect-square rounded-2xl"}`}>
         <Link to={`/product/${product.id}`} className="relative block w-full h-full">
           <img
             src={product.image}
@@ -117,7 +127,7 @@ export default function ProductCard({ product, compact = false }: { product: Pro
         </div>
       </div>
 
-      <div className="pt-3">
+      <div className={listView ? "min-w-0 flex-1 pt-0.5" : "pt-3"}>
         <div className="flex items-center justify-between gap-2">
           <span className="truncate text-[10px] font-bold uppercase tracking-[0.12em] text-slate-400">{catName}</span>
           {!compact && hasVariants && (

@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { Link, useRouter } from "../../router";
 import { useProducts } from "../../context/store";
 import ProductCard, { Stars } from "../ProductCard";
+import ViewToggle, { type ProductView } from "../ViewToggle";
 
 /* ---------- 6. ReviewsSummary ---------- */
 const REVIEWS = [
@@ -83,6 +84,7 @@ export function ReviewsSummary() {
 export function NewArrivalsCarousel() {
   const { products } = useProducts();
   const [sort, setSort] = useState("featured");
+  const [view, setView] = useState<ProductView>("grid");
   const [banner, setBanner] = useState(0);
 
   const list = useMemo(() => {
@@ -106,16 +108,19 @@ export function NewArrivalsCarousel() {
           <h2 className="text-2xl md:text-3xl font-black text-slate-900">New Arrivals</h2>
           <p className="text-sm text-slate-500 mt-1">Fresh additions to the store.</p>
         </div>
-        <select
-          value={sort}
-          onChange={(e) => setSort(e.target.value)}
-          className="rounded-xl surface-muted px-3 py-2 text-sm outline-none"
-        >
-          <option value="featured">Featured</option>
-          <option value="price-asc">Price: Low → High</option>
-          <option value="price-desc">Price: High → Low</option>
-          <option value="rating">Top Rated</option>
-        </select>
+        <div className="flex items-center gap-2">
+          <select
+            value={sort}
+            onChange={(e) => setSort(e.target.value)}
+            className="rounded-xl surface-muted px-3 py-2 text-sm outline-none"
+          >
+            <option value="featured">Featured</option>
+            <option value="price-asc">Price: Low → High</option>
+            <option value="price-desc">Price: High → Low</option>
+            <option value="rating">Top Rated</option>
+          </select>
+          <ViewToggle view={view} onChange={setView} />
+        </div>
       </div>
 
       {/* mobile banner carousel */}
@@ -150,10 +155,10 @@ export function NewArrivalsCarousel() {
             </Link>
           </div>
         </div>
-        {/* 8-product grid */}
-        <div className="lg:col-span-3 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        {/* 8-product grid / list */}
+        <div className={view === "list" ? "lg:col-span-3 grid grid-cols-1 gap-3" : "lg:col-span-3 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"}>
           {list.map((p) => (
-            <ProductCard key={p.id} product={p} />
+            <ProductCard key={p.id} product={p} view={view} />
           ))}
         </div>
       </div>
