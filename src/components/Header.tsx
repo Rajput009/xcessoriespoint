@@ -13,18 +13,6 @@ const ANNOUNCEMENTS = [
   { icon: <PhoneIcon size={14} />, text: "COD available nationwide · 7-day returns" },
 ];
 
-function Logo({ compact = false, light = false }: { compact?: boolean; light?: boolean }) {
-  const markSize = compact ? "h-7 w-7 text-[10px]" : "h-8 w-8 text-xs";
-  return (
-    <span className={`inline-flex items-center gap-2 font-black tracking-tight whitespace-nowrap ${light ? "text-white" : "text-slate-900"} ${compact ? "[font-size:clamp(1rem,4.8vw,1.2rem)]" : "text-2xl"}`}>
-      <span className={`${markSize} inline-flex shrink-0 items-center justify-center rounded-[9px] font-black tracking-[-0.08em] shadow-sm ${light ? "bg-white text-blue-700 ring-1 ring-white/70" : "bg-blue-600 text-white"}`} aria-hidden="true">
-        XP
-      </span>
-      <span>Xccessories<span className={light ? "text-sky-300" : "text-blue-700"}>Point</span></span>
-    </span>
-  );
-}
-
 const POPULAR_SEARCHES = ["Earbuds", "Smartwatch", "Power bank", "Fast charger", "Phone case"];
 
 function SearchSuggestions({ query, onPick }: { query: string; onPick: () => void }) {
@@ -283,7 +271,8 @@ export default function Header() {
   const { categories } = useProducts();
   const { navigate, path } = useRouter();
   const productPage = path.startsWith("/product/");
-  const heroHeader = path === "/" && !scrolled;
+  const homePage = path === "/";
+  const heroHeader = homePage && !scrolled;
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
@@ -313,7 +302,7 @@ export default function Header() {
 
   return (
     <>
-      <header className={`fixed top-0 inset-x-0 z-40 ${heroHeader ? "bg-blue-700 text-white" : "bg-white"}`}>
+      <header className={`${homePage ? "relative" : "fixed top-0 inset-x-0"} z-40 ${heroHeader ? "bg-blue-700 text-white" : "bg-white"}`}>
         {/* small utility bar */}
         <div
           className={`hidden md:block bg-blue-950 text-blue-100 text-xs font-medium overflow-hidden transition-all duration-300 ${
@@ -335,10 +324,6 @@ export default function Header() {
           <div className="max-w-7xl mx-auto px-4 md:px-6">
             {/* desktop: one clear shopping row */}
             <div className={`hidden md:flex items-center gap-4 ${scrolled ? "h-16" : "h-[72px]"}`}>
-              <Link to="/" className="shrink-0" aria-label="XccessoriesPoint home">
-                <Logo light={heroHeader} />
-              </Link>
-
               <button
                 type="button"
                 onClick={() => setCollectionOpen(true)}
@@ -433,9 +418,7 @@ export default function Header() {
                     <SearchIcon size={20} />
                   </button>
                 </div>
-                <Link to="/" className="min-w-0 text-center" aria-label="XccessoriesPoint home">
-                  <Logo compact light={productPage || heroHeader} />
-                </Link>
+                <span className="flex-1" aria-hidden="true" />
                 <button onClick={() => openModal("cart")} className={mobileIconBtn} aria-label="Cart">
                   <CartIcon size={20} />
                   {count > 0 && <span className={`badge-pop ${badge}`}>{count}</span>}
