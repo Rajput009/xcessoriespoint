@@ -375,7 +375,6 @@ export function BestSelling() {
         <div>
 
           <h2 className="text-2xl md:text-3xl font-black text-slate-900">Best Selling Products</h2>
-          <p className="text-sm text-slate-500 mt-1">Customer favourites, restocked weekly.</p>
         </div>
         {/* desktop tabs */}
         <div className="hidden md:flex gap-2">
