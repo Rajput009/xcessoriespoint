@@ -179,8 +179,8 @@ export function HeroSection() {
               >
                 {/* text */}
                 <div className="relative z-10 text-center lg:text-left order-2 lg:order-1">
-                  <p className="inline-flex items-center text-xs font-bold uppercase tracking-widest bg-white/90 border border-white/60 text-emerald-900 px-3.5 py-1.5 rounded-full mb-4 shadow-sm">
-                    <span className="mr-1.5 text-emerald-700">⚡</span>{sl.tag}
+                  <p className="text-xs font-bold uppercase tracking-widest text-lime-300 mb-4">
+                    <span className="mr-1.5">⚡</span>{sl.tag}
                   </p>
                   <h1 className="text-2xl md:text-4xl font-black text-white leading-tight mb-4 drop-shadow-[0_3px_18px_rgba(0,0,0,0.45)]">
                     {sl.headline}
