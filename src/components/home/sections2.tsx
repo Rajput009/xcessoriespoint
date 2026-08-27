@@ -161,44 +161,6 @@ export function NewArrivalsCarousel() {
   );
 }
 
-/* ---------- 8. CategoryBanners ---------- */
-export function CategoryBanners() {
-  const tiles = [
-    { big: true, title: "Audio Week", copy: "Up to 40% off earbuds & headphones", img: "/img/headphones.jpg", to: "/category/audio", tint: "from-violet-950/85 via-violet-900/25" },
-    { title: "Wearables", copy: "From Rs 2,999", img: "/img/smartwatch.jpg", to: "/category/wearables", tint: "from-emerald-950/85 via-emerald-900/25" },
-    { title: "Power Up", copy: "Chargers & banks", img: "/img/powerbank.jpg", to: "/category/power", tint: "from-amber-950/85 via-amber-900/25" },
-    { title: "Protect It", copy: "Cases from Rs 999", img: "/img/case.jpg", to: "/category/cases", tint: "from-rose-950/85 via-rose-900/25" },
-  ];
-  return (
-    <section className="max-w-7xl mx-auto px-6 py-10">
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {tiles.map((t) => (
-          <Link
-            key={t.title}
-            to={t.to}
-            className={`group relative rounded-2xl overflow-hidden ${
-              t.big ? "col-span-2 h-56" : "h-40 lg:h-56"
-            }`}
-          >
-            <img
-              src={t.img}
-              alt=""
-              className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-            />
-            <div className={`absolute inset-0 bg-gradient-to-t ${t.tint} to-transparent flex flex-col justify-end p-5 text-white`}>
-              <p className={`font-black ${t.big ? "text-2xl" : "text-lg"}`}>{t.title}</p>
-              <p className="text-sm text-slate-200">{t.copy}</p>
-              <p className="text-xs font-bold text-amber-300 mt-1 opacity-0 group-hover:opacity-100 transition">
-                Shop now →
-              </p>
-            </div>
-          </Link>
-        ))}
-      </div>
-    </section>
-  );
-}
-
 /* ---------- 9. VideoStrip ---------- */
 export function VideoStrip() {
   const { navigate } = useRouter();
@@ -261,7 +223,7 @@ export function VideoStrip() {
 }
 
 
-/* ---------- 10. FAQ ---------- */
+/* ---------- 9. FAQ ---------- */
 const FAQS = [
   { q: "How long does delivery take?", a: "Lahore & Karachi: 2–3 working days. Other cities: 3–5 working days. Orders placed before 5 PM ship the same day." },
   { q: "Do you offer Cash on Delivery?", a: "Yes! COD is available nationwide. You can also pay by card or mobile wallet at checkout — no account needed." },

@@ -7,7 +7,6 @@ import {
 import {
   ReviewsSummary,
   NewArrivalsCarousel,
-  CategoryBanners,
   VideoStrip,
   FaqSection,
 } from "../components/home/sections2";
@@ -21,7 +20,6 @@ export default function HomePage() {
       <DealsOfDay />
       <ReviewsSummary />
       <NewArrivalsCarousel />
-      <CategoryBanners />
       <VideoStrip />
       <FaqSection />
     </main>
