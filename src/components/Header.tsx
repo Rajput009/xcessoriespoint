@@ -14,9 +14,13 @@ const ANNOUNCEMENTS = [
 ];
 
 function Logo({ compact = false, light = false }: { compact?: boolean; light?: boolean }) {
+  const markSize = compact ? "h-7 w-7 text-[10px]" : "h-8 w-8 text-xs";
   return (
-    <span className={`font-black tracking-tight whitespace-nowrap ${light ? "text-white" : "text-slate-900"} ${compact ? "[font-size:clamp(1rem,4.8vw,1.2rem)]" : "text-2xl"}`}>
-      Xccessories<span className={light ? "text-sky-300" : "text-blue-700"}>Point</span>
+    <span className={`inline-flex items-center gap-2 font-black tracking-tight whitespace-nowrap ${light ? "text-white" : "text-slate-900"} ${compact ? "[font-size:clamp(1rem,4.8vw,1.2rem)]" : "text-2xl"}`}>
+      <span className={`${markSize} inline-flex shrink-0 items-center justify-center rounded-[9px] bg-blue-600 font-black tracking-[-0.08em] text-white shadow-sm ${light ? "ring-1 ring-blue-300/40" : ""}`} aria-hidden="true">
+        XP
+      </span>
+      <span>Xccessories<span className={light ? "text-sky-300" : "text-blue-700"}>Point</span></span>
     </span>
   );
 }
@@ -299,17 +303,17 @@ export default function Header() {
   };
 
   const iconBtn = heroHeader
-    ? "relative w-10 h-10 flex items-center justify-center rounded-full text-white transition-colors hover:bg-white/15"
+    ? "relative w-10 h-10 flex items-center justify-center rounded-full text-white transition-colors hover:bg-blue-900"
     : "relative w-10 h-10 flex items-center justify-center rounded-full text-slate-600 transition-colors hover:text-blue-700 hover:bg-blue-50";
   const mobileIconBtn = productPage || heroHeader
-    ? "relative w-10 h-10 flex items-center justify-center rounded-full text-white transition-colors hover:bg-white/15"
+    ? "relative w-10 h-10 flex items-center justify-center rounded-full text-white transition-colors hover:bg-blue-900"
     : iconBtn;
   const badge =
     "absolute -top-0.5 -right-0.5 bg-blue-600 text-white text-[10px] font-bold min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center ring-2 ring-white/60";
 
   return (
     <>
-      <header className={`fixed top-0 inset-x-0 z-40 ${heroHeader ? "bg-transparent" : "bg-white"}`}>
+      <header className={`fixed top-0 inset-x-0 z-40 ${heroHeader ? "bg-slate-950 text-white" : "bg-white"}`}>
         {/* small utility bar */}
         <div
           className={`${productPage ? "hidden md:block" : ""} bg-blue-950 text-blue-100 text-xs font-medium overflow-hidden transition-all duration-300 ${
@@ -327,7 +331,7 @@ export default function Header() {
           </button>
         </div>
 
-        <div className={heroHeader ? "border-b border-white/15 bg-slate-950/20" : "bg-white border-b border-slate-200 shadow-sm"}>
+        <div className={heroHeader ? "border-b border-blue-900/80 bg-slate-950" : "bg-white border-b border-slate-200 shadow-sm"}>
           <div className="max-w-7xl mx-auto px-4 md:px-6">
             {/* desktop: one clear shopping row */}
             <div className={`hidden md:flex items-center gap-4 ${scrolled ? "h-16" : "h-[72px]"}`}>
@@ -342,7 +346,7 @@ export default function Header() {
                 aria-controls="collection-drawer"
                 className={`hidden lg:flex shrink-0 items-center gap-2 rounded-lg px-4 h-11 text-sm font-bold transition-colors ${
                   heroHeader
-                    ? "border border-white/30 bg-white/15 text-white hover:bg-white/25"
+                    ? "bg-blue-600 text-white shadow-sm hover:bg-blue-500"
                     : "bg-blue-700 text-white shadow-sm hover:bg-blue-800"
                 }`}
               >
@@ -361,7 +365,7 @@ export default function Header() {
                   placeholder="Search products, categories…"
                   className={`w-full h-11 rounded-lg pl-11 pr-12 text-sm outline-none transition-colors ${
                     heroHeader
-                      ? "border border-white/30 bg-white/15 text-white placeholder:text-white/70 focus:border-white focus:bg-white/25"
+                      ? "border border-blue-800 bg-slate-900 text-white placeholder:text-slate-400 focus:border-blue-400 focus:bg-slate-900 focus:ring-4 focus:ring-blue-500/20"
                       : "border border-slate-200 bg-slate-50 text-slate-800 placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
                   }`}
                 />
@@ -382,7 +386,9 @@ export default function Header() {
                 <button
                   type="button"
                   onClick={() => openModal("cart")}
-                  className="relative flex h-11 items-center gap-2 rounded-lg bg-slate-900 px-3.5 text-white hover:bg-blue-700 transition-colors"
+                  className={`relative flex h-11 items-center gap-2 rounded-lg px-3.5 text-white transition-colors ${
+                    heroHeader ? "bg-blue-600 hover:bg-blue-500" : "bg-slate-900 hover:bg-blue-700"
+                  }`}
                   aria-label="Cart"
                 >
                   <CartIcon size={18} />
@@ -393,7 +399,7 @@ export default function Header() {
                   type="button"
                   onClick={() => openModal(user ? "account" : "auth")}
                   className={`hidden lg:flex h-11 items-center gap-2 rounded-lg px-3 text-sm font-semibold transition-colors ${
-                    heroHeader ? "text-white hover:bg-white/15" : "text-slate-600 hover:bg-blue-50 hover:text-blue-700"
+                    heroHeader ? "text-white hover:bg-blue-900" : "text-slate-600 hover:bg-blue-50 hover:text-blue-700"
                   }`}
                 >
                   <UserIcon size={19} />
@@ -404,7 +410,7 @@ export default function Header() {
 
             {/* mobile: compact utility row */}
             <div className={`md:hidden py-2.5 ${
-              productPage ? "bg-blue-600 -mx-4 px-4" : heroHeader ? "bg-slate-950/15 -mx-4 px-4" : ""
+              productPage ? "bg-blue-600 -mx-4 px-4" : heroHeader ? "bg-slate-950 -mx-4 px-4" : ""
             }`}>
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-1 shrink-0">
@@ -453,7 +459,7 @@ export default function Header() {
                     placeholder="Search products…"
                     className={`w-full rounded-lg py-2.5 pl-10 pr-4 text-sm outline-none ${
                       heroHeader
-                        ? "border border-white/30 bg-white/15 text-white placeholder:text-white/70 focus:border-white focus:bg-white/25"
+                        ? "border border-blue-800 bg-slate-900 text-white placeholder:text-slate-400 focus:border-blue-400 focus:bg-slate-900 focus:ring-4 focus:ring-blue-500/20"
                         : "border border-slate-200 bg-slate-50 focus:border-blue-500 focus:bg-white"
                     }`}
                   />
@@ -468,7 +474,7 @@ export default function Header() {
                 scrolled
                   ? "max-h-0 opacity-0 overflow-hidden border-t-0"
                   : heroHeader
-                  ? "max-h-12 border-white/15 py-2.5 opacity-100"
+                  ? "max-h-12 border-blue-900/80 py-2.5 opacity-100"
                   : "max-h-12 border-slate-100 py-2.5 opacity-100"
               }`}
             >

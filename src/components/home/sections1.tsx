@@ -59,7 +59,7 @@ function CountdownBoxes() {
 /* ---------- 1. Hero ---------- */
 // Promotional poster artwork stays fixed behind the live product content.
 // Brand-matched poster artwork: blue, indigo, slate and soft sky only.
-const HERO_BACKGROUND = "/img/hero-blue-poster.webp?v=1";
+const HERO_BACKGROUND = "/img/hero-cobalt-tech.webp?v=1";
 
 /* Design defaults (marketing copy + art direction). When Admin → Settings sets
  * `heroSlide1..3` to product IDs, the price, image and link come from the LIVE
@@ -212,7 +212,7 @@ export function HeroSection() {
                       height={sl.height}
                       fetchPriority={i === 0 ? "high" : "low"}
                       decoding="async"
-                      className="hero-product float-slow object-contain drop-shadow-[0_35px_45px_rgba(6,78,59,0.4)]"
+                      className="hero-product float-slow object-contain drop-shadow-[0_35px_45px_rgba(30,64,175,0.45)]"
                     />
                   )}
                 </div>

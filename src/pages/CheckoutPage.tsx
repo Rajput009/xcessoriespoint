@@ -632,7 +632,7 @@ export default function CheckoutPage() {
                             {disabled && <span className="text-[10px] font-bold uppercase tracking-wide text-slate-400">Coming soon</span>}
                           </label>
                         {payment === m.id && m.id === "whatsapp" && (
-                          <div className="bg-[#f6fdf8] border-t border-blue-100 px-4 py-4">
+                          <div className="bg-[#f5f8ff] border-t border-blue-100 px-4 py-4">
                             <p className="text-[13px] text-slate-600 mb-2">
                               Placing the order opens WhatsApp with everything below pre-written to{" "}
                               <span className="font-semibold">+{WHATSAPP_NUMBER}</span> — just press send. Email is optional for this option.
@@ -999,7 +999,7 @@ function printInvoice(
     table{width:100%;border-collapse:collapse;margin:20px 0;font-size:14px}
     th,td{padding:8px 6px;border-bottom:1px solid #e2e8f0;text-align:left}
     th{font-size:11px;text-transform:uppercase;color:#64748b}
-    .tot{font-weight:800} .brand{color:#059669}
+    .tot{font-weight:800} .brand{color:#2563eb}
   </style></head><body>
     <h1>Xccessories<span class="brand">Point</span> — Invoice</h1>
     <p class="muted">Order <b>${escHtml(order.id)}</b> · ${new Date(order.createdAt ?? Date.now()).toLocaleDateString()} · Payment: ${escHtml(meta.payment.toUpperCase())}</p>
