@@ -2,7 +2,6 @@ import {
   HeroSection,
   CategoryIcons,
   BestSelling,
-  FeaturedProductDetail,
   DealsOfDay,
 } from "../components/home/sections1";
 import {
@@ -19,7 +18,6 @@ export default function HomePage() {
       <HeroSection />
       <CategoryIcons />
       <BestSelling />
-      <FeaturedProductDetail />
       <DealsOfDay />
       <ReviewsSummary />
       <NewArrivalsCarousel />

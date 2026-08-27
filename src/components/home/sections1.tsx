@@ -417,54 +417,7 @@ export function BestSelling() {
   );
 }
 
-/* ---------- 4. FeaturedProductDetail ---------- */
-export function FeaturedProductDetail() {
-  const { products } = useProducts();
-  const { add } = useCart();
-  const p = products.find((x) => x.featured) ?? products[0];
-  if (!p) return null;
-
-  return (
-    <section className="max-w-7xl mx-auto px-6 py-10">
-      <div className="grid lg:grid-cols-2 rounded-3xl overflow-hidden bg-slate-900 text-white">
-        <div className="p-8 md:p-12 flex flex-col justify-center">
-          <p className="text-emerald-400 text-xs font-bold uppercase tracking-widest mb-3">
-            Featured Product
-          </p>
-          <h2 className="text-2xl md:text-4xl font-black mb-4">{p.name}</h2>
-          <p className="text-slate-300 text-sm md:text-base mb-6">{p.description}</p>
-          <ul className="space-y-2.5 mb-8 text-sm">
-            {["Hybrid active noise cancellation", "32-hour total battery life", "Wireless + USB-C fast charging", "IPX5 sweat & splash resistant"].map((f) => (
-              <li key={f} className="flex items-center gap-2.5 surface-dark rounded-xl px-3 py-2">
-                <span className="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xs">✓</span>
-                {f}
-              </li>
-            ))}
-          </ul>
-          <div className="flex items-center gap-4">
-            <span className="text-2xl font-black text-emerald-400">{fmt(p.price)}</span>
-            {p.compareAt && <span className="text-slate-400 line-through">{fmt(p.compareAt)}</span>}
-            <button
-              onClick={() => add(p)}
-              className="ml-auto px-6 py-3 rounded-full bg-emerald-600 font-bold hover:bg-emerald-500 transition neon-glow"
-            >
-              Add to Cart
-            </button>
-          </div>
-        </div>
-        <div className="relative hidden lg:block">
-          <img src={p.image} alt={p.name} className="absolute inset-0 w-full h-full object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-transparent" />
-          <p className="absolute bottom-8 left-8 right-8 text-2xl font-black">
-            Sound that disappears into your day.
-          </p>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ---------- 5. DealsOfDay (retail promo section) ---------- */
+/* ---------- 4. DealsOfDay (retail promo section) ---------- */
 function DealCard({ id }: { id: number }) {
   const { products } = useProducts();
   const { add } = useCart();
