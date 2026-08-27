@@ -272,7 +272,6 @@ export default function Header() {
   const { navigate, path } = useRouter();
   const productPage = path.startsWith("/product/");
   const homePage = path === "/";
-  const heroHeader = homePage && !scrolled;
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
@@ -291,21 +290,29 @@ export default function Header() {
     navigate("/shop" + (searchQuery ? `?q=${encodeURIComponent(searchQuery)}` : ""));
   };
 
-  const iconBtn = heroHeader
-    ? "relative w-10 h-10 flex items-center justify-center rounded-full text-white transition-colors hover:bg-blue-800"
+  const iconBtn = homePage
+    ? "relative w-10 h-10 flex items-center justify-center rounded-full text-white transition-colors hover:bg-white/10"
     : "relative w-10 h-10 flex items-center justify-center rounded-full text-slate-600 transition-colors hover:text-blue-700 hover:bg-blue-50";
-  const mobileIconBtn = productPage || heroHeader
-    ? "relative w-10 h-10 flex items-center justify-center rounded-full text-white transition-colors hover:bg-blue-800"
+  const mobileIconBtn = productPage || homePage
+    ? "relative w-10 h-10 flex items-center justify-center rounded-full text-white transition-colors hover:bg-white/10"
     : iconBtn;
   const badge =
     "absolute -top-0.5 -right-0.5 bg-blue-600 text-white text-[10px] font-bold min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center ring-2 ring-white/60";
 
   return (
     <>
-      <header className={`${homePage ? "relative" : "fixed top-0 inset-x-0"} z-40 ${heroHeader ? "bg-blue-700 text-white" : "bg-white"}`}>
+      <header
+        className={`fixed top-0 inset-x-0 z-40 transition-[background,box-shadow] duration-300 ${
+          homePage
+            ? scrolled
+              ? "bg-gradient-to-r from-blue-950 via-blue-800 to-indigo-900 text-white shadow-lg shadow-blue-950/20"
+              : "bg-transparent text-white"
+            : "bg-white"
+        }`}
+      >
         {/* small utility bar */}
         <div
-          className={`hidden md:block bg-blue-950 text-blue-100 text-xs font-medium overflow-hidden transition-all duration-300 ${
+          className={`${homePage ? "hidden" : "hidden md:block"} bg-blue-950 text-blue-100 text-xs font-medium overflow-hidden transition-all duration-300 ${
             scrolled ? "max-h-0 opacity-0" : "max-h-8 opacity-100"
           }`}
         >
@@ -320,7 +327,7 @@ export default function Header() {
           </button>
         </div>
 
-        <div className={heroHeader ? "border-b border-blue-500 bg-blue-700" : "bg-white border-b border-slate-200 shadow-sm"}>
+        <div className={homePage ? "border-b border-white/20 bg-transparent" : "bg-white border-b border-slate-200 shadow-sm"}>
           <div className="max-w-7xl mx-auto px-4 md:px-6">
             {/* desktop: one clear shopping row */}
             <div className={`hidden md:flex items-center gap-4 ${scrolled ? "h-16" : "h-[72px]"}`}>
@@ -329,10 +336,10 @@ export default function Header() {
                 onClick={() => setCollectionOpen(true)}
                 aria-expanded={collectionOpen}
                 aria-controls="collection-drawer"
-                className={`hidden lg:flex shrink-0 items-center gap-2 rounded-lg px-4 h-11 text-sm font-bold transition-colors ${
-                  heroHeader
-                    ? "bg-white text-blue-700 shadow-sm hover:bg-sky-100"
-                    : "bg-blue-700 text-white shadow-sm hover:bg-blue-800"
+                className={`hidden lg:flex shrink-0 items-center gap-2 rounded-lg h-11 text-sm font-bold transition-colors ${
+                  homePage
+                    ? "bg-transparent text-white hover:text-sky-200"
+                    : "bg-blue-700 px-4 text-white shadow-sm hover:bg-blue-800"
                 }`}
               >
                 <MenuIcon size={17} />
@@ -341,7 +348,7 @@ export default function Header() {
 
               <form onSubmit={submitSearch} className="relative flex-1 min-w-0">
                 {showSug && <SearchSuggestions query={searchQuery} onPick={() => setShowSug(false)} />}
-                <SearchIcon size={17} className={`absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none ${heroHeader ? "text-blue-700" : "text-slate-400"}`} />
+                <SearchIcon size={17} className={`absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none ${homePage ? "text-white/80" : "text-slate-400"}`} />
                 <input
                   value={searchQuery}
                   onChange={(e) => { setSearchQuery(e.target.value); setShowSug(true); }}
@@ -349,15 +356,17 @@ export default function Header() {
                   onBlur={() => setTimeout(() => setShowSug(false), 150)}
                   placeholder="Search products, categories…"
                   className={`w-full h-11 rounded-lg pl-11 pr-12 text-sm outline-none transition-colors ${
-                    heroHeader
-                      ? "border border-white bg-white text-slate-900 placeholder:text-slate-500 focus:border-sky-200 focus:bg-white focus:ring-4 focus:ring-blue-500/20"
+                    homePage
+                      ? "border-0 border-b border-white/60 bg-transparent text-white placeholder:text-white/75 focus:border-white focus:ring-0"
                       : "border border-slate-200 bg-slate-50 text-slate-800 placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
                   }`}
                 />
                 <button
                   type="submit"
                   aria-label="Search"
-                  className="absolute right-1.5 top-1/2 -translate-y-1/2 flex h-8 w-8 items-center justify-center rounded-md bg-blue-950 text-white hover:bg-blue-900 transition-colors"
+                  className={`absolute right-1.5 top-1/2 -translate-y-1/2 flex h-8 w-8 items-center justify-center rounded-md transition-colors ${
+                    homePage ? "bg-transparent text-white hover:text-sky-200" : "bg-blue-950 text-white hover:bg-blue-900"
+                  }`}
                 >
                   <SearchIcon size={15} />
                 </button>
@@ -365,14 +374,14 @@ export default function Header() {
 
               <div className="flex items-center gap-1 shrink-0">
                 <button onClick={() => openModal("wishlist")} className={iconBtn} aria-label="Wishlist">
-                  <HeartIcon size={20} filled={ids.length > 0} className={ids.length > 0 ? (heroHeader ? "text-sky-300" : "text-blue-700") : undefined} />
+                  <HeartIcon size={20} filled={ids.length > 0} className={ids.length > 0 ? (homePage ? "text-sky-300" : "text-blue-700") : undefined} />
                   {ids.length > 0 && <span className={badge}>{ids.length}</span>}
                 </button>
                 <button
                   type="button"
                   onClick={() => openModal("cart")}
                   className={`relative flex h-11 items-center gap-2 rounded-lg px-3.5 transition-colors ${
-                    heroHeader ? "bg-white text-blue-800 hover:bg-sky-100" : "bg-slate-900 text-white hover:bg-blue-700"
+                    homePage ? "bg-transparent text-white hover:bg-white/10" : "bg-slate-900 text-white hover:bg-blue-700"
                   }`}
                   aria-label="Cart"
                 >
@@ -384,7 +393,7 @@ export default function Header() {
                   type="button"
                   onClick={() => openModal(user ? "account" : "auth")}
                   className={`hidden lg:flex h-11 items-center gap-2 rounded-lg px-3 text-sm font-semibold transition-colors ${
-                    heroHeader ? "text-white hover:bg-blue-900" : "text-slate-600 hover:bg-blue-50 hover:text-blue-700"
+                    homePage ? "text-white hover:bg-white/10" : "text-slate-600 hover:bg-blue-50 hover:text-blue-700"
                   }`}
                 >
                   <UserIcon size={19} />
@@ -395,7 +404,7 @@ export default function Header() {
 
             {/* mobile: compact utility row */}
             <div className={`md:hidden py-2 ${
-              productPage ? "bg-blue-600 -mx-4 px-4" : heroHeader ? "bg-blue-700 -mx-4 px-4" : ""
+              productPage ? "bg-blue-600 -mx-4 px-4" : homePage ? "bg-transparent -mx-4 px-4" : ""
             }`}>
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-1 shrink-0">
@@ -412,7 +421,7 @@ export default function Header() {
                   <button
                     type="button"
                     onClick={() => setMobileSearch((value) => !value)}
-                    className={`${mobileIconBtn} ${mobileSearch ? "bg-blue-800" : ""}`}
+                    className={`${mobileIconBtn} ${mobileSearch ? (homePage || productPage ? "bg-white/10" : "bg-blue-100") : ""}`}
                     aria-label="Toggle search"
                   >
                     <SearchIcon size={20} />
@@ -427,7 +436,7 @@ export default function Header() {
               {mobileSearch && (
                 <form onSubmit={submitSearch} className="mt-2 relative fade-up">
                   {showSug && <SearchSuggestions query={searchQuery} onPick={() => { setShowSug(false); setMobileSearch(false); }} />}
-                  <SearchIcon size={16} className={`absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none ${heroHeader ? "text-blue-700" : "text-slate-400"}`} />
+                  <SearchIcon size={16} className={`absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none ${homePage ? "text-white/80" : "text-slate-400"}`} />
                   <input
                     autoFocus
                     value={searchQuery}
@@ -436,8 +445,8 @@ export default function Header() {
                     onBlur={() => setTimeout(() => setShowSug(false), 150)}
                     placeholder="Search products…"
                     className={`w-full rounded-lg py-2.5 pl-10 pr-4 text-sm outline-none ${
-                      heroHeader
-                        ? "border border-white bg-white text-slate-900 placeholder:text-slate-500 focus:border-sky-200 focus:bg-white focus:ring-4 focus:ring-blue-500/20"
+                      homePage
+                        ? "border-0 border-b border-white/60 bg-transparent text-white placeholder:text-white/75 focus:border-white focus:ring-0"
                         : "border border-slate-200 bg-slate-50 focus:border-blue-500 focus:bg-white"
                     }`}
                   />
@@ -451,14 +460,14 @@ export default function Header() {
               className={`hidden lg:flex items-center gap-7 border-t transition-all duration-200 ${
                 scrolled
                   ? "max-h-0 opacity-0 overflow-hidden border-t-0"
-                  : heroHeader
-                  ? "max-h-12 border-blue-500 py-2.5 opacity-100"
+                  : homePage
+                  ? "max-h-12 border-white/30 py-2.5 opacity-100"
                   : "max-h-12 border-slate-100 py-2.5 opacity-100"
               }`}
             >
-              <Link to="/shop" className={`text-xs font-bold uppercase tracking-wide transition-colors ${heroHeader ? "text-sky-300 hover:text-white" : "text-blue-700 hover:text-blue-900"}`}>Shop all</Link>
+              <Link to="/shop" className={`text-xs font-bold uppercase tracking-wide transition-colors ${homePage ? "text-white hover:text-sky-200" : "text-blue-700 hover:text-blue-900"}`}>Shop all</Link>
               {categories.map((category) => (
-                <Link key={category.id} to={`/category/${category.id}`} className={`text-sm font-medium transition-colors ${heroHeader ? "text-white/80 hover:text-white" : "text-slate-600 hover:text-blue-700"}`}>
+                <Link key={category.id} to={`/category/${category.id}`} className={`text-sm font-medium transition-colors ${homePage ? "text-white/80 hover:text-white" : "text-slate-600 hover:text-blue-700"}`}>
                   {category.name}
                 </Link>
               ))}

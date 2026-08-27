@@ -162,7 +162,7 @@ export function HeroSection() {
         <div className="absolute inset-0 bg-gradient-to-r from-slate-950/20 via-transparent to-slate-950/10" />
       </div>
 
-      <div className="relative max-w-7xl mx-auto px-6 pt-10 md:pt-10 pb-4">
+      <div className="relative max-w-7xl mx-auto px-6 pt-20 md:pt-[130px] pb-4">
         {/* All slides live in the SAME grid cell and are only faded in/out. The hero is
             therefore always as tall as its tallest slide, so switching slides can never
             reflow the page below it (no layout shift / CLS). */}
