@@ -39,16 +39,16 @@ function CountdownBoxes() {
   const { days, hours, mins, secs } = useCountdown(saleEnd ?? Date.now());
   if (saleEnd === null) return null;
   const box =
-    "bg-white  border border-emerald-950/10 rounded-xl px-2.5 py-1.5 min-w-[54px] text-center shadow-md shadow-emerald-950/10";
+    "bg-black/25 border border-white/20 rounded-xl px-2.5 py-1.5 min-w-[54px] text-center shadow-md shadow-black/20";
   const items = [
     [days, "Days"], [hours, "Hours"], [mins, "Mins"], [secs, "Secs"],
   ] as const;
   return (
     <div className="flex gap-2 justify-center lg:justify-start">
       {items.map(([v, l]) => (
-        <div key={l} className={box}>
-          <div className="text-lg font-black text-slate-900 tabular-nums">{String(v).padStart(2, "0")}</div>
-          <div className="text-[10px] uppercase tracking-wide text-slate-500">{l}</div>
+          <div key={l} className={box}>
+          <div className="text-lg font-black text-white tabular-nums">{String(v).padStart(2, "0")}</div>
+          <div className="text-[10px] uppercase tracking-wide text-white/80">{l}</div>
         </div>
       ))}
     </div>
@@ -56,8 +56,8 @@ function CountdownBoxes() {
 }
 
 /* ---------- 1. Hero ---------- */
-// Query suffix prevents an older cached hero asset from masking the new artwork.
-const HERO_BACKGROUND = "/img/hero-premium-bg.webp?v=2";
+// Promotional poster artwork stays fixed behind the live product content.
+const HERO_BACKGROUND = "/img/hero-promotional-poster.webp?v=1";
 
 /* Design defaults (marketing copy + art direction). When Admin → Settings sets
  * `heroSlide1..3` to product IDs, the price, image and link come from the LIVE
@@ -122,23 +122,6 @@ function useSlides(): Slide[] {
   );
 }
 
-/* hand-drawn dashed arrow doodle (amaze-style personality) */
-function ArrowDoodle() {
-  return (
-    <svg
-      viewBox="0 0 120 90"
-      className="hidden lg:block absolute left-[46%] top-[38%] w-28 text-white/70 -rotate-12"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2.5"
-      strokeLinecap="round"
-    >
-      <path d="M8 78 C 30 70, 28 40, 52 38 C 76 36, 66 14, 104 12" strokeDasharray="6 7" />
-      <path d="M92 6 l14 5 -11 11" strokeDasharray="0" />
-    </svg>
-  );
-}
-
 export function HeroSection() {
   const slides = useSlides();
   const [slide, setSlide] = useState(0);
@@ -161,8 +144,8 @@ export function HeroSection() {
 
   return (
     <section className="relative">
-      {/* Premium studio backdrop stays fixed while the product slides cross-fade above it. */}
-      <div className="absolute inset-0 overflow-hidden bg-emerald-950">
+      {/* Promotional poster stays fixed while live products and copy sit above it. */}
+      <div className="absolute inset-0 overflow-hidden bg-slate-950">
         <img
           src={HERO_BACKGROUND}
           alt=""
@@ -173,9 +156,8 @@ export function HeroSection() {
           decoding="async"
           className="absolute inset-0 w-full h-full object-cover"
         />
-        {/* keep the clean studio light while adding just enough contrast for the copy */}
-        <div className="absolute inset-0 bg-gradient-to-r from-white/15 via-transparent to-emerald-950/5" />
-        <div className="absolute inset-0 bg-emerald-950/5" />
+        {/* a light scrim keeps the poster texture visible while protecting text contrast */}
+        <div className="absolute inset-0 bg-gradient-to-r from-slate-950/20 via-transparent to-slate-950/10" />
       </div>
 
       <div className="relative max-w-7xl mx-auto px-6 pt-[130px] md:pt-[180px] pb-4">
@@ -196,15 +178,15 @@ export function HeroSection() {
               >
                 {/* text */}
                 <div className="relative z-10 text-center lg:text-left order-2 lg:order-1">
-                  <p className="inline-flex items-center text-xs font-bold uppercase tracking-widest bg-white  border border-emerald-900/10 text-emerald-800 px-3.5 py-1.5 rounded-full mb-4 shadow-sm">
-                    <span className="mr-1.5 text-emerald-600">⚡</span>{sl.tag}
+                  <p className="inline-flex items-center text-xs font-bold uppercase tracking-widest bg-white/90 border border-white/60 text-emerald-900 px-3.5 py-1.5 rounded-full mb-4 shadow-sm">
+                    <span className="mr-1.5 text-emerald-700">⚡</span>{sl.tag}
                   </p>
-                  <h1 className="text-3xl md:text-5xl font-black text-slate-950 leading-tight mb-4">
+                  <h1 className="text-3xl md:text-5xl font-black text-white leading-tight mb-4 drop-shadow-[0_3px_18px_rgba(0,0,0,0.45)]">
                     {sl.headline}
                   </h1>
-                  <p className="text-2xl font-bold text-slate-900 mb-5">
+                  <p className="text-2xl font-bold text-white mb-5 drop-shadow-[0_2px_8px_rgba(0,0,0,0.35)]">
                     {fmt(sl.price)}{" "}
-                    <span className="text-base text-slate-500 line-through font-medium">{fmt(sl.compareAt)}</span>
+                    <span className="text-base text-white/75 line-through font-medium">{fmt(sl.compareAt)}</span>
                   </p>
                   <div className="mb-6">
                     <CountdownBoxes />
@@ -212,7 +194,7 @@ export function HeroSection() {
                   <button
                     onClick={() => navigate(sl.productId ? `/product/${sl.productId}` : `/category/${sl.cat}`)}
                     tabIndex={active ? 0 : -1}
-                    className="px-8 py-3.5 rounded-full bg-emerald-700 text-white font-bold hover:bg-emerald-950 transition-colors shadow-xl shadow-emerald-900/20"
+                    className="px-8 py-3.5 rounded-full bg-white text-slate-900 font-bold hover:bg-lime-300 hover:text-slate-950 transition-colors shadow-xl shadow-black/25"
                   >
                     Shop Now →
                   </button>
@@ -220,7 +202,6 @@ export function HeroSection() {
                 {/* floating cutout product — fixed-height box so differently shaped
                     cutouts (and slow image loads) can't resize the hero */}
                 <div className="relative z-0 order-1 lg:order-2 flex justify-center items-center h-[260px] md:h-[360px]">
-                  <ArrowDoodle />
                   {loaded.includes(i) && (
                     <img
                       src={sl.image}
@@ -246,7 +227,7 @@ export function HeroSection() {
               onClick={() => setSlide(i)}
               aria-label={`Slide ${i + 1}`}
               className={`h-2 rounded-full transition-all ${
-                i === slide ? "w-8 bg-white" : "w-2 bg-white hover:bg-white/70"
+                i === slide ? "w-8 bg-lime-300" : "w-2 bg-white/50 hover:bg-white/80"
               }`}
             />
           ))}
