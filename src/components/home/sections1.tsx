@@ -374,7 +374,7 @@ export function BestSelling() {
     <section className="max-w-7xl mx-auto px-6 py-10">
       <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-6">
         <div>
-          <p className="text-[11px] font-black uppercase tracking-[0.2em] text-amber-600 mb-1">⚡ Trending now</p>
+
           <h2 className="text-2xl md:text-3xl font-black text-slate-900">Best Selling Products</h2>
           <p className="text-sm text-slate-500 mt-1">Customer favourites, restocked weekly.</p>
         </div>
