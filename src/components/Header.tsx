@@ -316,7 +316,7 @@ export default function Header() {
       <header className={`fixed top-0 inset-x-0 z-40 ${heroHeader ? "bg-blue-700 text-white" : "bg-white"}`}>
         {/* small utility bar */}
         <div
-          className={`${productPage ? "hidden md:block" : ""} bg-blue-950 text-blue-100 text-xs font-medium overflow-hidden transition-all duration-300 ${
+          className={`hidden md:block bg-blue-950 text-blue-100 text-xs font-medium overflow-hidden transition-all duration-300 ${
             scrolled ? "max-h-0 opacity-0" : "max-h-8 opacity-100"
           }`}
         >
@@ -409,7 +409,7 @@ export default function Header() {
             </div>
 
             {/* mobile: compact utility row */}
-            <div className={`md:hidden py-2.5 ${
+            <div className={`md:hidden py-2 ${
               productPage ? "bg-blue-600 -mx-4 px-4" : heroHeader ? "bg-blue-700 -mx-4 px-4" : ""
             }`}>
               <div className="flex items-center justify-between gap-2">
@@ -436,15 +436,10 @@ export default function Header() {
                 <Link to="/" className="min-w-0 text-center" aria-label="XccessoriesPoint home">
                   <Logo compact light={productPage || heroHeader} />
                 </Link>
-                <div className="flex items-center gap-0.5 shrink-0">
-                  <button onClick={() => openModal("cart")} className={mobileIconBtn} aria-label="Cart">
-                    <CartIcon size={20} />
-                    {count > 0 && <span className={`badge-pop ${badge}`}>{count}</span>}
-                  </button>
-                  <button onClick={() => openModal(user ? "account" : "auth")} className={mobileIconBtn} aria-label="Account">
-                    <UserIcon size={20} />
-                  </button>
-                </div>
+                <button onClick={() => openModal("cart")} className={mobileIconBtn} aria-label="Cart">
+                  <CartIcon size={20} />
+                  {count > 0 && <span className={`badge-pop ${badge}`}>{count}</span>}
+                </button>
               </div>
               {mobileSearch && (
                 <form onSubmit={submitSearch} className="mt-2 relative fade-up">
