@@ -59,7 +59,7 @@ export default function ProductCard({ product, compact = false }: { product: Pro
             decoding="async"
             width={480}
             height={480}
-            className={`w-full h-full object-contain p-5 transition-transform duration-300 group-hover:scale-[1.04] ${
+            className={`w-full h-full object-contain transition-transform duration-300 group-hover:scale-[1.04] ${
               secondaryImage ? "group-hover:opacity-0" : ""
             }`}
           />
@@ -71,7 +71,7 @@ export default function ProductCard({ product, compact = false }: { product: Pro
               decoding="async"
               width={480}
               height={480}
-              className="absolute inset-0 w-full h-full object-contain p-5 opacity-0 group-hover:opacity-100 group-hover:scale-[1.04] transition-all duration-300"
+              className="absolute inset-0 w-full h-full object-contain opacity-0 group-hover:opacity-100 group-hover:scale-[1.04] transition-all duration-300"
             />
           )}
           {(product.badge || product.newArrival || soldOut) && (
