@@ -234,8 +234,8 @@ export function HeroSection() {
           ))}
         </div>
 
-        {/* featured surface cards — straddle the hero's bottom edge (amaze-style) */}
-        <div className="mt-8 -mb-14 relative z-10 flex lg:grid lg:grid-cols-3 gap-4 overflow-x-auto no-scrollbar snap-x pb-2">
+        {/* featured surface cards — sit inside the hero below the carousel */}
+        <div className="mt-0 mb-0 relative z-10 flex lg:grid lg:grid-cols-3 gap-4 overflow-x-auto no-scrollbar snap-x pb-2">
           {featured.map((p) => (
             <button
               key={p.id}
