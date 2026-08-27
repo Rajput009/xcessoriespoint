@@ -240,9 +240,9 @@ export function HeroSection() {
             <button
               key={p.id}
               onClick={() => navigate("/shop")}
-              className="snap-start shrink-0 w-72 lg:w-auto bg-white  border border-white/50 rounded-2xl p-4 flex items-center gap-4 shadow-xl shadow-emerald-950/15 hover:bg-white hover:-translate-y-0.5 transition text-left"
+              className="snap-start shrink-0 w-72 lg:w-auto bg-white border border-white/50 rounded-lg p-2 flex items-center gap-3 shadow-xl shadow-emerald-950/15 hover:bg-white hover:-translate-y-0.5 transition text-left"
             >
-              <img src={p.image} alt="" className="w-16 h-16 rounded-xl object-cover ring-1 ring-white/50" />
+              <img src={p.image} alt="" className="w-16 h-16 rounded-lg object-cover ring-1 ring-white/50" />
               <div className="min-w-0">
                 <Stars rating={p.rating} size="text-xs" />
                 <p className="text-sm font-bold text-slate-900 truncate">{p.name}</p>
