@@ -1,8 +1,18 @@
 @import "tailwindcss";
+@import "@fontsource-variable/inter";
+@import "@fontsource-variable/outfit";
+
+@theme {
+  /* Self-hosted variable fonts — bundled locally, no runtime CDN dependency */
+  --font-sans: "Inter Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-display: "Outfit Variable", "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+}
 
 html { scroll-behavior: smooth; }
+
 body {
-  @apply bg-slate-50 text-slate-800 antialiased;
+  @apply font-sans bg-slate-50 text-slate-800 antialiased;
+  font-feature-settings: "cv11", "ss01";
   background-color: #f8fafc;
   /* Subtle paper-like texture: enough depth to avoid a flat canvas, without
      competing with products or looking like a decorative overlay. */
@@ -12,6 +22,14 @@ body {
   background-size: 24px 24px, 100% 100%;
   background-attachment: fixed;
 }
+
+/* Headlines & section titles use the display face; body copy stays Inter */
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  letter-spacing: -0.015em;
+}
+
+.font-display { font-family: var(--font-display); }
 
 /* ---- professional storefront surfaces ---- */
 /* Shared retail surfaces keep cards clean, solid and easy to scan. */
