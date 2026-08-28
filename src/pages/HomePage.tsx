@@ -18,22 +18,47 @@ import {
   TrustStrip,
 } from "../components/home/collections";
 
+/* Alternating, borderless background bands chunk the page into scannable zones.
+ * The body canvas is slate-50; white bands break the monotony without cards. */
 export default function HomePage() {
   return (
     <main id="main-content">
       <HeroSection />
-      <CategoryIcons />
+
+      <div className="bg-white">
+        <CategoryIcons />
+      </div>
+
       <BestSelling />
+
+      <div className="bg-white">
+        <TrustStrip />
+        <ReviewsSummary />
+      </div>
+
       <ShopByBrand />
-      <PopularCategoryShelves />
-      <DealsOfDay />
-      <ReviewsSummary />
+
+      <div className="bg-white">
+        <DealsOfDay />
+      </div>
+
       <NewArrivalsCarousel />
+
+      <div className="bg-white">
+        <PopularCategoryShelves />
+      </div>
+
       <ShopByDevice />
-      <ShopByNeed />
-      <TrustStrip />
+
+      <div className="bg-white">
+        <ShopByNeed />
+      </div>
+
       <VideoStrip />
-      <FaqSection />
+
+      <div className="bg-white">
+        <FaqSection />
+      </div>
     </main>
   );
 }

@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { Link } from "../../router";
-import { useProducts } from "../../context/store";
+import { useProducts, fmt } from "../../context/store";
 import type { Product } from "../../types";
 import ProductCard from "../ProductCard";
 import { PhoneIcon, TruckIcon } from "../icons";
@@ -18,24 +18,27 @@ const BRAND_LOGOS = [
 export function ShopByBrand() {
   return (
     <section className="max-w-7xl mx-auto px-6 py-10">
-      <div className="flex items-end justify-between gap-4 mb-5">
+      <div className="mb-6">
+        <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 mb-1">Trusted names</p>
         <h2 className="text-2xl md:text-3xl font-black text-slate-900">Popular Brands</h2>
-        <Link to="/shop" className="text-sm font-bold text-blue-700 hover:text-blue-900">
-          View all →
-        </Link>
       </div>
-      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
+      {/* open logo strip — no cards: brands float on the page edge-to-edge */}
+      <div className="flex flex-wrap items-center justify-center gap-x-10 gap-y-6 border-y border-slate-200 py-7 md:justify-between">
         {BRAND_LOGOS.map((brand) => (
           <Link
             key={brand.name}
             to="/shop"
             aria-label={`Browse ${brand.name}`}
-            className="group flex min-h-[76px] flex-col items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-3 transition hover:border-blue-300 hover:shadow-md hover:shadow-blue-900/10"
+            className="group flex flex-col items-center gap-1.5 transition-transform duration-200 hover:-translate-y-0.5"
           >
-            <span className="flex h-9 w-full items-center justify-center">
-              <img src={brand.logo} alt={`${brand.name} logo`} className="max-h-8 max-w-[120px] object-contain" />
+            <img
+              src={brand.logo}
+              alt={`${brand.name} logo`}
+              className="h-8 max-w-[140px] object-contain opacity-80 transition duration-200 group-hover:opacity-100 group-hover:scale-105"
+            />
+            <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400 transition-colors group-hover:text-slate-900">
+              {brand.name}
             </span>
-            <span className="text-[11px] font-bold text-slate-500 transition-colors group-hover:text-blue-700">{brand.name}</span>
           </Link>
         ))}
       </div>
@@ -82,90 +85,171 @@ export function PopularCategoryShelves() {
   );
 }
 
-const DEVICE_GROUPS = [
+/* ---------- Shop by Device & Shop by Need (two compact sections) ---------- */
+type GroupDef = {
+  label: string;
+  copy: string;
+  to: string;
+  img: string;
+  match: (product: Product) => boolean;
+};
+
+const DEVICE_GROUPS: GroupDef[] = [
   {
     label: "Wireless audio",
     copy: "Earbuds & headphones",
     to: "/category/audio",
-    matches: (product: Product) => product.category === "audio",
+    img: "/img/earbuds.jpg",
+    match: (product: Product) => product.category === "audio",
   },
   {
     label: "USB-C devices",
     copy: "Chargers, cables & hubs",
     to: "/shop?q=USB-C",
-    matches: (product: Product) => /usb[- ]?c|usb-c|gan|charger|power bank|hub/i.test(`${product.name} ${product.description ?? ""}`),
+    img: "/img/charger.jpg",
+    match: (product: Product) => /usb[- ]?c|usb-c|gan|charger|power bank|hub/i.test(`${product.name} ${product.description ?? ""}`),
   },
   {
     label: "Wearables",
     copy: "Watches & fitness bands",
     to: "/category/wearables",
-    matches: (product: Product) => product.category === "wearables",
+    img: "/img/smartwatch.jpg",
+    match: (product: Product) => product.category === "wearables",
   },
   {
     label: "Phone protection",
     copy: "Slim & rugged cases",
     to: "/category/cases",
-    matches: (product: Product) => product.category === "cases",
+    img: "/img/case.jpg",
+    match: (product: Product) => product.category === "cases",
   },
 ];
 
-export function ShopByDevice() {
+const NEEDS: GroupDef[] = [
+  {
+    label: "Travel charging",
+    copy: "Power banks & compact chargers",
+    to: "/category/power",
+    img: "/img/powerbank.jpg",
+    match: (product: Product) => product.category === "power",
+  },
+  {
+    label: "Desk setup",
+    copy: "Hubs, cables & fast charging",
+    to: "/category/cables",
+    img: "/img/charger-2.jpg",
+    match: (product: Product) => product.category === "cables",
+  },
+  {
+    label: "Everyday audio",
+    copy: "Simple sound for every commute",
+    to: "/category/audio",
+    img: "/img/headphones.jpg",
+    match: (product: Product) => product.category === "audio",
+  },
+  {
+    label: "Everyday protection",
+    copy: "Slim and rugged phone cases",
+    to: "/category/cases",
+    img: "/img/case.jpg",
+    match: (product: Product) => product.category === "cases",
+  },
+];
+
+/** Attach live catalog facts (product count + lowest price) to each group. */
+function useGroupStats(groups: GroupDef[]) {
   const { products } = useProducts();
-  const groups = DEVICE_GROUPS.map((group) => ({
-    ...group,
-    count: products.filter(group.matches).length,
-  })).filter((group) => group.count > 0);
+  return useMemo(
+    () =>
+      groups
+        .map((g) => {
+          const items = products.filter(g.match);
+          const fromPrice = items.reduce((min, p) => {
+            const price = p.variants?.length
+              ? Math.min(p.price, ...p.variants.map((v) => p.price + (v.priceDelta || 0)))
+              : p.price;
+            return Math.min(min, price);
+          }, Number.POSITIVE_INFINITY);
+          return {
+            ...g,
+            count: items.length,
+            fromPrice: Number.isFinite(fromPrice) ? fromPrice : 0,
+          };
+        })
+        .filter((g) => g.count > 0),
+    [products, groups]
+  );
+}
 
+function WayGrid({ items }: { items: ReturnType<typeof useGroupStats> }) {
+  return (
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-5 md:gap-6">
+      {items.map((g) => (
+        <Link
+          key={g.label}
+          to={g.to}
+          className="group block focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-600"
+        >
+          <span className="block aspect-square rounded-lg bg-slate-100 overflow-hidden transition-transform duration-200 group-hover:scale-[1.02]">
+            <img
+              src={g.img}
+              alt=""
+              loading="lazy"
+              decoding="async"
+              width={480}
+              height={480}
+              className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105"
+            />
+          </span>
+          <span className="block pt-3">
+            <span className="flex items-center gap-1.5">
+              <span className="text-sm md:text-base font-black text-slate-900 leading-tight transition-colors group-hover:text-slate-600">
+                {g.label}
+              </span>
+              <span aria-hidden="true" className="text-slate-300 transition-all group-hover:text-slate-900 group-hover:translate-x-1">
+                →
+              </span>
+            </span>
+            <span className="mt-0.5 block text-xs text-slate-500">{g.copy}</span>
+            <span className="mt-1 block text-xs font-semibold text-slate-400">
+              {g.count} {g.count === 1 ? "product" : "products"}
+              {g.fromPrice > 0 && (
+                <>
+                  {" "}· from <span className="text-slate-600">{fmt(g.fromPrice)}</span>
+                </>
+              )}
+            </span>
+          </span>
+        </Link>
+      ))}
+    </div>
+  );
+}
+
+export function ShopByDevice() {
+  const groups = useGroupStats(DEVICE_GROUPS);
   if (groups.length === 0) return null;
-
   return (
     <section className="max-w-7xl mx-auto px-6 py-10">
-      <div className="flex items-end justify-between gap-4 mb-5">
+      <div className="mb-8">
+        <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 mb-1">Find it fast</p>
         <h2 className="text-2xl md:text-3xl font-black text-slate-900">Shop by Device &amp; Connection</h2>
       </div>
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        {groups.map((group) => (
-          <Link
-            key={group.label}
-            to={group.to}
-            className="group rounded-xl border border-slate-200 bg-white px-4 py-4 transition hover:border-blue-300 hover:shadow-md hover:shadow-blue-900/10"
-          >
-            <span className="block text-sm font-bold text-slate-900 group-hover:text-blue-700">{group.label}</span>
-            <span className="mt-1 block text-xs text-slate-500">{group.copy}</span>
-            <span className="mt-3 block text-[11px] font-semibold text-blue-700">{group.count} products →</span>
-          </Link>
-        ))}
-      </div>
+      <WayGrid items={groups} />
     </section>
   );
 }
 
-const NEEDS = [
-  { label: "Travel charging", copy: "Power banks & compact chargers", to: "/category/power" },
-  { label: "Desk setup", copy: "Hubs, cables & fast charging", to: "/category/cables" },
-  { label: "Everyday audio", copy: "Simple sound for every commute", to: "/category/audio" },
-  { label: "Everyday protection", copy: "Slim and rugged phone cases", to: "/category/cases" },
-];
-
 export function ShopByNeed() {
+  const needs = useGroupStats(NEEDS);
+  if (needs.length === 0) return null;
   return (
     <section className="max-w-7xl mx-auto px-6 py-10">
-      <div className="flex items-end justify-between gap-4 mb-5">
+      <div className="mb-8">
+        <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 mb-1">Solve it in one tap</p>
         <h2 className="text-2xl md:text-3xl font-black text-slate-900">Shop by Need</h2>
       </div>
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        {NEEDS.map((need) => (
-          <Link
-            key={need.label}
-            to={need.to}
-            className="group rounded-xl bg-slate-900 px-4 py-5 text-white transition hover:bg-blue-950"
-          >
-            <span className="block text-sm font-bold group-hover:text-sky-300">{need.label}</span>
-            <span className="mt-1 block text-xs leading-relaxed text-slate-300">{need.copy}</span>
-            <span className="mt-4 block text-[11px] font-bold text-sky-300">Explore →</span>
-          </Link>
-        ))}
-      </div>
+      <WayGrid items={needs} />
     </section>
   );
 }
@@ -180,10 +264,14 @@ export function TrustStrip() {
 
   return (
     <section className="max-w-7xl mx-auto px-6 py-10">
-      <div className="grid grid-cols-2 lg:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-slate-200 rounded-2xl border border-slate-200 bg-white">
+      <div className="mb-8">
+        <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 mb-1">Shop with confidence</p>
+        <h2 className="text-2xl md:text-3xl font-black text-slate-900 sr-only">Why shop with us</h2>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-10 gap-y-6">
         {perks.map((perk) => (
-          <div key={perk.title} className="flex items-center gap-3 px-4 py-4 md:px-5">
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-sm font-black text-blue-700">
+          <div key={perk.title} className="flex items-center gap-3">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-sm font-black text-slate-700">
               {perk.icon}
             </span>
             <span>

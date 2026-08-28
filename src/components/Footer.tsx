@@ -24,40 +24,40 @@ export default function Footer() {
         <div>
           <p className="font-semibold text-white mb-3 text-sm uppercase tracking-wide">Shop</p>
           <ul className="space-y-2 text-sm">
-            <li><Link to="/shop" className="hover:text-blue-400">All Products</Link></li>
-            <li><Link to="/category/audio" className="hover:text-blue-400">Audio</Link></li>
-            <li><Link to="/category/wearables" className="hover:text-blue-400">Wearables</Link></li>
-            <li><Link to="/category/power" className="hover:text-blue-400">Power &amp; Charging</Link></li>
+            <li><Link to="/shop" className="hover:text-white">All Products</Link></li>
+            <li><Link to="/category/audio" className="hover:text-white">Audio</Link></li>
+            <li><Link to="/category/wearables" className="hover:text-white">Wearables</Link></li>
+            <li><Link to="/category/power" className="hover:text-white">Power &amp; Charging</Link></li>
           </ul>
         </div>
         <div>
           <p className="font-semibold text-white mb-3 text-sm uppercase tracking-wide">Buying Guides</p>
           <ul className="space-y-2 text-sm">
-            <li><Link to="/guides/what-is-anc-noise-cancellation" className="hover:text-blue-400">What is ANC?</Link></li>
-            <li><Link to="/guides/mah-explained-power-banks" className="hover:text-blue-400">mAh explained</Link></li>
-            <li><Link to="/guides/gan-chargers-explained" className="hover:text-blue-400">GaN chargers</Link></li>
-            <li><Link to="/guides/spo2-smartwatch-tracking" className="hover:text-blue-400">SpO2 tracking</Link></li>
-            <li><Link to="/guides/tpu-vs-silicone-phone-cases" className="hover:text-blue-400">Case materials</Link></li>
+            <li><Link to="/guides/what-is-anc-noise-cancellation" className="hover:text-white">What is ANC?</Link></li>
+            <li><Link to="/guides/mah-explained-power-banks" className="hover:text-white">mAh explained</Link></li>
+            <li><Link to="/guides/gan-chargers-explained" className="hover:text-white">GaN chargers</Link></li>
+            <li><Link to="/guides/spo2-smartwatch-tracking" className="hover:text-white">SpO2 tracking</Link></li>
+            <li><Link to="/guides/tpu-vs-silicone-phone-cases" className="hover:text-white">Case materials</Link></li>
           </ul>
         </div>
         <div>
           <p className="font-semibold text-white mb-3 text-sm uppercase tracking-wide">Support</p>
           <ul className="space-y-2 text-sm">
             <li>
-              <button onClick={() => openModal("track")} className="hover:text-blue-400">
+              <button onClick={() => openModal("track")} className="hover:text-white">
                 Track Order
               </button>
             </li>
             <li>
-              <button onClick={() => openConsentManager()} className="hover:text-blue-400">
+              <button onClick={() => openConsentManager()} className="hover:text-white">
                 Manage cookies
               </button>
             </li>
-            <li><Link to="/checkout" className="hover:text-blue-400">Checkout</Link></li>
-            <li><Link to="/admin" className="hover:text-blue-400">Admin</Link></li>
-            <li><Link to="/privacy" className="hover:text-blue-400">Privacy Policy</Link></li>
-            <li><Link to="/returns" className="hover:text-blue-400">Returns & Refunds</Link></li>
-            <li><Link to="/terms" className="hover:text-blue-400">Terms of Service</Link></li>
+            <li><Link to="/checkout" className="hover:text-white">Checkout</Link></li>
+            <li><Link to="/admin" className="hover:text-white">Admin</Link></li>
+            <li><Link to="/privacy" className="hover:text-white">Privacy Policy</Link></li>
+            <li><Link to="/returns" className="hover:text-white">Returns & Refunds</Link></li>
+            <li><Link to="/terms" className="hover:text-white">Terms of Service</Link></li>
             <li><span className="text-slate-400">support@xccessoriespoint.pk</span></li>
           </ul>
         </div>
@@ -88,9 +88,9 @@ export default function Footer() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@email.com"
-              className="flex-1 min-w-0 rounded-xl bg-white/10  border border-white/15 px-3 py-2 text-sm outline-none focus:border-blue-400 placeholder-slate-400"
+              className="flex-1 min-w-0 rounded-lg bg-white/10 border border-white/15 px-3 py-2 text-sm outline-none focus:border-white/50 placeholder-slate-400"
             />
-            <button className="px-4 py-2 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-500 neon-glow-soft">
+            <button className="px-4 py-2 rounded-lg bg-white text-slate-900 text-sm font-semibold hover:bg-slate-200 transition-colors">
               Join
             </button>
           </form>

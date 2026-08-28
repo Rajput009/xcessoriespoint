@@ -16,7 +16,6 @@ export function Stars({ rating, size = "text-sm" }: { rating: number; size?: str
     </span>
   );
 }
-
 export default function ProductCard({
   product,
   compact = false,
@@ -60,7 +59,7 @@ export default function ProductCard({
   return (
     <article className={`group min-w-0 ${listView ? "flex items-start gap-3 rounded-xl border border-slate-200 bg-white p-2.5 shadow-sm" : ""}`}>
       {/* Image-first stage, like a premium retail catalogue. */}
-      <div className={`relative overflow-hidden border border-slate-200 bg-slate-100 ${listView ? "w-28 shrink-0 aspect-square rounded-lg sm:w-36" : "aspect-square rounded-2xl"}`}>
+      <div className={`relative overflow-hidden bg-slate-100 ${listView ? "w-28 shrink-0 aspect-square rounded-lg border border-slate-200 sm:w-36" : "aspect-square rounded-lg"}`}>
         <Link to={`/product/${product.id}`} className="relative block w-full h-full">
           <img
             src={product.image}
@@ -87,15 +86,15 @@ export default function ProductCard({
           {(product.badge || product.newArrival || soldOut) && (
             <span className="absolute top-3 left-3">
               {soldOut ? (
-                <span className="inline-flex rounded-full bg-slate-800 px-2.5 py-1 text-[10px] font-bold text-white">
+                <span className="inline-flex rounded-full bg-slate-800 px-2.5 py-1 text-[11px] font-bold text-white">
                   SOLD OUT
                 </span>
               ) : product.badge ? (
-                <span className="inline-flex rounded-full bg-blue-700 px-2.5 py-1 text-[10px] font-bold text-white">
+                <span className="inline-flex rounded-full bg-slate-800 px-2.5 py-1 text-[11px] font-bold text-white">
                   {product.badge}
                 </span>
               ) : (
-                <span className="inline-flex rounded-full bg-slate-900 px-2.5 py-1 text-[10px] font-black tracking-wide text-white">
+                <span className="inline-flex rounded-full bg-slate-900 px-2.5 py-1 text-[11px] font-black tracking-wide text-white">
                   NEW
                 </span>
               )}
@@ -120,7 +119,7 @@ export default function ProductCard({
             onClick={openOptionsOrAdd}
             disabled={soldOut}
             aria-label={soldOut ? `${product.name} is sold out` : hasVariants ? `Choose options for ${product.name}` : `Quick add ${product.name}`}
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 shadow-sm transition-all hover:bg-blue-700 hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-40 md:opacity-0 md:group-hover:opacity-100"
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 shadow-sm transition-all hover:bg-slate-900 hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-40 md:opacity-0 md:group-hover:opacity-100"
           >
             <CartIcon size={16} />
           </button>
@@ -129,7 +128,7 @@ export default function ProductCard({
 
       <div className={listView ? "min-w-0 flex-1 pt-0.5" : "pt-3"}>
         <div className="flex items-center justify-between gap-2">
-          <span className="truncate text-[10px] font-bold uppercase tracking-[0.12em] text-slate-400">{catName}</span>
+          <span className="truncate text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">{catName}</span>
           {!compact && hasVariants && (
             <span className="flex shrink-0 items-center gap-1" title={product.variants!.map((v) => v.label).join(" · ")}>
               {allColorVariants(product.variants!) ? (
@@ -139,7 +138,7 @@ export default function ProductCard({
                   ) : null
                 )
               ) : (
-                <span className="text-[9px] font-semibold normal-case text-slate-400">{product.variants!.length} options</span>
+                <span className="text-[11px] font-semibold normal-case text-slate-400">{product.variants!.length} options</span>
               )}
             </span>
           )}
@@ -164,18 +163,18 @@ export default function ProductCard({
             <span className="text-xs text-slate-400 line-through">{fmt(product.compareAt)}</span>
           )}
           {discount > 0 && (
-            <span className="rounded-full bg-blue-50 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wide text-blue-700">
+            <span className="rounded-full bg-slate-100 px-1.5 py-0.5 text-[11px] font-black uppercase tracking-wide text-slate-600">
               -{discount}%
             </span>
           )}
         </div>
 
-        {lowStock && <p className="mt-1 text-[10px] font-semibold text-amber-700">Only {product.stock} left</p>}
+        {lowStock && <p className="mt-1 text-[11px] font-semibold text-slate-500">Only {product.stock} left</p>}
 
         {pickerOpen && hasVariants && (
           <div className="mt-3 rounded-lg border border-slate-200 bg-white p-2.5">
             <div className="mb-2 flex items-center justify-between">
-              <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400">Choose an option</p>
+              <p className="text-[11px] font-bold uppercase tracking-wide text-slate-400">Choose an option</p>
               <button type="button" onClick={() => setPickerOpen(false)} aria-label="Close options" className="text-xs text-slate-400 hover:text-slate-700">×</button>
             </div>
             {allColorVariants(product.variants!) ? (
@@ -208,7 +207,7 @@ export default function ProductCard({
                     type="button"
                     disabled={v.stock <= 0}
                     onClick={() => handleAdd(v.id, v.label)}
-                    className={`rounded-md border px-2 py-1.5 text-[10px] font-bold transition focus:outline-none focus:ring-2 focus:ring-blue-500 ${v.stock <= 0 ? "cursor-not-allowed border-slate-200 text-slate-300 line-through" : "border-slate-200 text-slate-700 hover:border-blue-400 hover:text-blue-700"}`}
+                    className={`rounded-md border px-2 py-1.5 text-[11px] font-bold transition focus:outline-none focus:ring-2 focus:ring-blue-500 ${v.stock <= 0 ? "cursor-not-allowed border-slate-200 text-slate-300 line-through" : "border-slate-200 text-slate-700 hover:border-blue-400 hover:text-blue-700"}`}
                   >
                     {v.label}
                     {v.priceDelta !== 0 && <span className="ml-1 text-slate-400">{v.priceDelta > 0 ? "+" : "−"}{Math.abs(v.priceDelta)}</span>}
@@ -229,8 +228,8 @@ export default function ProductCard({
               soldOut
                 ? "cursor-not-allowed bg-slate-100 text-slate-400"
                 : added
-                ? "bg-blue-600 text-white"
-                : "bg-blue-600 text-white hover:bg-blue-700"
+                ? "bg-slate-900 text-white"
+                : "bg-slate-900 text-white hover:bg-slate-700"
             }`}
           >
             {soldOut ? "Sold out" : added ? "Added ✓" : hasVariants ? "Choose options" : "Add to Cart"}

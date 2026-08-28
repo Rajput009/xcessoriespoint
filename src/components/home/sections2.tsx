@@ -30,13 +30,13 @@ export function ReviewsSummary() {
   const bars = [78, 15, 4, 2, 1];
   return (
     <section className="max-w-7xl mx-auto px-6 py-10">
-      <p className="text-[11px] font-black uppercase tracking-[0.2em] text-cyan-600 mb-1 text-center">Social proof</p>
+      <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 mb-1 text-center">Social proof</p>
       <h2 className="text-2xl md:text-3xl font-black text-slate-900 mb-8 text-center">
         What Customers Say
       </h2>
-      <div className="grid lg:grid-cols-3 gap-5">
-        {/* summary card */}
-        <div className="surface rounded-2xl p-6">
+      <div className="grid lg:grid-cols-3 gap-x-10 gap-y-8">
+        {/* open rating summary — no box */}
+        <div>
           <div className="flex items-end gap-3 mb-4">
             <span className="text-5xl font-black text-slate-900">4.7</span>
             <div className="pb-1">
@@ -47,7 +47,7 @@ export function ReviewsSummary() {
           {bars.map((pct, i) => (
             <div key={i} className="flex items-center gap-2 mb-1.5 text-xs">
               <span className="w-6 text-slate-500">{5 - i}★</span>
-              <div className="flex-1 h-2 rounded-full bg-slate-100 overflow-hidden">
+              <div className="flex-1 h-1.5 rounded-full bg-slate-100 overflow-hidden">
                 <div className="h-full bg-amber-400" style={{ width: `${pct}%` }} />
               </div>
               <span className="w-8 text-right text-slate-400">{pct}%</span>
@@ -57,23 +57,23 @@ export function ReviewsSummary() {
             <span className="font-bold text-slate-600">G</span> Reviews synced from Google
           </p>
         </div>
-        {/* review cards */}
+        {/* editorial quotes — no cards */}
         {REVIEWS.slice(0, 2).map((r) => (
-          <div key={r.name} className="surface rounded-2xl p-6 flex flex-col">
+          <blockquote key={r.name} className="border-l-2 border-slate-300 pl-5">
             <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold">
+              <div className="w-9 h-9 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center font-bold text-sm">
                 {r.name.charAt(0)}
               </div>
               <div>
                 <p className="font-semibold text-slate-900 text-sm">{r.name}</p>
                 <p className="text-xs text-slate-400">{r.date}</p>
               </div>
-              <span className="ml-auto text-xs font-bold text-blue-500">G</span>
+              <span className="ml-auto text-xs font-bold text-slate-500">G</span>
             </div>
             <Stars rating={r.rating} size="text-sm" />
             <p className="text-sm text-slate-600 mt-2 leading-relaxed">{r.text}</p>
-            <p className="mt-auto pt-3 text-xs text-blue-600 font-semibold">✓ Verified purchase</p>
-          </div>
+            <p className="mt-3 text-xs text-slate-600 font-semibold">✓ Verified purchase</p>
+          </blockquote>
         ))}
       </div>
     </section>
@@ -105,6 +105,7 @@ export function NewArrivalsCarousel() {
     <section className="max-w-7xl mx-auto px-6 py-10">
       <div className="flex items-end justify-between gap-4 mb-6">
         <div>
+          <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 mb-1">Just landed</p>
           <h2 className="text-2xl md:text-3xl font-black text-slate-900">New Arrivals</h2>
           <p className="text-sm text-slate-500 mt-1">Fresh additions to the store.</p>
         </div>
@@ -137,7 +138,7 @@ export function NewArrivalsCarousel() {
             <button
               key={i}
               onClick={() => setBanner(i)}
-              className={`h-1.5 rounded-full transition-all ${i === banner ? "w-6 bg-blue-600" : "w-1.5 bg-slate-300"}`}
+              className={`h-1.5 rounded-full transition-all ${i === banner ? "w-6 bg-slate-900" : "w-1.5 bg-slate-300"}`}
               aria-label={`Banner ${i + 1}`}
             />
           ))}
@@ -180,22 +181,22 @@ export function VideoStrip() {
     <section className="max-w-7xl mx-auto px-6 py-10">
       <div className="flex items-end justify-between mb-6">
         <div>
-          <p className="text-[11px] font-black uppercase tracking-[0.2em] text-rose-600 mb-1">🎬 Watch & shop</p>
+          <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 mb-1">Watch & shop</p>
           <h2 className="text-2xl md:text-3xl font-black text-slate-900">See It in Action</h2>
           <p className="text-sm text-slate-500 mt-1">Real products, real tests, real customers.</p>
         </div>
       </div>
       <div className="flex gap-4 overflow-x-auto no-scrollbar snap-x pb-2">
         {/* brand tile */}
-        <div className="snap-start shrink-0 w-44 h-72 rounded-2xl bg-gradient-to-b from-violet-600 to-indigo-800 text-white p-5 flex flex-col justify-between">
+        <div className="snap-start shrink-0 w-44 h-72 rounded-2xl bg-slate-950 text-white p-5 flex flex-col justify-between">
           <p className="font-black text-lg leading-tight">
             Xccessories<br />Point
           </p>
           <div>
-            <p className="text-xs text-violet-200 mb-2">3,200+ five-star reviews</p>
+            <p className="text-xs text-slate-300 mb-2">3,200+ five-star reviews</p>
             <button
               onClick={() => navigate("/shop")}
-              className="w-full py-2 rounded-full bg-white text-indigo-700 text-sm font-bold"
+              className="w-full py-2 rounded-full bg-white text-slate-900 text-sm font-bold hover:bg-slate-200 transition-colors"
             >
               Shop
             </button>
@@ -213,14 +214,14 @@ export function VideoStrip() {
             <p className="absolute bottom-3 left-3 right-3 text-white text-xs font-semibold">{r.label}</p>
           </div>
         ))}
-        {/* review side tab */}
-        <div className="snap-start shrink-0 w-44 h-72 rounded-2xl surface p-5 flex flex-col">
+        {/* review side tab — editorial, no box */}
+        <div className="snap-start shrink-0 w-44 h-72 flex flex-col p-3 border-l-2 border-slate-300">
           <Stars rating={5} size="text-sm" />
           <p className="text-xs text-slate-600 mt-2 leading-relaxed flex-1">
             "Watched the ANC test reel, ordered the same day. It performs exactly like the video."
           </p>
           <p className="text-xs font-bold text-slate-900">— Bilal A.</p>
-          <p className="text-[10px] text-slate-400">Verified buyer</p>
+          <p className="text-[11px] text-slate-400">Verified buyer</p>
         </div>
       </div>
     </section>
@@ -241,21 +242,30 @@ export function FaqSection() {
   const [open, setOpen] = useState<number | null>(0);
   return (
     <section className="max-w-3xl mx-auto px-6 py-10">
-      <p className="text-[11px] font-black uppercase tracking-[0.2em] text-amber-600 mb-1 text-center">Good to know</p>
+      <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 mb-1 text-center">Good to know</p>
       <h2 className="text-2xl md:text-3xl font-black text-slate-900 mb-6 text-center">Frequently Asked Questions</h2>
-      <div className="space-y-3">
+      <div className="divide-y divide-slate-200 border-y border-slate-200">
         {FAQS.map((f, i) => (
-          <div key={i} className="surface rounded-2xl overflow-hidden">
+          <div key={i}>
             <button
               onClick={() => setOpen(open === i ? null : i)}
-              className="w-full flex items-center justify-between px-5 py-4 text-left"
+              className="w-full flex items-center justify-between py-4 text-left"
               aria-expanded={open === i}
             >
               <span className="font-bold text-slate-900 text-sm">{f.q}</span>
-              <span className={`text-blue-600 transition-transform ${open === i ? "rotate-45" : ""}`}>＋</span>
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 12 12"
+                fill="none"
+                aria-hidden="true"
+                className={`shrink-0 text-slate-400 transition-transform duration-200 ${open === i ? "rotate-180" : ""}`}
+              >
+                <path d="M2 4.2 6 8.2 10 4.2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
             </button>
             {open === i && (
-              <p className="px-5 pb-4 text-sm text-slate-600 leading-relaxed fade-up">{f.a}</p>
+              <p className="pb-4 text-sm text-slate-600 leading-relaxed fade-up">{f.a}</p>
             )}
           </div>
         ))}

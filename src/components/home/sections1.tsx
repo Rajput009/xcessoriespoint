@@ -49,7 +49,7 @@ function CountdownBoxes() {
       {items.map(([v, l]) => (
           <div key={l} className={box}>
           <div className="text-lg font-black text-white tabular-nums">{String(v).padStart(2, "0")}</div>
-          <div className="text-[10px] uppercase tracking-wide text-white/80">{l}</div>
+          <div className="text-[11px] uppercase tracking-wide text-white/80">{l}</div>
         </div>
       ))}
     </div>
@@ -240,10 +240,10 @@ export function HeroSection() {
           {featured.map((p) => (
             <button
               key={p.id}
-              onClick={() => navigate("/shop")}
-              className="snap-start shrink-0 w-72 lg:w-auto bg-white border border-white/50 rounded-lg p-2 flex items-center gap-3 shadow-xl shadow-blue-950/15 hover:bg-white hover:-translate-y-0.5 transition text-left"
+              onClick={() => navigate(`/product/${p.id}`)}
+              className="snap-start shrink-0 w-72 lg:w-auto bg-white/85 backdrop-blur rounded-lg py-2 pl-2 pr-5 flex items-center gap-3 hover:bg-white hover:-translate-y-0.5 transition text-left"
             >
-              <img src={p.image} alt="" className="w-16 h-16 rounded-lg object-cover ring-1 ring-white/50" />
+              <img src={p.image} alt="" className="w-14 h-14 rounded-lg object-cover" />
               <div className="min-w-0">
                 <Stars rating={p.rating} size="text-xs" />
                 <p className="text-sm font-bold text-slate-900 truncate">{p.name}</p>
@@ -261,12 +261,12 @@ export function HeroSection() {
 }
 
 /* ---------- 2. CategoryIcons (compact scrollable image tiles) ---------- */
-const CAT_IMG: Record<string, { img: string; count: string; tint: string; text: string }> = {
-  audio: { img: "/img/cat-audio.webp", count: "Earbuds & headphones", tint: "bg-violet-100/70", text: "group-hover:text-violet-700" },
-  wearables: { img: "/img/cat-wearables.webp", count: "Watches & bands", tint: "bg-blue-100/70", text: "group-hover:text-blue-700" },
-  power: { img: "/img/cat-power.webp", count: "Banks & chargers", tint: "bg-amber-100/70", text: "group-hover:text-amber-700" },
-  cases: { img: "/img/cat-cases.webp", count: "Covers & protection", tint: "bg-rose-100/70", text: "group-hover:text-rose-700" },
-  cables: { img: "/img/cat-cables.webp", count: "Cables & hubs", tint: "bg-cyan-100/70", text: "group-hover:text-cyan-700" },
+const CAT_IMG: Record<string, { img: string; count: string; tint: string }> = {
+  audio: { img: "/img/cat-audio.webp", count: "Earbuds & headphones", tint: "bg-slate-100" },
+  wearables: { img: "/img/cat-wearables.webp", count: "Watches & bands", tint: "bg-slate-100" },
+  power: { img: "/img/cat-power.webp", count: "Banks & chargers", tint: "bg-slate-100" },
+  cases: { img: "/img/cat-cases.webp", count: "Covers & protection", tint: "bg-slate-100" },
+  cables: { img: "/img/cat-cables.webp", count: "Cables & hubs", tint: "bg-slate-100" },
 };
 
 export function CategoryIcons() {
@@ -280,20 +280,21 @@ export function CategoryIcons() {
     <section className="max-w-7xl mx-auto px-6 pt-24 pb-10">
       <div className="flex items-end justify-between mb-6">
         <div>
+          <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 mb-1">Browse the range</p>
           <h2 className="text-2xl md:text-3xl font-black text-slate-900">Shop by Category</h2>
           <p className="text-sm text-slate-500 mt-1">Everything your devices need, sorted.</p>
         </div>
         <div className="hidden md:flex gap-2">
           <button
             onClick={() => scrollBy(-1)}
-            className="w-9 h-9 rounded-full surface-muted text-slate-600 hover:text-blue-700 hover:shadow-md flex items-center justify-center transition-all"
+            className="w-9 h-9 rounded-full surface-muted text-slate-600 hover:text-slate-900 hover:shadow-md flex items-center justify-center transition-all"
             aria-label="Scroll left"
           >
             ‹
           </button>
           <button
             onClick={() => scrollBy(1)}
-            className="w-9 h-9 rounded-full border border-slate-200 bg-white text-slate-500 hover:border-blue-500 hover:text-blue-600 flex items-center justify-center transition-colors"
+            className="w-9 h-9 rounded-full border border-slate-200 bg-white text-slate-500 hover:border-slate-400 hover:text-slate-900 flex items-center justify-center transition-colors"
             aria-label="Scroll right"
           >
             ›
@@ -313,9 +314,9 @@ export function CategoryIcons() {
             <Link
               key={c.id}
               to={`/category/${c.id}`}
-              className="group snap-start shrink-0 w-36 md:w-44 flex flex-col rounded-2xl surface-muted overflow-hidden hover:-translate-y-1 hover:shadow-xl hover:shadow-blue-500/15 hover:ring-2 hover:ring-blue-400/50 transition-all"
+              className="group snap-start shrink-0 w-36 md:w-44 flex flex-col hover:-translate-y-1 transition-transform duration-200"
             >
-              <span className={`relative block aspect-square p-3 ${meta?.tint ?? "bg-white"}`}>
+              <span className={`relative block aspect-square overflow-hidden rounded-lg ${meta?.tint ?? "bg-slate-100"}`}>
                 {tile ? (
                   <img
                     src={tile}
@@ -334,25 +335,25 @@ export function CategoryIcons() {
                   </span>
                 )}
               </span>
-              <span className="px-2 pt-2 pb-3 text-center border-t border-white/50">
-                <span className={`block text-xs font-black uppercase tracking-wide text-slate-900 transition-colors ${meta?.text ?? ""}`}>
+              <span className="px-2 pt-2 pb-2.5 text-center">
+                <span className="block text-xs font-black uppercase tracking-wide text-slate-900 transition-colors group-hover:text-slate-600">
                   {c.name}
                 </span>
-                <span className="block text-[10px] text-slate-400 mt-0.5">{meta?.count ?? "Shop the range"}</span>
+                <span className="block text-[11px] text-slate-400 mt-0.5">{meta?.count ?? "Shop the range"}</span>
               </span>
             </Link>
           );
         })}
-        {/* view-all tile */}
+        {/* view-all — plain link, no tile */}
         <Link
           to="/shop"
-          className="group snap-start shrink-0 w-36 md:w-44 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white flex flex-col items-center justify-center gap-2 hover:-translate-y-1 hover:shadow-lg transition-all"
+          className="group snap-start shrink-0 w-36 md:w-44 flex flex-col items-center justify-center gap-2.5"
         >
-          <span className="w-10 h-10 rounded-full bg-white/15 flex items-center justify-center text-lg group-hover:bg-white/25 transition-colors">
+          <span className="w-12 h-12 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center text-lg group-hover:bg-slate-900 group-hover:text-white group-hover:scale-110 transition-all">
             →
           </span>
-          <span className="text-xs font-black uppercase tracking-wide">View all</span>
-          <span className="text-[10px] text-blue-100">Full catalog</span>
+          <span className="text-xs font-black uppercase tracking-wide text-slate-900">View all</span>
+          <span className="text-[11px] text-slate-400">Full catalog</span>
         </Link>
       </div>
     </section>
@@ -375,7 +376,7 @@ export function BestSelling() {
     <section className="max-w-7xl mx-auto px-6 py-10">
       <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
         <div>
-
+          <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 mb-1">Customer favourites</p>
           <h2 className="text-2xl md:text-3xl font-black text-slate-900">Best Selling</h2>
         </div>
         <div className="flex flex-wrap items-center justify-end gap-3">
@@ -387,8 +388,8 @@ export function BestSelling() {
                 onClick={() => setTab(c.id)}
                 className={`px-4 py-2 rounded-full text-sm font-semibold transition ${
                   tab === c.id
-                    ? "bg-blue-600 text-white neon-glow-soft"
-                    : "surface-muted text-slate-600 hover:text-blue-700"
+                    ? "bg-slate-900 text-white"
+                    : "surface-muted text-slate-600 hover:text-slate-900"
                 }`}
               >
                 {c.name}
@@ -434,8 +435,8 @@ function DealCard({ id }: { id: number }) {
   const soldPct = Math.min(92, 100 - p.stock);
 
   return (
-    <div className="bg-slate-950 border border-slate-800 rounded-2xl p-5 flex flex-col sm:flex-row gap-5 hover:bg-slate-900 transition shadow-lg shadow-slate-950/20">
-      <img src={p.image} alt={p.name} className="w-full sm:w-40 aspect-square rounded-xl object-cover ring-1 ring-white/30" />
+    <div className="flex flex-col sm:flex-row gap-5 sm:border-l sm:border-white/25 sm:pl-6">
+      <img src={p.image} alt={p.name} className="w-full sm:w-40 aspect-square rounded-lg object-cover" />
       <div className="flex-1 flex flex-col">
         <Stars rating={p.rating} size="text-xs" />
         <h3 className="font-bold text-white mt-1">{p.name}</h3>
@@ -448,7 +449,7 @@ function DealCard({ id }: { id: number }) {
             <span>Sold: {soldPct}%</span>
             <span>Only {p.stock} left</span>
           </div>
-          <div className="h-2 rounded-full bg-white/20 overflow-hidden">
+          <div className="h-1.5 rounded-full bg-white/20 overflow-hidden">
             <div className="h-full bg-sky-300" style={{ width: `${soldPct}%` }} />
           </div>
         </div>
@@ -457,19 +458,19 @@ function DealCard({ id }: { id: number }) {
             ⏱ Ends in {days}d {String(hours).padStart(2, "0")}:{String(mins).padStart(2, "0")}:{String(secs).padStart(2, "0")}
           </p>
         )}
-        <div className="flex gap-2 mt-3">
+        <div className="flex gap-2 mt-4">
           <button
             onClick={() => add(p)}
-            className="flex-1 py-2 rounded-lg bg-white text-blue-800 text-sm font-bold hover:bg-blue-950 hover:text-white transition"
+            className="flex-1 py-2 rounded-full bg-white text-blue-800 text-sm font-bold hover:bg-sky-300 transition"
           >
             Add to Cart
           </button>
           <button
             onClick={() => toggle(p.id)}
-            className={`w-9 h-9 rounded-lg border flex items-center justify-center transition ${
+            className={`w-9 h-9 rounded-full flex items-center justify-center transition ${
               has(p.id)
-                ? "border-white bg-white/30 text-white"
-                : "border-white/40 text-white/70 hover:bg-white/20 hover:text-white"
+                ? "bg-white/30 text-white"
+                : "bg-white/10 text-white/70 hover:bg-white/25 hover:text-white"
             }`}
             aria-label="Wishlist"
           >

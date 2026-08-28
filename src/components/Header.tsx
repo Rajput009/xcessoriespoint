@@ -313,13 +313,13 @@ export default function Header() {
         {/* small utility bar */}
         <div
           className={`${homePage ? "hidden" : "hidden md:block"} bg-blue-950 text-blue-100 text-xs font-medium overflow-hidden transition-all duration-300 ${
-            scrolled ? "max-h-0 opacity-0" : "max-h-8 opacity-100"
+            scrolled ? "max-h-0 opacity-0" : "max-h-7 opacity-100"
           }`}
         >
           <button
             type="button"
             onClick={() => navigate("/shop")}
-            className="h-8 w-full flex items-center justify-center gap-2 hover:text-white transition-colors"
+            className="h-7 w-full flex items-center justify-center gap-2 hover:text-white transition-colors"
           >
             {ANNOUNCEMENTS[announce].icon}
             <span className="tracking-wide">{ANNOUNCEMENTS[announce].text}</span>
@@ -330,7 +330,31 @@ export default function Header() {
         <div className={homePage ? "border-b border-white/20 bg-transparent" : "bg-white border-b border-slate-200 shadow-sm"}>
           <div className="max-w-7xl mx-auto px-4 md:px-6">
             {/* desktop: one clear shopping row */}
-            <div className={`hidden md:flex items-center gap-4 ${scrolled ? "h-16" : "h-[72px]"}`}>
+            <div className={`hidden md:flex items-center gap-4 ${scrolled ? "h-14" : "h-16"}`}>
+              {/* brand */}
+              <Link
+                to="/"
+                aria-label="XccessoriesPoint — home"
+                className="shrink-0 flex items-center gap-2.5 group"
+              >
+                <span
+                  className={`w-9 h-9 rounded-xl flex items-center justify-center font-black text-xl leading-none transition-transform group-hover:scale-105 ${
+                    homePage
+                      ? "bg-white text-blue-950 shadow-sm shadow-white/20"
+                      : "bg-gradient-to-br from-blue-600 to-indigo-700 text-white shadow-sm shadow-blue-600/30"
+                  }`}
+                >
+                  X
+                </span>
+                <span
+                  className={`hidden sm:block text-lg font-black tracking-tight whitespace-nowrap ${
+                    homePage ? "text-white" : "text-slate-900"
+                  }`}
+                >
+                  Xccessories<span className={homePage ? "text-sky-300" : "text-blue-700"}>Point</span>
+                </span>
+              </Link>
+
               <button
                 type="button"
                 onClick={() => setCollectionOpen(true)}
@@ -427,7 +451,29 @@ export default function Header() {
                     <SearchIcon size={20} />
                   </button>
                 </div>
-                <span className="flex-1" aria-hidden="true" />
+                {/* brand: centered on mobile */}
+                <Link
+                  to="/"
+                  aria-label="XccessoriesPoint — home"
+                  className="flex-1 min-w-0 flex items-center justify-center gap-1.5"
+                >
+                  <span
+                    className={`w-7 h-7 rounded-lg flex items-center justify-center font-black text-base leading-none shrink-0 ${
+                      productPage || homePage
+                        ? "bg-white text-blue-950"
+                        : "bg-gradient-to-br from-blue-600 to-indigo-700 text-white"
+                    }`}
+                  >
+                    X
+                  </span>
+                  <span
+                    className={`text-[15px] font-black tracking-tight truncate ${
+                      productPage || homePage ? "text-white" : "text-slate-900"
+                    }`}
+                  >
+                    Xccessories<span className={productPage || homePage ? "text-sky-300" : "text-blue-700"}>Point</span>
+                  </span>
+                </Link>
                 <button onClick={() => openModal("cart")} className={mobileIconBtn} aria-label="Cart">
                   <CartIcon size={20} />
                   {count > 0 && <span className={`badge-pop ${badge}`}>{count}</span>}
