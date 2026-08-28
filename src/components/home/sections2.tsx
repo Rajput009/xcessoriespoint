@@ -61,7 +61,7 @@ export function ReviewsSummary() {
         {REVIEWS.slice(0, 2).map((r) => (
           <blockquote key={r.name} className="border-l-2 border-slate-300 pl-5">
             <div className="flex items-center gap-3 mb-3">
-              <div className="w-9 h-9 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center font-bold text-sm">
+              <div className="w-9 h-9 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center font-bold text-sm">
                 {r.name.charAt(0)}
               </div>
               <div>
@@ -126,7 +126,7 @@ export function NewArrivalsCarousel() {
 
       {/* mobile banner carousel */}
       <div className="lg:hidden mb-5">
-        <div className="relative rounded-2xl overflow-hidden h-40">
+        <div className="relative rounded-lg overflow-hidden h-40">
           <img src={banners[banner].img} alt="" className="w-full h-full object-cover" />
           <div className="absolute inset-0 bg-slate-900/50 flex flex-col justify-center px-6 text-white">
             <p className="text-xl font-black">{banners[banner].title}</p>
@@ -138,7 +138,7 @@ export function NewArrivalsCarousel() {
             <button
               key={i}
               onClick={() => setBanner(i)}
-              className={`h-1.5 rounded-full transition-all ${i === banner ? "w-6 bg-slate-900" : "w-1.5 bg-slate-300"}`}
+              className={`h-1.5 rounded-md transition-all ${i === banner ? "w-6 bg-slate-900" : "w-1.5 bg-slate-300"}`}
               aria-label={`Banner ${i + 1}`}
             />
           ))}
@@ -147,7 +147,7 @@ export function NewArrivalsCarousel() {
 
       <div className="grid lg:grid-cols-4 gap-5">
         {/* desktop lifestyle image */}
-        <div className="hidden lg:block relative rounded-2xl overflow-hidden">
+        <div className="hidden lg:block relative rounded-lg overflow-hidden">
           <img src="/img/lifestyle.jpg" alt="Lifestyle" className="absolute inset-0 w-full h-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-t from-slate-900/70 via-transparent flex flex-col justify-end p-6 text-white">
             <p className="text-2xl font-black leading-tight">Your everyday carry, upgraded.</p>
@@ -188,7 +188,7 @@ export function VideoStrip() {
       </div>
       <div className="flex gap-4 overflow-x-auto no-scrollbar snap-x pb-2">
         {/* brand tile */}
-        <div className="snap-start shrink-0 w-44 h-72 rounded-2xl bg-slate-950 text-white p-5 flex flex-col justify-between">
+        <div className="snap-start shrink-0 w-44 h-72 rounded-lg bg-slate-950 text-white p-5 flex flex-col justify-between">
           <p className="font-black text-lg leading-tight">
             Xccessories<br />Point
           </p>
@@ -196,18 +196,18 @@ export function VideoStrip() {
             <p className="text-xs text-slate-300 mb-2">3,200+ five-star reviews</p>
             <button
               onClick={() => navigate("/shop")}
-              className="w-full py-2 rounded-full bg-white text-slate-900 text-sm font-bold hover:bg-slate-200 transition-colors"
+              className="w-full py-2 rounded-lg bg-white text-slate-900 text-sm font-bold hover:bg-slate-200 transition-colors"
             >
               Shop
             </button>
           </div>
         </div>
         {reels.map((r) => (
-          <div key={r.label} className="group snap-start shrink-0 w-44 h-72 rounded-2xl overflow-hidden relative cursor-pointer">
+          <div key={r.label} className="group snap-start shrink-0 w-44 h-72 rounded-lg overflow-hidden relative cursor-pointer">
             <img src={r.img} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
             <div className="absolute inset-0 bg-gradient-to-t from-slate-900/70 via-transparent" />
             <div className="absolute inset-0 flex items-center justify-center">
-              <span className="w-12 h-12 rounded-full bg-white/90 flex items-center justify-center text-blue-700 text-lg shadow-lg group-hover:scale-110 transition">
+              <span className="w-12 h-12 rounded-xl bg-white/90 flex items-center justify-center text-blue-700 text-lg shadow-lg group-hover:scale-110 transition">
                 ▶
               </span>
             </div>
@@ -269,6 +269,17 @@ export function FaqSection() {
             )}
           </div>
         ))}
+      </div>
+      <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
+        <Link to="/shop" className="inline-flex items-center justify-center rounded-lg bg-slate-900 px-6 py-3 text-xs font-bold uppercase tracking-wider text-white hover:bg-slate-700 transition-colors">
+          Shop now
+        </Link>
+        <Link
+          to="/faq"
+          className="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-6 py-3 text-xs font-bold uppercase tracking-wider text-slate-700 hover:border-slate-400 hover:bg-slate-50 transition-colors"
+        >
+          Delivery & payment FAQs
+        </Link>
       </div>
     </section>
   );

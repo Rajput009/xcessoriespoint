@@ -47,7 +47,7 @@ function CenterModal({
           <h2 className="text-lg font-bold text-slate-900">{title}</h2>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full hover:bg-white text-slate-500"
+            className="w-8 h-8 rounded-lg hover:bg-white text-slate-500"
             aria-label="Close"
           >
             ✕
@@ -78,7 +78,7 @@ function Drawer({
           <h2 className="text-lg font-bold text-slate-900">{title}</h2>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full hover:bg-white text-slate-500"
+            className="w-8 h-8 rounded-lg hover:bg-white text-slate-500"
             aria-label="Close"
           >
             ✕
@@ -385,7 +385,7 @@ function AccountModal({ onClose }: { onClose: () => void }) {
   return (
     <CenterModal title="My Account" onClose={onClose}>
       <div className="flex items-center gap-4 mb-6">
-        <div className="w-14 h-14 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xl font-bold">
+        <div className="w-14 h-14 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center text-xl font-bold">
           {user.name.charAt(0).toUpperCase()}
         </div>
         <div>
@@ -415,7 +415,7 @@ function AccountModal({ onClose }: { onClose: () => void }) {
                     {o.createdAt?.slice(0, 10)} · {o.items.reduce((s2, i) => s2 + i.qty, 0)} items · {fmt(o.total)}
                   </p>
                 </div>
-                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${
                   o.status === "Delivered" ? "bg-blue-100 text-blue-700"
                   : ["Cancelled", "Failed", "Refunded"].includes(o.status) ? "bg-slate-200 text-slate-500"
                   : "bg-amber-100 text-amber-700"
@@ -518,7 +518,7 @@ function TrackOrderModal({ onClose }: { onClose: () => void }) {
         <div className="fade-up">
           <div className="flex items-center justify-between mb-3">
             <p className="font-bold text-slate-900">{order.id}</p>
-            <span className="text-xs font-bold bg-blue-100 text-blue-700 px-2.5 py-1 rounded-full">
+            <span className="text-xs font-bold bg-blue-100 text-blue-700 px-2.5 py-1 rounded-md">
               {order.status}
             </span>
           </div>
@@ -529,7 +529,7 @@ function TrackOrderModal({ onClose }: { onClose: () => void }) {
                   <div className={`absolute top-3 right-1/2 w-full h-0.5 ${i <= stepIdx ? "bg-blue-500" : "bg-slate-200"}`} />
                 )}
                 <div
-                  className={`relative z-10 w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${
+                  className={`relative z-10 w-6 h-6 rounded-md flex items-center justify-center text-[10px] font-bold ${
                     i <= stepIdx ? "bg-blue-600 text-white" : "bg-slate-200 text-slate-500"
                   }`}
                 >

@@ -127,6 +127,7 @@ function useSlides(): Slide[] {
 export function HeroSection() {
   const slides = useSlides();
   const [slide, setSlide] = useState(0);
+  const heroFreeShipping = 5000;
   // only the visible slide (and the one queued next) is worth downloading — mounting all
   // three <img src> at once pulled ~1.1 MB on first paint
   const [loaded, setLoaded] = useState<number[]>([0]);
@@ -190,13 +191,16 @@ export function HeroSection() {
                     {fmt(sl.price)}{" "}
                     <span className="text-base text-white/75 line-through font-medium">{fmt(sl.compareAt)}</span>
                   </p>
+                  <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-sky-300/90 mb-4">
+                    Free shipping over {fmt(heroFreeShipping)} · COD nationwide
+                  </p>
                   <div className="mb-6">
                     <CountdownBoxes />
                   </div>
                   <button
                     onClick={() => navigate(sl.productId ? `/product/${sl.productId}` : `/category/${sl.cat}`)}
                     tabIndex={active ? 0 : -1}
-                    className="px-8 py-3.5 rounded-full bg-white text-slate-900 font-bold hover:bg-sky-300 hover:text-slate-950 transition-colors shadow-xl shadow-black/25"
+                    className="px-8 py-3.5 rounded-lg bg-white text-slate-900 font-bold hover:bg-sky-300 hover:text-slate-950 transition-colors shadow-xl shadow-black/25"
                   >
                     Shop Now →
                   </button>
@@ -228,7 +232,7 @@ export function HeroSection() {
               key={i}
               onClick={() => setSlide(i)}
               aria-label={`Slide ${i + 1}`}
-              className={`h-2 rounded-full transition-all ${
+              className={`h-2 rounded-md transition-all ${
                 i === slide ? "w-8 bg-sky-300" : "w-2 bg-white/50 hover:bg-white/80"
               }`}
             />
@@ -270,7 +274,7 @@ const CAT_IMG: Record<string, { img: string; count: string; tint: string }> = {
 };
 
 export function CategoryIcons() {
-  const { categories } = useProducts();
+  const { categories, products } = useProducts();
   const scrollerRef = useRef<HTMLDivElement>(null);
 
   const scrollBy = (dir: number) =>
@@ -287,14 +291,14 @@ export function CategoryIcons() {
         <div className="hidden md:flex gap-2">
           <button
             onClick={() => scrollBy(-1)}
-            className="w-9 h-9 rounded-full surface-muted text-slate-600 hover:text-slate-900 hover:shadow-md flex items-center justify-center transition-all"
+            className="w-9 h-9 rounded-lg surface-muted text-slate-600 hover:text-slate-900 hover:shadow-md flex items-center justify-center transition-all"
             aria-label="Scroll left"
           >
             ‹
           </button>
           <button
             onClick={() => scrollBy(1)}
-            className="w-9 h-9 rounded-full border border-slate-200 bg-white text-slate-500 hover:border-slate-400 hover:text-slate-900 flex items-center justify-center transition-colors"
+            className="w-9 h-9 rounded-lg border border-slate-200 bg-white text-slate-500 hover:border-slate-400 hover:text-slate-900 flex items-center justify-center transition-colors"
             aria-label="Scroll right"
           >
             ›
@@ -310,6 +314,7 @@ export function CategoryIcons() {
           const meta = CAT_IMG[c.id];
           // admin-set tile image wins, then the built-in art, else we render the emoji
           const tile = c.image || meta?.img;
+          const count = products.filter((p) => p.category === c.id).length;
           return (
             <Link
               key={c.id}
@@ -339,7 +344,9 @@ export function CategoryIcons() {
                 <span className="block text-xs font-black uppercase tracking-wide text-slate-900 transition-colors group-hover:text-slate-600">
                   {c.name}
                 </span>
-                <span className="block text-[11px] text-slate-400 mt-0.5">{meta?.count ?? "Shop the range"}</span>
+                <span className="block text-[11px] text-slate-400 mt-0.5">
+                  {count > 0 ? `${count} ${count === 1 ? "product" : "products"}` : (meta?.count ?? "Shop the range")}
+                </span>
               </span>
             </Link>
           );
@@ -349,7 +356,7 @@ export function CategoryIcons() {
           to="/shop"
           className="group snap-start shrink-0 w-36 md:w-44 flex flex-col items-center justify-center gap-2.5"
         >
-          <span className="w-12 h-12 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center text-lg group-hover:bg-slate-900 group-hover:text-white group-hover:scale-110 transition-all">
+          <span className="w-12 h-12 rounded-lg bg-slate-200 text-slate-700 flex items-center justify-center text-lg group-hover:bg-slate-900 group-hover:text-white group-hover:scale-110 transition-all">
             →
           </span>
           <span className="text-xs font-black uppercase tracking-wide text-slate-900">View all</span>
@@ -386,7 +393,7 @@ export function BestSelling() {
               <button
                 key={c.id}
                 onClick={() => setTab(c.id)}
-                className={`px-4 py-2 rounded-full text-sm font-semibold transition ${
+                className={`px-4 py-2 rounded-lg text-sm font-semibold transition ${
                   tab === c.id
                     ? "bg-slate-900 text-white"
                     : "surface-muted text-slate-600 hover:text-slate-900"
@@ -409,6 +416,14 @@ export function BestSelling() {
           </select>
           <ViewToggle view={view} onChange={setView} />
         </div>
+      </div>
+      <div className="flex items-center justify-between mb-4">
+        <p className="text-xs text-slate-400">
+          {list.length > 0 ? "Showing top picks" : "No matching best sellers"}
+        </p>
+        <Link to="/shop" className="text-xs font-bold uppercase tracking-wider text-slate-900 hover:text-slate-600 transition-colors">
+          View all products →
+        </Link>
       </div>
       {list.length === 0 ? (
         <p className="text-sm text-slate-500 py-10 text-center">No matching best sellers.</p>
@@ -461,13 +476,13 @@ function DealCard({ id }: { id: number }) {
         <div className="flex gap-2 mt-4">
           <button
             onClick={() => add(p)}
-            className="flex-1 py-2 rounded-full bg-white text-blue-800 text-sm font-bold hover:bg-sky-300 transition"
+            className="flex-1 py-2 rounded-lg bg-white text-blue-800 text-sm font-bold hover:bg-sky-300 transition"
           >
             Add to Cart
           </button>
           <button
             onClick={() => toggle(p.id)}
-            className={`w-9 h-9 rounded-full flex items-center justify-center transition ${
+            className={`w-9 h-9 rounded-lg flex items-center justify-center transition ${
               has(p.id)
                 ? "bg-white/30 text-white"
                 : "bg-white/10 text-white/70 hover:bg-white/25 hover:text-white"
@@ -493,7 +508,7 @@ export function DealsOfDay() {
   ];
   return (
     <section className="max-w-7xl mx-auto px-6 py-10">
-      <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-blue-600 via-indigo-600 to-blue-800 p-5 md:p-8">
+      <div className="relative rounded-lg overflow-hidden bg-gradient-to-br from-blue-600 via-indigo-600 to-blue-800 p-5 md:p-8">
         {/* light blooms */}
         <div className="relative grid lg:grid-cols-3 gap-5">
           <div className="flex flex-col justify-center text-white py-4">
@@ -506,7 +521,7 @@ export function DealsOfDay() {
             </p>
             <button
               onClick={() => navigate("/shop")}
-              className="self-start px-6 py-2.5 rounded-full bg-white/20  border border-white/30 text-white font-bold hover:bg-white hover:text-blue-800 transition"
+              className="self-start px-6 py-2.5 rounded-lg bg-white/20 border border-white/30 text-white font-bold hover:bg-white hover:text-blue-800 transition"
             >
               View All Offers →
             </button>

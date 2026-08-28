@@ -86,15 +86,15 @@ export default function ProductCard({
           {(product.badge || product.newArrival || soldOut) && (
             <span className="absolute top-3 left-3">
               {soldOut ? (
-                <span className="inline-flex rounded-full bg-slate-800 px-2.5 py-1 text-[11px] font-bold text-white">
+                <span className="inline-flex rounded-md bg-slate-800 px-2.5 py-1 text-[11px] font-bold text-white">
                   SOLD OUT
                 </span>
               ) : product.badge ? (
-                <span className="inline-flex rounded-full bg-slate-800 px-2.5 py-1 text-[11px] font-bold text-white">
+                <span className="inline-flex rounded-md bg-slate-800 px-2.5 py-1 text-[11px] font-bold text-white">
                   {product.badge}
                 </span>
               ) : (
-                <span className="inline-flex rounded-full bg-slate-900 px-2.5 py-1 text-[11px] font-black tracking-wide text-white">
+                <span className="inline-flex rounded-md bg-slate-900 px-2.5 py-1 text-[11px] font-black tracking-wide text-white">
                   NEW
                 </span>
               )}
@@ -108,7 +108,7 @@ export default function ProductCard({
             onClick={() => toggle(product.id)}
             aria-pressed={wished}
             aria-label={wished ? `Remove ${product.name} from wishlist` : `Add ${product.name} to wishlist`}
-            className={`flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white text-lg shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 md:opacity-0 md:group-hover:opacity-100 ${
+            className={`flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-lg shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 md:opacity-0 md:group-hover:opacity-100 ${
               wished ? "text-blue-700" : "text-slate-500 hover:text-blue-700"
             }`}
           >
@@ -119,7 +119,7 @@ export default function ProductCard({
             onClick={openOptionsOrAdd}
             disabled={soldOut}
             aria-label={soldOut ? `${product.name} is sold out` : hasVariants ? `Choose options for ${product.name}` : `Quick add ${product.name}`}
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 shadow-sm transition-all hover:bg-slate-900 hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-40 md:opacity-0 md:group-hover:opacity-100"
+            className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 shadow-sm transition-all hover:bg-slate-900 hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-40 md:opacity-0 md:group-hover:opacity-100"
           >
             <CartIcon size={16} />
           </button>
@@ -134,7 +134,7 @@ export default function ProductCard({
               {allColorVariants(product.variants!) ? (
                 product.variants!.slice(0, 4).map((v) =>
                   swatchFor(v) ? (
-                    <span key={v.id} className="h-3 w-3 rounded-full border border-black/10" style={swatchStyle(swatchFor(v)!)} />
+                    <span key={v.id} className="h-3 w-3 rounded-[3px] border border-black/10" style={swatchStyle(swatchFor(v)!)} />
                   ) : null
                 )
               ) : (
@@ -163,13 +163,17 @@ export default function ProductCard({
             <span className="text-xs text-slate-400 line-through">{fmt(product.compareAt)}</span>
           )}
           {discount > 0 && (
-            <span className="rounded-full bg-slate-100 px-1.5 py-0.5 text-[11px] font-black uppercase tracking-wide text-slate-600">
+            <span className="rounded-md bg-slate-100 px-1.5 py-0.5 text-[11px] font-black uppercase tracking-wide text-slate-600">
               -{discount}%
             </span>
           )}
         </div>
 
         {lowStock && <p className="mt-1 text-[11px] font-semibold text-slate-500">Only {product.stock} left</p>}
+
+        <p className="mt-1 text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+          Genuine · COD · Warranty
+        </p>
 
         {pickerOpen && hasVariants && (
           <div className="mt-3 rounded-lg border border-slate-200 bg-white p-2.5">
@@ -190,10 +194,10 @@ export default function ProductCard({
                       title={`${v.label} — ${out ? "sold out" : fmt(product.price + v.priceDelta)}`}
                       aria-label={`${v.label}${out ? " sold out" : ""}`}
                       onClick={() => handleAdd(v.id, v.label)}
-                      className={`relative h-8 w-8 rounded-full transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 ${out ? "cursor-not-allowed opacity-35" : "ring-1 ring-slate-300 hover:ring-2 hover:ring-blue-500 hover:scale-110"}`}
+                      className={`relative h-8 w-8 rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 ${out ? "cursor-not-allowed opacity-35" : "ring-1 ring-slate-300 hover:ring-2 hover:ring-blue-500 hover:scale-110"}`}
                       style={swatchStyle(color)}
                     >
-                      <span className="absolute inset-0 rounded-full border border-black/10" />
+                      <span className="absolute inset-0 rounded-lg border border-black/10" />
                       {out && <span className="absolute left-1/2 top-1/2 h-[2px] w-[130%] -translate-x-1/2 -translate-y-1/2 rotate-45 bg-red-400" />}
                     </button>
                   );

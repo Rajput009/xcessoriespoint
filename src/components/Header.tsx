@@ -43,7 +43,7 @@ function SearchSuggestions({ query, onPick }: { query: string; onPick: () => voi
                 e.preventDefault();
                 chooseSearch(term);
               }}
-              className="surface-muted rounded-full px-3 py-1.5 text-xs font-semibold text-slate-700 hover:text-blue-700 hover:bg-blue-50 transition-colors"
+              className="surface-muted rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-700 hover:text-blue-700 hover:bg-blue-50 transition-colors"
             >
               {term}
             </button>
@@ -172,7 +172,7 @@ function CollectionDrawer({ open, onClose }: { open: boolean; onClose: () => voi
             type="button"
             onClick={onClose}
             aria-label="Close collection menu"
-            className="absolute top-5 right-5 w-9 h-9 rounded-full bg-white text-slate-500 hover:text-blue-700 hover:bg-white transition-colors flex items-center justify-center"
+            className="absolute top-5 right-5 w-9 h-9 rounded-lg bg-white text-slate-500 hover:text-blue-700 hover:bg-white transition-colors flex items-center justify-center"
           >
             <span className="text-2xl font-light leading-none" aria-hidden="true">×</span>
           </button>
@@ -291,10 +291,10 @@ export default function Header() {
   };
 
   const iconBtn = homePage
-    ? "relative w-10 h-10 flex items-center justify-center rounded-full text-white transition-colors hover:bg-white/10"
-    : "relative w-10 h-10 flex items-center justify-center rounded-full text-slate-600 transition-colors hover:text-blue-700 hover:bg-blue-50";
+    ? "relative w-10 h-10 flex items-center justify-center rounded-lg text-white transition-colors hover:bg-white/10"
+    : "relative w-10 h-10 flex items-center justify-center rounded-lg text-slate-600 transition-colors hover:text-blue-700 hover:bg-blue-50";
   const mobileIconBtn = productPage || homePage
-    ? "relative w-10 h-10 flex items-center justify-center rounded-full text-white transition-colors hover:bg-white/10"
+    ? "relative w-10 h-10 flex items-center justify-center rounded-lg text-white transition-colors hover:bg-white/10"
     : iconBtn;
   const badge =
     "absolute -top-0.5 -right-0.5 bg-blue-600 text-white text-[10px] font-bold min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center ring-2 ring-white/60";

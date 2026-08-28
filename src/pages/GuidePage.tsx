@@ -182,7 +182,7 @@ export default function GuidePage({ slug }: { slug: string }) {
           <div className="flex flex-wrap gap-2">
             {others.map((g) => (
               <Link key={g.slug} to={`/guides/${g.slug}`}
-                className="px-4 py-2 rounded-full surface-muted text-sm font-medium text-slate-600 hover:text-blue-700 transition">
+                className="px-4 py-2 rounded-lg surface-muted text-sm font-medium text-slate-600 hover:text-blue-700 transition">
                 {g.title}
               </Link>
             ))}

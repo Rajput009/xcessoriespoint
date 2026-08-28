@@ -409,18 +409,18 @@ export default function ProductPage({ id }: { id: number }) {
                 <button
                   onClick={() => setImgIdx((i) => (i - 1 + gallery.length) % gallery.length)}
                   aria-label="Previous image"
-                  className="absolute left-3 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white  text-slate-700 hover:bg-white flex items-center justify-center shadow-lg transition"
+                  className="absolute left-3 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-lg bg-white text-slate-700 hover:bg-white flex items-center justify-center shadow-lg transition"
                 >
                   ‹
                 </button>
                 <button
                   onClick={() => setImgIdx((i) => (i + 1) % gallery.length)}
                   aria-label="Next image"
-                  className="absolute right-3 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white  text-slate-700 hover:bg-white flex items-center justify-center shadow-lg transition"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-lg bg-white text-slate-700 hover:bg-white flex items-center justify-center shadow-lg transition"
                 >
                   ›
                 </button>
-                <span className="absolute bottom-3 right-3 z-10 bg-slate-900/60  text-white text-[11px] font-bold px-2.5 py-1 rounded-full">
+                <span className="absolute bottom-3 right-3 z-10 bg-slate-900/60 text-white text-[11px] font-bold px-2.5 py-1 rounded-md">
                   {Math.min(imgIdx + 1, gallery.length)} / {gallery.length}
                 </span>
               </>
@@ -495,7 +495,7 @@ export default function ProductPage({ id }: { id: number }) {
               <span className="text-lg text-slate-400 line-through">{fmt(comparePrice)}</span>
             )}
             {discountPercent > 0 && (
-              <span className="inline-flex items-center rounded-full bg-orange-500 px-2 py-1 text-[10px] font-black uppercase tracking-wide text-white">-{discountPercent}%</span>
+              <span className="inline-flex items-center rounded-md bg-orange-500 px-2 py-1 text-[10px] font-black uppercase tracking-wide text-white">-{discountPercent}%</span>
             )}
           </div>
 
@@ -526,7 +526,7 @@ export default function ProductPage({ id }: { id: number }) {
                   )}
                 </span> : null}
                 {topVariantId !== null && variant?.id === topVariantId && (
-                  <span className="ml-2 normal-case bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">🔥 Most popular</span>
+                  <span className="ml-2 normal-case bg-blue-100 text-blue-700 px-2 py-0.5 rounded-md">🔥 Most popular</span>
                 )}
               </p>
               {allColorVariants(product.variants) ? (
@@ -546,7 +546,7 @@ export default function ProductPage({ id }: { id: number }) {
                         onClick={() => { variantTouched.current = true; setVariantId(v.id); setQty(1); setImgIdx(0); setHoverPreview(null); }}
                         onMouseEnter={() => v.image && setHoverPreview(v.image)}
                         onMouseLeave={() => setHoverPreview(null)}
-                        className={`relative w-11 h-11 rounded-full transition-all ${
+                        className={`relative w-11 h-11 rounded-lg transition-all ${
                           selected
                             ? "ring-[3px] ring-blue-500 ring-offset-2 scale-110"
                             : out2
@@ -556,7 +556,7 @@ export default function ProductPage({ id }: { id: number }) {
                         style={swatchStyle(color)}
                       >
                         {/* inner border so white swatches stay visible */}
-                        <span className="absolute inset-0 rounded-full border border-black/10" />
+                        <span className="absolute inset-0 rounded-lg border border-black/10" />
                         {selected && (
                           <span className={`absolute inset-0 flex items-center justify-center text-sm font-bold ${
                             color === "#f8fafc" || color === "transparent" || color === "#cbd5e1" || color === "#f5f0e1"
@@ -564,7 +564,7 @@ export default function ProductPage({ id }: { id: number }) {
                           }`}>✓</span>
                         )}
                         {out2 && (
-                          <span className="absolute inset-0 rounded-full overflow-hidden">
+                          <span className="absolute inset-0 rounded-lg overflow-hidden">
                             <span className="absolute left-1/2 top-1/2 w-[140%] h-[2px] bg-red-400 -translate-x-1/2 -translate-y-1/2 rotate-45" />
                           </span>
                         )}
@@ -752,7 +752,7 @@ export default function ProductPage({ id }: { id: number }) {
               {reviews.map((r) => (
                 <div key={r.id} className="surface rounded-xl shadow-none p-4">
                   <div className="flex items-center gap-2.5 mb-1.5">
-                    <span className="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-sm font-bold">
+                    <span className="w-8 h-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center text-sm font-bold">
                       {r.name.charAt(0)}
                     </span>
                     <span className="font-semibold text-slate-900 text-sm">{r.name}</span>
@@ -859,7 +859,7 @@ export default function ProductPage({ id }: { id: number }) {
             type="button"
             onClick={() => setLightboxOpen(false)}
             aria-label="Close image gallery"
-            className="absolute top-5 right-5 w-10 h-10 rounded-full bg-white text-slate-700 text-xl hover:bg-white z-10"
+            className="absolute top-5 right-5 w-10 h-10 rounded-lg bg-white text-slate-700 text-xl hover:bg-white z-10"
           >
             ×
           </button>
@@ -869,7 +869,7 @@ export default function ProductPage({ id }: { id: number }) {
                 type="button"
                 onClick={() => setImgIdx((i) => (i - 1 + gallery.length) % gallery.length)}
                 aria-label="Previous image"
-                className="absolute left-2 md:-left-14 w-10 h-10 rounded-full bg-white text-slate-700 text-2xl shadow-lg hover:bg-white z-10"
+                className="absolute left-2 md:-left-14 w-10 h-10 rounded-lg bg-white text-slate-700 text-2xl shadow-lg hover:bg-white z-10"
               >
                 ‹
               </button>
@@ -887,13 +887,13 @@ export default function ProductPage({ id }: { id: number }) {
                 type="button"
                 onClick={() => setImgIdx((i) => (i + 1) % gallery.length)}
                 aria-label="Next image"
-                className="absolute right-2 md:-right-14 w-10 h-10 rounded-full bg-white text-slate-700 text-2xl shadow-lg hover:bg-white z-10"
+                className="absolute right-2 md:-right-14 w-10 h-10 rounded-lg bg-white text-slate-700 text-2xl shadow-lg hover:bg-white z-10"
               >
                 ›
               </button>
             )}
             {gallery.length > 1 && (
-              <span className="absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-slate-950/70 text-white text-xs font-bold px-3 py-1.5">
+              <span className="absolute bottom-3 left-1/2 -translate-x-1/2 rounded-md bg-slate-950/70 text-white text-xs font-bold px-3 py-1.5">
                 {Math.min(imgIdx + 1, gallery.length)} / {gallery.length}
               </span>
             )}

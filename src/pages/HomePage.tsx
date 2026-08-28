@@ -16,6 +16,7 @@ import {
   ShopByDevice,
   ShopByNeed,
   TrustStrip,
+  StatsStrip,
 } from "../components/home/collections";
 
 /* Alternating, borderless background bands chunk the page into scannable zones.
@@ -33,6 +34,7 @@ export default function HomePage() {
 
       <div className="bg-white">
         <TrustStrip />
+        <StatsStrip />
         <ReviewsSummary />
       </div>
 

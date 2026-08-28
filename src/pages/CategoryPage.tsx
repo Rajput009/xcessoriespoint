@@ -182,7 +182,7 @@ export default function CategoryPage({ id, band }: { id: string; band?: string }
           {bandData.items.map((it) => (
             <li key={it.id}>
               <div className="flex items-start gap-4 surface rounded-2xl p-4 hover:shadow-lg transition">
-                <span className={`shrink-0 w-9 h-9 rounded-full flex items-center justify-center font-black text-sm ${
+                <span className={`shrink-0 w-9 h-9 rounded-lg flex items-center justify-center font-black text-sm ${
                   it.rank <= 3 ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-500"
                 }`}>{it.rank}</span>
                 <img src={it.image} alt={it.name} width={112} height={112}
@@ -220,12 +220,12 @@ export default function CategoryPage({ id, band }: { id: string; band?: string }
             <h2 className="text-lg font-black text-slate-900 mb-3">Other budgets in {bandData.categoryName}</h2>
             <div className="flex flex-wrap gap-2">
               <Link to={`/category/${bandData.categoryId}`}
-                className="px-4 py-2 rounded-full surface-muted text-sm font-medium text-slate-600 hover:text-blue-700 transition">
+                className="px-4 py-2 rounded-lg surface-muted text-sm font-medium text-slate-600 hover:text-blue-700 transition">
                 All {bandData.categoryName}
               </Link>
               {bandData.siblings.map((s) => (
                 <Link key={s.url} to={s.url}
-                  className="px-4 py-2 rounded-full surface-muted text-sm font-medium text-slate-600 hover:text-blue-700 transition">
+                  className="px-4 py-2 rounded-lg surface-muted text-sm font-medium text-slate-600 hover:text-blue-700 transition">
                   {s.bandLabel}
                 </Link>
               ))}
@@ -293,7 +293,7 @@ export default function CategoryPage({ id, band }: { id: string; band?: string }
           <div className="flex flex-wrap gap-2">
             {hubBands.map((b) => (
               <Link key={b.url} to={b.url}
-                className="px-4 py-2 rounded-full bg-white border border-blue-200 text-sm font-semibold text-blue-700 hover:bg-blue-600 hover:text-white transition">
+                className="px-4 py-2 rounded-lg bg-white border border-blue-200 text-sm font-semibold text-blue-700 hover:bg-blue-600 hover:text-white transition">
                 {b.bandLabel}
               </Link>
             ))}
@@ -334,7 +334,7 @@ export default function CategoryPage({ id, band }: { id: string; band?: string }
             <Link
               key={c.id}
               to={`/category/${c.id}`}
-              className="px-4 py-2 rounded-full surface-muted text-sm font-medium text-slate-600 hover:text-blue-700 transition"
+              className="px-4 py-2 rounded-lg surface-muted text-sm font-medium text-slate-600 hover:text-blue-700 transition"
             >
               {c.icon} {c.name}
             </Link>

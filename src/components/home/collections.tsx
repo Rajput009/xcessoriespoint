@@ -284,3 +284,33 @@ export function TrustStrip() {
     </section>
   );
 }
+
+/* ---------- StatsStrip — live credibility numbers (Amaze-style) ---------- */
+export function StatsStrip() {
+  const { products, categories, loading } = useProducts();
+  const reviews = products.reduce((sum, p) => sum + (p.reviews || 0), 0);
+  const rating = products.length
+    ? products.reduce((sum, p) => sum + (p.rating || 0), 0) / products.length
+    : 0;
+  const stats = [
+    { big: loading ? "—" : `${products.length}`, label: "Products", suffix: "+" },
+    { big: loading ? "—" : `${categories.length}`, label: "Categories", suffix: "" },
+    { big: loading ? "—" : rating ? rating.toFixed(1) : "—", label: "Average rating", suffix: "★" },
+    { big: loading ? "—" : reviews.toLocaleString("en-PK"), label: "Customer reviews", suffix: "+" },
+  ];
+  return (
+    <section className="max-w-7xl mx-auto px-6 py-10">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-10 gap-y-8">
+        {stats.map((s) => (
+          <div key={s.label}>
+            <p className="text-3xl md:text-4xl font-black text-slate-900 tracking-tight">
+              {s.big}
+              {s.suffix && <span className="text-slate-300 ml-1">{s.suffix}</span>}
+            </p>
+            <p className="mt-1 text-[11px] font-bold uppercase tracking-[0.16em] text-slate-400">{s.label}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
