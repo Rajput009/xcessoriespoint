@@ -124,6 +124,63 @@ function useSlides(): Slide[] {
   );
 }
 
+/* ---------- Desktop category sidebar (sits at the top-left of the hero,
+   attached to the header block — borderless so it reads as part of the
+   header, not a card) ---------- */
+function HeroSidebar() {
+  const { products, categories } = useProducts();
+  const { navigate } = useRouter();
+  const count = (id: string) => products.filter((p) => p.category === id).length;
+
+  return (
+    <aside
+      aria-label="Shop by category"
+      className="hidden lg:flex flex-col self-start sticky top-[136px] max-h-[calc(100vh-9.5rem)] overflow-y-auto no-scrollbar fade-up [text-shadow:0_1px_12px_rgba(2,6,23,0.7)]"
+    >
+      <p className="text-[11px] font-black uppercase tracking-[0.2em] text-sky-300 mb-4">
+        All categories
+      </p>
+      <nav className="flex flex-col">
+        <button
+          type="button"
+          onClick={() => navigate("/shop")}
+          className="group flex items-center justify-between rounded-lg px-3 py-2.5 text-left transition-colors hover:bg-white/10"
+        >
+          <span className="text-sm font-bold text-white">Shop all</span>
+          <span className="text-[11px] font-semibold text-sky-300/80 tabular-nums">
+            {products.length} products
+          </span>
+        </button>
+        {categories.map((c) => (
+          <button
+            key={c.id}
+            type="button"
+            onClick={() => navigate(`/category/${c.id}`)}
+            className="group flex items-center justify-between rounded-lg px-3 py-2.5 text-left transition-colors hover:bg-white/10"
+          >
+            <span className="text-sm font-medium text-white/85 transition-colors group-hover:text-white">
+              {c.name}
+            </span>
+            <span className="flex items-center gap-2">
+              <span className="text-[11px] font-semibold text-white/45 tabular-nums">
+                {count(c.id)}
+              </span>
+              <span className="text-sky-300/70 transition-colors group-hover:text-sky-200" aria-hidden="true">
+                →
+              </span>
+            </span>
+          </button>
+        ))}
+      </nav>
+      <div className="mt-5 pt-5 border-t border-white/15">
+        <p className="text-[11px] font-semibold leading-relaxed text-white/60">
+          COD nationwide · Free shipping over Rs 5,000 · 7-day returns
+        </p>
+      </div>
+    </aside>
+  );
+}
+
 export function HeroSection() {
   const slides = useSlides();
   const [slide, setSlide] = useState(0);
@@ -163,7 +220,10 @@ export function HeroSection() {
         <div className="absolute inset-0 bg-gradient-to-r from-slate-950/20 via-transparent to-slate-950/10" />
       </div>
 
-      <div className="relative max-w-7xl mx-auto px-6 pt-20 md:pt-[130px] pb-4">
+      <div className="relative max-w-7xl mx-auto px-6 pt-20 md:pt-[120px] pb-4">
+        <div className="lg:grid lg:grid-cols-[248px_minmax(0,1fr)] lg:gap-10">
+          <HeroSidebar />
+          <div className="min-w-0">
         {/* All slides live in the SAME grid cell and are only faded in/out. The hero is
             therefore always as tall as its tallest slide, so switching slides can never
             reflow the page below it (no layout shift / CLS). */}
@@ -258,6 +318,8 @@ export function HeroSection() {
               </div>
             </button>
           ))}
+        </div>
+          </div>
         </div>
       </div>
     </section>

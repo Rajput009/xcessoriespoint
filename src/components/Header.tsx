@@ -159,20 +159,20 @@ function CollectionDrawer({ open, onClose }: { open: boolean; onClose: () => voi
         type="button"
         aria-label="Close collection menu"
         onClick={onClose}
-        className="absolute inset-0 bg-blue-950/20"
+        className="absolute inset-0 bg-slate-950/30"
       />
       <aside
         id="collection-drawer"
-        className="collection-drawer relative h-full w-[min(92vw,430px)] bg-white border-r border-white/70 rounded-r-3xl shadow-2xl shadow-blue-950/20 slide-in-left flex flex-col"
+        className="collection-drawer relative h-full w-[min(92vw,430px)] bg-white border-r border-slate-200 rounded-r-lg shadow-2xl shadow-slate-950/15 slide-in-left flex flex-col"
       >
-        <div className="relative px-5 pt-6 pb-5 border-b border-white/60">
-          <p className="text-[11px] font-black uppercase tracking-[0.2em] text-blue-700 mb-1">The collection</p>
+        <div className="relative px-5 pt-6 pb-5 border-b border-slate-100">
+          <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 mb-1">The collection</p>
           <p className="text-lg font-black text-slate-950">All categories</p>
           <button
             type="button"
             onClick={onClose}
             aria-label="Close collection menu"
-            className="absolute top-5 right-5 w-9 h-9 rounded-lg bg-white text-slate-500 hover:text-blue-700 hover:bg-white transition-colors flex items-center justify-center"
+            className="absolute top-5 right-5 w-9 h-9 rounded-lg bg-white text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition-colors flex items-center justify-center"
           >
             <span className="text-2xl font-light leading-none" aria-hidden="true">×</span>
           </button>
@@ -183,14 +183,14 @@ function CollectionDrawer({ open, onClose }: { open: boolean; onClose: () => voi
             const isExpanded = expanded === row.id;
             const hasProducts = loading || row.products.length > 0;
             return (
-              <div key={row.id} className="border-b border-white/60">
+              <div key={row.id} className="border-b border-slate-100">
                 <button
                   type="button"
                   aria-expanded={isExpanded}
                   aria-controls={`collection-${row.id}`}
                   onClick={() => hasProducts && setExpanded(isExpanded ? null : row.id)}
                   className={`w-full min-h-[64px] px-9 flex items-center justify-between gap-4 text-left transition-colors ${
-                    isExpanded ? "bg-blue-50/70" : "bg-transparent hover:bg-slate-50"
+                    isExpanded ? "bg-slate-50" : "bg-transparent hover:bg-slate-50"
                   }`}
                 >
                   <span className={`text-[18px] leading-tight font-medium ${
@@ -200,7 +200,7 @@ function CollectionDrawer({ open, onClose }: { open: boolean; onClose: () => voi
                   </span>
                   {hasProducts && (
                     <span
-                      className={`w-2.5 h-2.5 shrink-0 border-r-2 border-b-2 border-blue-600 rotate-45 -translate-y-1 transition-transform ${
+                      className={`w-2.5 h-2.5 shrink-0 border-r-2 border-b-2 border-slate-500 rotate-45 -translate-y-1 transition-transform ${
                         isExpanded ? "rotate-[225deg] translate-y-1" : ""
                       }`}
                       aria-hidden="true"
@@ -209,7 +209,7 @@ function CollectionDrawer({ open, onClose }: { open: boolean; onClose: () => voi
                 </button>
 
                 {isExpanded && (
-                  <div id={`collection-${row.id}`} className="bg-white px-4 py-2 border-t border-white/50">
+                  <div id={`collection-${row.id}`} className="bg-white px-4 py-2 border-t border-slate-100">
                     {loading ? (
                       Array.from({ length: 4 }).map((_, i) => (
                         <div key={i} className="flex items-center gap-3 px-3 py-3 animate-pulse">
@@ -227,10 +227,10 @@ function CollectionDrawer({ open, onClose }: { open: boolean; onClose: () => voi
                         >
                           <img src={p.image} alt="" loading="lazy" className="w-10 h-10 rounded-lg object-cover bg-white shrink-0" />
                           <span className="min-w-0 flex-1">
-                            <span className="block text-sm font-medium text-slate-800 truncate group-hover:text-blue-700">{p.name}</span>
+                            <span className="block text-sm font-medium text-slate-800 truncate group-hover:text-slate-900">{p.name}</span>
                             <span className="block text-xs font-bold text-slate-500 mt-0.5">{fmt(p.price)}</span>
                           </span>
-                          <span className="text-slate-300 group-hover:text-blue-600" aria-hidden="true">→</span>
+                          <span className="text-slate-300 group-hover:text-slate-900" aria-hidden="true">→</span>
                         </button>
                       ))
                     ) : (
@@ -243,11 +243,11 @@ function CollectionDrawer({ open, onClose }: { open: boolean; onClose: () => voi
           })}
         </div>
 
-        <div className="p-5 border-t border-white/60 bg-white">
+        <div className="p-5 border-t border-slate-100 bg-white">
           <button
             type="button"
             onClick={() => goTo("/shop")}
-            className="w-full py-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm font-bold shadow-md shadow-blue-600/20 hover:from-blue-700 hover:to-indigo-700 transition-all"
+            className="w-full py-3 rounded-lg bg-slate-900 text-white text-sm font-bold hover:bg-slate-700 transition-colors"
           >
             View full shop →
           </button>
