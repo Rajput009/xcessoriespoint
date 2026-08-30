@@ -34,7 +34,7 @@ const TICKET_STATUSES = ["Open", "In Progress", "Resolved", "Closed"];
 /* ---------- tiny helpers ---------- */
 function pill(text: string, tone: "green" | "amber" | "red" | "slate") {
   const tones = {
-    green: "bg-emerald-100 text-emerald-700",
+    green: "bg-blue-100 text-blue-700",
     amber: "bg-amber-100 text-amber-700",
     red: "bg-red-100 text-red-600",
     slate: "bg-slate-100 text-slate-500",
@@ -67,7 +67,7 @@ export default function AdminPage() {
           <Link to="/" className="font-black text-white text-sm lg:text-base">
             <span className="lg:hidden">XP</span>
             <span className="hidden lg:inline">
-              Xccessories<span className="text-emerald-500">Point</span>
+              Xccessories<span className="text-blue-500">Point</span>
             </span>
           </Link>
           <p className="hidden lg:block text-[10px] uppercase tracking-widest text-slate-500 mt-1">
@@ -81,7 +81,7 @@ export default function AdminPage() {
               onClick={() => setSection(s.id)}
               className={`w-full flex items-center gap-3 px-4 lg:px-5 py-2.5 text-sm transition ${
                 section === s.id
-                  ? "bg-emerald-600/15 text-emerald-400 border-r-2 border-emerald-500"
+                  ? "bg-blue-600/15 text-blue-400 border-r-2 border-blue-500"
                   : "hover:bg-slate-800"
               }`}
             >
@@ -98,12 +98,12 @@ export default function AdminPage() {
         </div>
       </aside>
 
-      <main className="flex-1 p-5 lg:p-8 overflow-x-auto">
+      <main id="main-content" className="flex-1 p-5 lg:p-8 overflow-x-auto">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-black text-slate-900 capitalize">{section}</h1>
           <div className="flex items-center gap-3 text-sm">
             <span className="hidden sm:block text-slate-500">{user.email}</span>
-            <div className="w-9 h-9 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold">
+            <div className="w-9 h-9 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold">
               {user.name.charAt(0)}
             </div>
           </div>
@@ -343,7 +343,7 @@ function CategoriesSection() {
           The tile image shows on the homepage "Shop by Category" row. Leave it empty to fall back to the emoji.
         </p>
         <button type="submit" disabled={busy}
-          className="mt-4 px-5 py-2.5 rounded-lg bg-emerald-600 text-white text-sm font-bold hover:bg-emerald-700 disabled:opacity-50">
+          className="mt-4 px-5 py-2.5 rounded-lg bg-blue-600 text-white text-sm font-bold hover:bg-blue-700 disabled:opacity-50">
           {busy ? "Creating…" : "+ Create category"}
         </button>
       </form>
@@ -415,7 +415,7 @@ function CategoriesSection() {
                   <td className="px-4 py-2.5 text-right whitespace-nowrap">
                     {isEditing ? (
                       <>
-                        <button onClick={() => save(c.id)} className="text-xs font-bold text-emerald-600 hover:underline mr-3">Save</button>
+                        <button onClick={() => save(c.id)} className="text-xs font-bold text-blue-600 hover:underline mr-3">Save</button>
                         <button onClick={() => setEditing(null)} className="text-xs font-semibold text-slate-400 hover:underline">Cancel</button>
                       </>
                     ) : (
@@ -706,7 +706,7 @@ function ProductsSection() {
             {(["featured", "bestSeller", "newArrival", "dealOfDay"] as const).map((k) => (
               <label key={k} className="inline-flex items-center gap-1.5 text-sm text-slate-600 cursor-pointer">
                 <input type="checkbox" checked={nForm[k]} onChange={(e) => setNForm({ ...nForm, [k]: e.target.checked })}
-                  className="h-4 w-4 accent-emerald-600" />
+                  className="h-4 w-4 accent-blue-600" />
                 {k === "bestSeller" ? "Best seller" : k === "newArrival" ? "New arrival" : k === "dealOfDay" ? "Deal of the day" : "Featured"}
               </label>
             ))}
@@ -766,15 +766,15 @@ function ProductsSection() {
               <div className="flex items-center gap-2 flex-wrap mb-2">
                 {nGallery.map((url, i) => (
                   <div key={i} className="relative group/img">
-                    <img src={url} alt="" className={`w-14 h-14 rounded-lg object-cover ${url === nForm.image ? "ring-2 ring-emerald-400" : ""}`} />
+                    <img src={url} alt="" className={`w-14 h-14 rounded-lg object-cover ${url === nForm.image ? "ring-2 ring-blue-400" : ""}`} />
                     <button type="button"
                       onClick={() => setNForm({ ...nForm, image: url })}
                       disabled={url === nForm.image}
                       title={url === nForm.image ? "Current cover" : "Set as cover image"}
                       className={`absolute -top-1.5 -left-1.5 w-[18px] h-[18px] rounded-full text-[10px] font-bold transition ${
                         url === nForm.image
-                          ? "bg-emerald-600 text-white"
-                          : "bg-white text-slate-500 border border-slate-200 opacity-0 group-hover/img:opacity-100 hover:bg-emerald-50"
+                          ? "bg-blue-600 text-white"
+                          : "bg-white text-slate-500 border border-slate-200 opacity-0 group-hover/img:opacity-100 hover:bg-blue-50"
                       }`}
                       aria-label="Set as cover image">★</button>
                     <button type="button" onClick={() => setNGallery(nGallery.filter((_, j) => j !== i))}
@@ -795,13 +795,13 @@ function ProductsSection() {
                   setNGallery([...nGallery, u]);
                   setNGalleryInput("");
                 }}
-                className="px-3 py-1.5 rounded-md bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-700">
+                className="px-3 py-1.5 rounded-md bg-blue-600 text-white text-xs font-bold hover:bg-blue-700">
                 + Add image
               </button>
             </div>
           </div>
           <div className="mt-4 flex items-center gap-3">
-            <button type="submit" className="px-5 py-2.5 rounded-lg bg-emerald-600 text-white text-sm font-bold hover:bg-emerald-700">
+            <button type="submit" className="px-5 py-2.5 rounded-lg bg-blue-600 text-white text-sm font-bold hover:bg-blue-700">
               + Create product
             </button>
             <button type="button" onClick={() => setShowForm(false)} className="px-4 py-2.5 rounded-lg text-sm font-semibold text-slate-500 hover:bg-slate-100">
@@ -816,7 +816,7 @@ function ProductsSection() {
           <button
             type="button"
             onClick={() => setShowForm((v) => !v)}
-            className="px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-bold hover:bg-emerald-700"
+            className="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-bold hover:bg-blue-700"
           >
             {showForm ? "✕ Close" : "+ Add product"}
           </button>
@@ -868,7 +868,7 @@ function ProductsSection() {
                     <button
                       onClick={() => saveRow(p)}
                       disabled={savingId === p.id}
-                      className="px-3 py-1.5 rounded-md bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-700 disabled:opacity-50"
+                      className="px-3 py-1.5 rounded-md bg-blue-600 text-white text-xs font-bold hover:bg-blue-700 disabled:opacity-50"
                     >
                       {savingId === p.id ? "Saving…" : "Save"}
                     </button>
@@ -898,7 +898,7 @@ function ProductsSection() {
                 </button>
                 <button
                   onClick={() => update(p.id, { active: !p.active })}
-                  className="text-xs font-semibold text-emerald-600 hover:underline"
+                  className="text-xs font-semibold text-blue-600 hover:underline"
                 >
                   {p.active ? "Hide" : "Show"}
                 </button>
@@ -920,20 +920,20 @@ function ProductsSection() {
                   <p className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-2">Gallery images <span className="normal-case font-medium text-slate-400">(★ sets cover)</span></p>
                   <div className="flex items-center gap-2 flex-wrap mb-2">
                     <div className="relative">
-                      <img src={p.image} alt="" className="w-14 h-14 rounded-lg object-cover ring-2 ring-emerald-400" />
-                      <span className="absolute -top-1.5 -right-1.5 bg-emerald-600 text-white text-[8px] font-bold px-1 rounded">COVER</span>
+                      <img src={p.image} alt="" className="w-14 h-14 rounded-lg object-cover ring-2 ring-blue-400" />
+                      <span className="absolute -top-1.5 -right-1.5 bg-blue-600 text-white text-[8px] font-bold px-1 rounded">COVER</span>
                     </div>
                     {(p.imageRecords ?? []).map((im) => (
                       <div key={im.id} className="relative group/img">
-                        <img src={im.url} alt="" className={`w-14 h-14 rounded-lg object-cover ${im.url === p.image ? "ring-2 ring-emerald-400" : ""}`} />
+                        <img src={im.url} alt="" className={`w-14 h-14 rounded-lg object-cover ${im.url === p.image ? "ring-2 ring-blue-400" : ""}`} />
                         <button
                           onClick={() => setCover(p, im.url)}
                           disabled={im.url === p.image}
                           title={im.url === p.image ? "Current cover" : "Set as cover image"}
                           className={`absolute -top-1.5 -left-1.5 w-[18px] h-[18px] rounded-full text-[10px] font-bold transition ${
                             im.url === p.image
-                              ? "bg-emerald-600 text-white"
-                              : "bg-white text-slate-500 border border-slate-200 opacity-0 group-hover/img:opacity-100 hover:bg-emerald-50"
+                              ? "bg-blue-600 text-white"
+                              : "bg-white text-slate-500 border border-slate-200 opacity-0 group-hover/img:opacity-100 hover:bg-blue-50"
                           }`}
                           aria-label="Set as cover image"
                         >
@@ -956,7 +956,7 @@ function ProductsSection() {
                     />
                     <button
                       onClick={() => addImage(p.id)}
-                      className="px-3 py-1.5 rounded-md bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-700"
+                      className="px-3 py-1.5 rounded-md bg-blue-600 text-white text-xs font-bold hover:bg-blue-700"
                     >
                       + Add image
                     </button>
@@ -1082,13 +1082,13 @@ function ProductsSection() {
               {(["featured", "bestSeller", "newArrival", "dealOfDay"] as const).map((k) => (
                 <label key={k} className="inline-flex items-center gap-1.5 text-sm text-slate-600 cursor-pointer">
                   <input type="checkbox" checked={eForm[k]} onChange={(e) => setEForm({ ...eForm, [k]: e.target.checked })}
-                    className="h-4 w-4 accent-emerald-600" />
+                    className="h-4 w-4 accent-blue-600" />
                   {k === "bestSeller" ? "Best seller" : k === "newArrival" ? "New arrival" : k === "dealOfDay" ? "Deal of the day" : "Featured"}
                 </label>
               ))}
             </div>
             <div className="mt-4 flex items-center gap-3">
-              <button type="submit" className="px-5 py-2.5 rounded-lg bg-emerald-600 text-white text-sm font-bold hover:bg-emerald-700">
+              <button type="submit" className="px-5 py-2.5 rounded-lg bg-blue-600 text-white text-sm font-bold hover:bg-blue-700">
                 Save changes
               </button>
               <button type="button" onClick={() => setEdit(null)} className="px-4 py-2.5 rounded-lg text-sm font-semibold text-slate-500 hover:bg-slate-100">
@@ -1212,7 +1212,7 @@ function OrderDetails({ order: o }: { order: Order }) {
             <span>Subtotal</span><span>{fmt(o.subtotal ?? 0)}</span>
           </div>
           {o.discount ? (
-            <div className="flex justify-between py-1 text-emerald-600">
+            <div className="flex justify-between py-1 text-blue-600">
               <span>Discount{o.couponCode ? ` (${o.couponCode})` : ""}</span><span>−{fmt(o.discount)}</span>
             </div>
           ) : null}
@@ -1370,7 +1370,7 @@ function CouponsSection() {
           <input type="number" value={form.minOrder} onChange={(e) => setForm({ ...form, minOrder: +e.target.value })}
             className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" />
         </div>
-        <button className="py-2.5 rounded-lg bg-emerald-600 text-white text-sm font-bold hover:bg-emerald-700">
+        <button className="py-2.5 rounded-lg bg-blue-600 text-white text-sm font-bold hover:bg-blue-700">
           + Create
         </button>
       </form>
@@ -1397,7 +1397,7 @@ function CouponsSection() {
                 <td className="px-4 py-3 text-slate-500">{c.usedCount}×</td>
                 <td className="px-4 py-3">{c.active ? pill("Active", "green") : pill("Inactive", "slate")}</td>
                 <td className="px-4 py-3 space-x-3 whitespace-nowrap">
-                  <button onClick={() => toggle(c)} className="text-xs font-semibold text-emerald-600 hover:underline">
+                  <button onClick={() => toggle(c)} className="text-xs font-semibold text-blue-600 hover:underline">
                     {c.active ? "Disable" : "Enable"}
                   </button>
                   <button onClick={() => del(c)} className="text-xs font-semibold text-red-500 hover:underline">
@@ -1453,7 +1453,7 @@ function ReviewsSection() {
           <div className="flex items-center gap-2 shrink-0">
             {pill(r.status, r.status === "approved" ? "green" : r.status === "rejected" ? "red" : "amber")}
             {r.status !== "approved" && (
-              <button onClick={() => setStatus(r.id, "approved")} className="text-xs font-semibold text-emerald-600 hover:underline">Approve</button>
+              <button onClick={() => setStatus(r.id, "approved")} className="text-xs font-semibold text-blue-600 hover:underline">Approve</button>
             )}
             {r.status !== "rejected" && (
               <button onClick={() => setStatus(r.id, "rejected")} className="text-xs font-semibold text-amber-600 hover:underline">Reject</button>
@@ -1551,7 +1551,7 @@ function ReturnsSection() {
                     {dirty && draft && (
                       <span className="ml-2">
                         <button onClick={() => setStatus(r.id, draft)} disabled={savingId === r.id}
-                          className="text-xs font-bold text-emerald-600 hover:underline disabled:opacity-50">
+                          className="text-xs font-bold text-blue-600 hover:underline disabled:opacity-50">
                           {savingId === r.id ? "Saving…" : "Save"}
                         </button>
                         <button onClick={() => setDrafts((d) => {
@@ -1570,7 +1570,7 @@ function ReturnsSection() {
                       {open === r.id ? "Hide ▴" : "Details ▾"}
                     </button>
                     {r.status === "Approved" && (
-                      <button onClick={() => refund(r)} className="ml-3 text-xs font-bold text-emerald-600 hover:underline">
+                      <button onClick={() => refund(r)} className="ml-3 text-xs font-bold text-blue-600 hover:underline">
                         💸 Issue refund
                       </button>
                     )}
@@ -1663,13 +1663,13 @@ function NotificationsSection() {
     <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
       <div className="px-5 py-3.5 border-b border-slate-100 flex justify-between items-center">
         <p className="font-bold text-slate-900 text-sm">Latest activity</p>
-        <button onClick={markAll} className="text-xs font-semibold text-emerald-600 hover:underline">
+        <button onClick={markAll} className="text-xs font-semibold text-blue-600 hover:underline">
           Mark all read
         </button>
       </div>
       {notifs.map((n) => (
         <div key={n.id}
-          className={`px-5 py-3.5 border-b border-slate-50 flex items-center gap-4 ${n.read ? "opacity-60" : "bg-emerald-50/40"}`}>
+          className={`px-5 py-3.5 border-b border-slate-50 flex items-center gap-4 ${n.read ? "opacity-60" : "bg-blue-50/40"}`}>
           <span className="text-xl">{NOTIF_ICON[n.type] ?? "🔔"}</span>
           <div className="flex-1 min-w-0">
             <p className="font-medium text-slate-900 text-sm">{n.title}</p>
@@ -1677,7 +1677,7 @@ function NotificationsSection() {
           </div>
           <span className="text-[10px] text-slate-400 whitespace-nowrap">{n.createdAt}</span>
           {!n.read && (
-            <button onClick={() => mark(n.id)} className="text-xs font-semibold text-emerald-600 hover:underline shrink-0">
+            <button onClick={() => mark(n.id)} className="text-xs font-semibold text-blue-600 hover:underline shrink-0">
               Read
             </button>
           )}
@@ -1744,7 +1744,7 @@ function GuidesSection() {
       </div>
       {rows.map((r) =>
         editing === r.slug && draft ? (
-          <div key={r.slug} className="bg-white rounded-2xl border-2 border-emerald-300 p-5 space-y-3">
+          <div key={r.slug} className="bg-white rounded-2xl border-2 border-blue-300 p-5 space-y-3">
             <input
               value={draft.title}
               onChange={(e) => setDraft({ ...draft, title: e.target.value })}
@@ -1754,7 +1754,7 @@ function GuidesSection() {
             <textarea
               value={draft.tldr}
               onChange={(e) => setDraft({ ...draft, tldr: e.target.value })}
-              className="w-full min-h-[80px] rounded-lg border border-emerald-200 bg-emerald-50/40 px-3 py-2 text-sm"
+              className="w-full min-h-[80px] rounded-lg border border-blue-200 bg-blue-50/40 px-3 py-2 text-sm"
               aria-label="TL;DR quick answer"
               placeholder="TL;DR — the direct answer (under 60 words)"
             />
@@ -1792,7 +1792,7 @@ function GuidesSection() {
             ))}
             <button
               onClick={() => setDraft({ ...draft, sections: [...draft.sections, { heading: "", body: "" }] })}
-              className="text-xs font-bold text-emerald-600 hover:underline"
+              className="text-xs font-bold text-blue-600 hover:underline"
             >
               + Add section
             </button>
@@ -1828,7 +1828,7 @@ function GuidesSection() {
               <button
                 onClick={save}
                 disabled={busy}
-                className="px-5 py-2 rounded-lg bg-emerald-600 text-white text-sm font-bold hover:bg-emerald-700 disabled:opacity-50"
+                className="px-5 py-2 rounded-lg bg-blue-600 text-white text-sm font-bold hover:bg-blue-700 disabled:opacity-50"
               >
                 {busy ? "Saving…" : "Save guide"}
               </button>
@@ -1846,7 +1846,7 @@ function GuidesSection() {
               </p>
             </div>
             <div className="flex items-center gap-3">
-              <Link to={`/guides/${r.slug}`} className="text-xs font-semibold text-emerald-600 hover:underline">view ↗</Link>
+              <Link to={`/guides/${r.slug}`} className="text-xs font-semibold text-blue-600 hover:underline">view ↗</Link>
               <button
                 onClick={() => { setEditing(r.slug); setDraft(r); }}
                 className="text-xs font-bold text-slate-600 hover:underline"
@@ -1918,20 +1918,20 @@ function SeoPagesSection() {
         <div key={p.url} className="bg-white rounded-2xl border border-slate-200 p-5">
           <div className="flex items-center justify-between gap-3 mb-1 flex-wrap">
             <p className="text-sm font-bold text-slate-900">{p.categoryName} · {p.bandLabel}</p>
-            <Link to={p.url} className="text-xs font-semibold text-emerald-600 hover:underline">{p.url} ↗</Link>
+            <Link to={p.url} className="text-xs font-semibold text-blue-600 hover:underline">{p.url} ↗</Link>
           </div>
           <p className="text-xs text-slate-400 mb-3">{p.productCount} products currently qualify</p>
           <textarea
             value={drafts[p.url] ?? p.intro ?? ""}
             onChange={(e) => setDrafts({ ...drafts, [p.url]: e.target.value })}
             placeholder={p.autoIntro}
-            className="w-full min-h-[88px] rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-emerald-500"
+            className="w-full min-h-[88px] rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500"
             aria-label={`Intro for ${p.categoryName} ${p.bandLabel}`}
           />
           <button
             onClick={() => saveIntro(p)}
             disabled={busy === p.url}
-            className="mt-3 px-5 py-2 rounded-lg bg-emerald-600 text-white text-sm font-bold hover:bg-emerald-700 disabled:opacity-50"
+            className="mt-3 px-5 py-2 rounded-lg bg-blue-600 text-white text-sm font-bold hover:bg-blue-700 disabled:opacity-50"
           >
             {busy === p.url ? "Saving…" : "Save intro"}
           </button>
@@ -1999,7 +1999,7 @@ function PoliciesSection() {
       </div>
       {rows.map((r) =>
         editing === r.path && draft ? (
-          <div key={r.path} className="bg-white rounded-2xl border-2 border-emerald-300 p-5 space-y-3">
+          <div key={r.path} className="bg-white rounded-2xl border-2 border-blue-300 p-5 space-y-3">
             <input
               value={draft.title}
               onChange={(e) => setDraft({ ...draft, title: e.target.value })}
@@ -2048,7 +2048,7 @@ function PoliciesSection() {
             ))}
             <button
               onClick={() => setDraft({ ...draft, sections: [...draft.sections, { heading: "", body: "" }] })}
-              className="text-xs font-bold text-emerald-600 hover:underline"
+              className="text-xs font-bold text-blue-600 hover:underline"
             >
               + Add section
             </button>
@@ -2056,7 +2056,7 @@ function PoliciesSection() {
               <button
                 onClick={save}
                 disabled={busy}
-                className="px-5 py-2 rounded-lg bg-emerald-600 text-white text-sm font-bold hover:bg-emerald-700 disabled:opacity-50"
+                className="px-5 py-2 rounded-lg bg-blue-600 text-white text-sm font-bold hover:bg-blue-700 disabled:opacity-50"
               >
                 {busy ? "Saving…" : "Save policy"}
               </button>
@@ -2071,7 +2071,7 @@ function PoliciesSection() {
               <p className="text-sm font-bold text-slate-900">{r.title}</p>
               <p className="text-xs text-slate-400">{r.path} · updated {r.updated || "—"} · {r.sections.length} sections</p>
             </div>
-            <button onClick={() => startEdit(r)} className="text-xs font-bold text-emerald-600 hover:underline">
+            <button onClick={() => startEdit(r)} className="text-xs font-bold text-blue-600 hover:underline">
               Edit
             </button>
           </div>
@@ -2137,12 +2137,12 @@ function SettingsSection() {
             autoComplete="off"
             value={settings[key] ?? ""}
             onChange={(e) => setSettings({ ...settings, [key]: e.target.value })}
-            className="mt-1 w-full rounded-lg border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-emerald-500"
+            className="mt-1 w-full rounded-lg border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-blue-500"
           />
         </div>
       ))}
       <button onClick={save} disabled={busy}
-        className="px-6 py-2.5 rounded-lg bg-emerald-600 text-white font-semibold hover:bg-emerald-700 disabled:opacity-50">
+        className="px-6 py-2.5 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 disabled:opacity-50">
         {busy ? "Saving…" : "Save changes"}
       </button>
       <p className="text-xs text-slate-400">
@@ -2209,7 +2209,7 @@ function AnalyticsSection() {
                 <span className="font-bold text-slate-900">{v}</span>
               </div>
               <div className="h-3 rounded-full bg-slate-100 overflow-hidden">
-                <div className="h-full bg-emerald-500" style={{ width: `${(v / funnelMax) * 100}%` }} />
+                <div className="h-full bg-blue-500" style={{ width: `${(v / funnelMax) * 100}%` }} />
               </div>
             </div>
           ))}
@@ -2338,7 +2338,7 @@ function InventorySection() {
             <option value="return-restock">Return restock</option>
           </select>
         </div>
-        <button className="py-2.5 rounded-lg bg-emerald-600 text-white text-sm font-bold hover:bg-emerald-700">
+        <button className="py-2.5 rounded-lg bg-blue-600 text-white text-sm font-bold hover:bg-blue-700">
           Apply
         </button>
         <input value={form.note} onChange={(e) => setForm({ ...form, note: e.target.value })}
@@ -2365,7 +2365,7 @@ function InventorySection() {
             {moves.map((m) => (
               <tr key={m.id} className="border-t border-slate-100">
                 <td className="px-4 py-2.5 font-medium text-slate-900">{m.productName}</td>
-                <td className={`px-4 py-2.5 font-bold ${m.delta > 0 ? "text-emerald-600" : "text-red-500"}`}>
+                <td className={`px-4 py-2.5 font-bold ${m.delta > 0 ? "text-blue-600" : "text-red-500"}`}>
                   {m.delta > 0 ? "+" : ""}{m.delta}
                 </td>
                 <td className="px-4 py-2.5">{pill(m.reason, m.reason === "sale" ? "slate" : m.reason === "damaged" ? "red" : "green")}</td>
@@ -2516,7 +2516,7 @@ function AdminGate({
     <div className="min-h-screen bg-slate-900 flex items-center justify-center p-6">
       <div className="w-full max-w-sm bg-white rounded-2xl p-8 shadow-2xl">
         <p className="text-center font-black text-xl text-slate-900 mb-1">
-          Xccessories<span className="text-emerald-600">Point</span>
+          Xccessories<span className="text-blue-600">Point</span>
         </p>
         <p className="text-center text-xs uppercase tracking-widest text-slate-400 mb-6">
           Admin Console
@@ -2528,22 +2528,22 @@ function AdminGate({
         )}
         <form onSubmit={submit} className="space-y-3">
           <input
-            className="w-full rounded-lg border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-emerald-500"
+            className="w-full rounded-lg border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-blue-500"
             type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Admin email" required
           />
           <input
-            className="w-full rounded-lg border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-emerald-500"
+            className="w-full rounded-lg border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-blue-500"
             type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" required
           />
           {error && <p className="text-sm text-red-600">{error}</p>}
           <button
             disabled={busy}
-            className="w-full py-3 rounded-lg bg-emerald-600 text-white font-bold hover:bg-emerald-700 disabled:opacity-50"
+            className="w-full py-3 rounded-lg bg-blue-600 text-white font-bold hover:bg-blue-700 disabled:opacity-50"
           >
             {busy ? "Signing in…" : "Sign in to Admin"}
           </button>
         </form>
-        <Link to="/" className="block mt-3 text-center text-sm text-emerald-600 hover:underline">
+        <Link to="/" className="block mt-3 text-center text-sm text-blue-600 hover:underline">
           ← Back to store
         </Link>
       </div>

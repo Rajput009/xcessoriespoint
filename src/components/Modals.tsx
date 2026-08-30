@@ -22,7 +22,7 @@ function Overlay({ children, onClose }: { children: ReactNode; onClose: () => vo
   }, [onClose]);
   return (
     <div className="fixed inset-0 z-50 flex" onClick={onClose}>
-      <div className="absolute inset-0 bg-emerald-950/30 backdrop-blur-md" />
+      <div className="absolute inset-0 bg-slate-900/30 " />
       {children}
     </div>
   );
@@ -40,14 +40,14 @@ function CenterModal({
   return (
     <Overlay onClose={onClose}>
       <div
-        className="relative m-auto w-[92vw] max-w-md glass !bg-white/75 rounded-3xl shadow-2xl shadow-emerald-950/20 p-6 fade-up max-h-[85vh] overflow-y-auto"
+        className="relative m-auto w-[92vw] max-w-md surface !bg-white rounded-3xl shadow-2xl shadow-slate-950/20 p-6 fade-up max-h-[85vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-bold text-slate-900">{title}</h2>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full hover:bg-white/70 text-slate-500"
+            className="w-8 h-8 rounded-lg hover:bg-white text-slate-500"
             aria-label="Close"
           >
             ✕
@@ -71,14 +71,14 @@ function Drawer({
   return (
     <Overlay onClose={onClose}>
       <div
-        className="relative ml-auto h-full w-full max-w-md glass !bg-white/80 !border-l !border-white/60 shadow-2xl shadow-emerald-950/25 slide-in flex flex-col"
+        className="relative ml-auto h-full w-full max-w-md surface !bg-white !border-l !border-white/60 shadow-2xl shadow-slate-950/25 slide-in flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between px-5 py-4 border-b border-white/50">
           <h2 className="text-lg font-bold text-slate-900">{title}</h2>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full hover:bg-white/70 text-slate-500"
+            className="w-8 h-8 rounded-lg hover:bg-white text-slate-500"
             aria-label="Close"
           >
             ✕
@@ -116,7 +116,7 @@ function AuthModal({ onClose }: { onClose: () => void }) {
   };
 
   const input =
-    "w-full rounded-lg border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100";
+    "w-full rounded-lg border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100";
 
   return (
     <CenterModal title={mode === "login" ? "Sign in" : "Create account"} onClose={onClose}>
@@ -126,7 +126,7 @@ function AuthModal({ onClose }: { onClose: () => void }) {
             key={m}
             onClick={() => setMode(m)}
             className={`flex-1 py-2 rounded-md transition ${
-              mode === m ? "bg-white shadow text-emerald-700" : "text-slate-500"
+              mode === m ? "bg-white shadow text-orange-600" : "text-slate-500"
             }`}
           >
             {m === "login" ? "Login" : "Register"}
@@ -142,7 +142,7 @@ function AuthModal({ onClose }: { onClose: () => void }) {
         {error && <p className="text-sm text-red-600">{error}</p>}
         <button
           disabled={busy}
-          className="w-full py-3 rounded-lg bg-emerald-600 text-white font-semibold hover:bg-emerald-700 disabled:opacity-50"
+          className="w-full py-3 rounded-lg bg-slate-900 text-white font-semibold hover:bg-slate-800 disabled:opacity-50"
         >
           {busy ? "Please wait…" : mode === "login" ? "Sign in" : "Create account"}
         </button>
@@ -178,7 +178,7 @@ function CartDrawer({ onClose }: { onClose: () => void }) {
               onClose();
               navigate("/shop");
             }}
-            className="px-6 py-2.5 rounded-lg bg-emerald-600 text-white font-semibold hover:bg-emerald-700"
+            className="px-6 py-2.5 rounded-lg bg-slate-900 text-white font-semibold hover:bg-slate-800"
           >
             Browse products
           </button>
@@ -186,17 +186,17 @@ function CartDrawer({ onClose }: { onClose: () => void }) {
       ) : (
         <>
           <div className="px-5 pt-4">
-            <div className="glass-soft rounded-xl px-4 py-3">
+            <div className="surface-muted rounded-xl px-4 py-3">
               <p className="text-xs font-semibold text-slate-700 mb-1.5">
                 {toFree === 0 ? (
-                  <>🎉 You've unlocked <span className="text-emerald-700 font-bold">FREE shipping!</span></>
+                  <>🎉 You've unlocked <span className="text-orange-600 font-bold">FREE shipping!</span></>
                 ) : (
-                  <>Add <span className="text-emerald-700 font-bold">{fmt(toFree)}</span> more for free shipping</>
+                  <>Add <span className="text-orange-600 font-bold">{fmt(toFree)}</span> more for free shipping</>
                 )}
               </p>
-              <div className="h-2 rounded-full bg-white/70 overflow-hidden">
+              <div className="h-2 rounded-full bg-slate-100 overflow-hidden">
                 <div
-                  className="h-full bg-gradient-to-r from-emerald-500 to-lime-400 transition-all duration-500"
+                  className="h-full bg-gradient-to-r from-orange-500 to-sky-400 transition-all duration-500"
                   style={{ width: `${freePct}%` }}
                 />
               </div>
@@ -209,14 +209,14 @@ function CartDrawer({ onClose }: { onClose: () => void }) {
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold text-slate-900 truncate">{product.name}</p>
                   {variantLabel && (
-                    <span className="inline-flex items-center gap-1 text-[10px] font-bold bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded mb-0.5">
+                    <span className="inline-flex items-center gap-1 text-[10px] font-bold bg-orange-100 text-orange-600 px-1.5 py-0.5 rounded mb-0.5">
                       {swatchFor({ label: variantLabel }) && (
                         <span className="w-2.5 h-2.5 rounded-full border border-black/10" style={swatchStyle(swatchFor({ label: variantLabel })!)} />
                       )}
                       {variantLabel}
                     </span>
                   )}
-                  <p className="text-sm text-emerald-700 font-bold">{fmt(product.price)}</p>
+                  <p className="text-sm text-orange-600 font-bold">{fmt(product.price)}</p>
                   {product.stock > 0 && product.stock <= 15 && (
                     <p className="text-[11px] font-semibold text-amber-600 mt-0.5">⚠ Only {product.stock} left</p>
                   )}
@@ -245,15 +245,15 @@ function CartDrawer({ onClose }: { onClose: () => void }) {
                 </p>
                 <div className="grid grid-cols-2 gap-2">
                   {upsells.map((u) => (
-                    <div key={u.id} className="glass-soft rounded-xl p-2 flex items-center gap-2">
+                    <div key={u.id} className="surface-muted rounded-xl p-2 flex items-center gap-2">
                       <img src={u.image} alt="" className="w-9 h-9 rounded-lg object-cover" />
                       <div className="min-w-0 flex-1">
                         <p className="text-[11px] font-semibold text-slate-900 truncate">{u.name}</p>
-                        <p className="text-[11px] font-bold text-emerald-700">{fmt(u.price)}</p>
+                        <p className="text-[11px] font-bold text-orange-600">{fmt(u.price)}</p>
                       </div>
                       <button
                         onClick={() => add(u)}
-                        className="w-7 h-7 rounded-lg bg-slate-900 text-white text-sm font-bold hover:bg-emerald-600 shrink-0"
+                        className="w-7 h-7 rounded-lg bg-slate-900 text-white text-sm font-bold hover:bg-slate-900 shrink-0"
                         aria-label={`Add ${u.name}`}
                       >
                         +
@@ -272,7 +272,7 @@ function CartDrawer({ onClose }: { onClose: () => void }) {
                 onClose();
                 navigate("/checkout");
               }}
-              className="w-full py-3 rounded-lg bg-emerald-600 text-white font-semibold hover:bg-emerald-700"
+              className="w-full py-3 rounded-lg bg-slate-900 text-white font-semibold hover:bg-slate-800"
             >
               Checkout →
             </button>
@@ -316,7 +316,7 @@ function WishlistModal({ onClose }: { onClose: () => void }) {
           <Link
             to="/shop"
             onClick={onClose}
-            className="px-6 py-2.5 rounded-lg bg-emerald-600 text-white font-semibold hover:bg-emerald-700"
+            className="px-6 py-2.5 rounded-lg bg-slate-900 text-white font-semibold hover:bg-slate-800"
           >
             Browse products
           </Link>
@@ -328,11 +328,11 @@ function WishlistModal({ onClose }: { onClose: () => void }) {
               <img src={p.image} alt="" className="w-16 h-16 rounded-lg object-cover bg-slate-100" />
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-slate-900 truncate">{p.name}</p>
-                <p className="text-sm text-emerald-700 font-bold">{fmt(p.price)}</p>
+                <p className="text-sm text-orange-600 font-bold">{fmt(p.price)}</p>
               </div>
               <button
                 onClick={() => add(p)}
-                className="px-3 py-1.5 rounded-lg bg-slate-900 text-white text-xs font-semibold hover:bg-emerald-600"
+                className="px-3 py-1.5 rounded-lg bg-slate-900 text-white text-xs font-semibold hover:bg-slate-900"
               >
                 Add
               </button>
@@ -385,14 +385,14 @@ function AccountModal({ onClose }: { onClose: () => void }) {
   return (
     <CenterModal title="My Account" onClose={onClose}>
       <div className="flex items-center gap-4 mb-6">
-        <div className="w-14 h-14 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-xl font-bold">
+        <div className="w-14 h-14 rounded-lg bg-orange-100 text-orange-600 flex items-center justify-center text-xl font-bold">
           {user.name.charAt(0).toUpperCase()}
         </div>
         <div>
           <p className="font-bold text-slate-900">{user.name}</p>
           <p className="text-sm text-slate-500">{user.email}</p>
           {user.isAdmin && (
-            <span className="inline-block mt-1 text-[10px] font-bold uppercase bg-emerald-600 text-white px-2 py-0.5 rounded">
+            <span className="inline-block mt-1 text-[10px] font-bold uppercase bg-slate-900 text-white px-2 py-0.5 rounded">
               Admin
             </span>
           )}
@@ -408,15 +408,15 @@ function AccountModal({ onClose }: { onClose: () => void }) {
         ) : (
           <div className="space-y-2 max-h-52 overflow-y-auto pr-1">
             {orders.map((o) => (
-              <div key={o.id} className="glass-soft rounded-xl px-3.5 py-2.5 flex items-center gap-3">
+              <div key={o.id} className="surface-muted rounded-xl px-3.5 py-2.5 flex items-center gap-3">
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-bold text-slate-900">{o.id}</p>
                   <p className="text-[11px] text-slate-500">
                     {o.createdAt?.slice(0, 10)} · {o.items.reduce((s2, i) => s2 + i.qty, 0)} items · {fmt(o.total)}
                   </p>
                 </div>
-                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                  o.status === "Delivered" ? "bg-emerald-100 text-emerald-700"
+                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${
+                  o.status === "Delivered" ? "bg-orange-100 text-orange-600"
                   : ["Cancelled", "Failed", "Refunded"].includes(o.status) ? "bg-slate-200 text-slate-500"
                   : "bg-amber-100 text-amber-700"
                 }`}>
@@ -424,7 +424,7 @@ function AccountModal({ onClose }: { onClose: () => void }) {
                 </span>
                 <button
                   onClick={() => reorder(o)}
-                  className="text-[11px] font-bold text-emerald-600 hover:underline whitespace-nowrap"
+                  className="text-[11px] font-bold text-orange-600 hover:underline whitespace-nowrap"
                 >
                   ↻ Reorder
                 </button>
@@ -436,7 +436,7 @@ function AccountModal({ onClose }: { onClose: () => void }) {
       <div className="space-y-2">
         <button
           onClick={() => openModal("track")}
-          className="w-full text-left px-4 py-3 rounded-lg border border-slate-200 hover:border-emerald-400 text-sm font-medium"
+          className="w-full text-left px-4 py-3 rounded-lg border border-slate-200 hover:border-orange-400 text-sm font-medium"
         >
           📦 Track an order
         </button>
@@ -446,7 +446,7 @@ function AccountModal({ onClose }: { onClose: () => void }) {
               onClose();
               navigate("/admin");
             }}
-            className="w-full text-left px-4 py-3 rounded-lg border border-slate-200 hover:border-emerald-400 text-sm font-medium"
+            className="w-full text-left px-4 py-3 rounded-lg border border-slate-200 hover:border-orange-400 text-sm font-medium"
           >
             🛠️ Admin dashboard
           </button>
@@ -503,12 +503,12 @@ function TrackOrderModal({ onClose }: { onClose: () => void }) {
           value={orderId}
           onChange={(e) => setOrderId(e.target.value)}
           placeholder="Order ID e.g. XP-A1B2C3"
-          className="flex-1 rounded-lg border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-emerald-500"
+          className="flex-1 rounded-lg border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-orange-500"
           required
         />
         <button
           disabled={busy}
-          className="px-4 py-2.5 rounded-lg bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 disabled:opacity-50"
+          className="px-4 py-2.5 rounded-lg bg-slate-900 text-white text-sm font-semibold hover:bg-slate-800 disabled:opacity-50"
         >
           {busy ? "…" : "Track"}
         </button>
@@ -518,7 +518,7 @@ function TrackOrderModal({ onClose }: { onClose: () => void }) {
         <div className="fade-up">
           <div className="flex items-center justify-between mb-3">
             <p className="font-bold text-slate-900">{order.id}</p>
-            <span className="text-xs font-bold bg-emerald-100 text-emerald-700 px-2.5 py-1 rounded-full">
+            <span className="text-xs font-bold bg-orange-100 text-orange-600 px-2.5 py-1 rounded-md">
               {order.status}
             </span>
           </div>
@@ -526,11 +526,11 @@ function TrackOrderModal({ onClose }: { onClose: () => void }) {
             {steps.map((s, i) => (
               <div key={s} className="flex-1 flex flex-col items-center relative">
                 {i > 0 && (
-                  <div className={`absolute top-3 right-1/2 w-full h-0.5 ${i <= stepIdx ? "bg-emerald-500" : "bg-slate-200"}`} />
+                  <div className={`absolute top-3 right-1/2 w-full h-0.5 ${i <= stepIdx ? "bg-orange-500" : "bg-slate-200"}`} />
                 )}
                 <div
-                  className={`relative z-10 w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${
-                    i <= stepIdx ? "bg-emerald-600 text-white" : "bg-slate-200 text-slate-500"
+                  className={`relative z-10 w-6 h-6 rounded-md flex items-center justify-center text-[10px] font-bold ${
+                    i <= stepIdx ? "bg-slate-900 text-white" : "bg-slate-200 text-slate-500"
                   }`}
                 >
                   {i + 1}

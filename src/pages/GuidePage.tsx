@@ -93,7 +93,7 @@ export default function GuidePage({ slug }: { slug: string }) {
 
   if (state === "loading")
     return (
-      <main className="pt-[120px] md:pt-44 max-w-3xl mx-auto px-6 pb-16">
+      <main id="main-content" className="pt-[120px] md:pt-44 max-w-3xl mx-auto px-6 pb-16">
         <div className="h-9 w-2/3 bg-slate-100 rounded animate-pulse mb-6" />
         {[0, 1, 2].map((i) => (
           <div key={i} className="h-20 bg-slate-100 rounded-xl animate-pulse mb-4" />
@@ -103,9 +103,9 @@ export default function GuidePage({ slug }: { slug: string }) {
 
   if (state === "missing" || !guide)
     return (
-      <main className="pt-40 pb-20 px-6 max-w-7xl mx-auto text-center">
+      <main id="main-content" className="pt-40 pb-20 px-6 max-w-7xl mx-auto text-center">
         <h1 className="text-3xl font-black text-slate-900 mb-2">Guide not found</h1>
-        <Link to="/" className="px-6 py-2.5 rounded-lg bg-emerald-600 text-white font-semibold hover:bg-emerald-700">
+        <Link to="/" className="px-6 py-2.5 rounded-lg bg-slate-900 text-white font-semibold hover:bg-slate-800">
           Back to the store
         </Link>
       </main>
@@ -116,10 +116,10 @@ export default function GuidePage({ slug }: { slug: string }) {
   const others = allGuides.filter((g) => g.slug !== slug).slice(0, 4);
 
   return (
-    <main className="pt-[120px] md:pt-44 max-w-3xl mx-auto px-6 pb-16">
+    <main id="main-content" className="pt-[120px] md:pt-44 max-w-3xl mx-auto px-6 pb-16">
       {/* breadcrumb */}
       <nav className="text-xs text-slate-400 mb-4">
-        <Link to="/" className="hover:text-emerald-600">Home</Link>
+        <Link to="/" className="hover:text-orange-600">Home</Link>
         <span className="mx-1.5">/</span>
         <span className="text-slate-600 font-medium">Buying Guides</span>
       </nav>
@@ -127,14 +127,14 @@ export default function GuidePage({ slug }: { slug: string }) {
       <h1 className="text-3xl md:text-4xl font-black text-slate-900 leading-tight">{guide.title}</h1>
 
       {/* TL;DR — the direct answer (snippet & AI-citation target) */}
-      <div className="mt-5 rounded-2xl border-l-4 border-emerald-500 bg-emerald-50/70 p-5">
-        <p className="text-xs font-bold uppercase tracking-wide text-emerald-700 mb-1">Quick answer</p>
+      <div className="mt-5 rounded-2xl border-l-4 border-orange-500 bg-orange-50/70 p-5">
+        <p className="text-xs font-bold uppercase tracking-wide text-orange-600 mb-1">Quick answer</p>
         <p className="text-sm md:text-base text-slate-700 leading-relaxed">{guide.tldr}</p>
       </div>
 
       <div className="mt-8 space-y-6">
         {guide.sections.map((s) => (
-          <section key={s.heading} className="glass rounded-2xl p-5">
+          <section key={s.heading} className="surface rounded-2xl p-5">
             <h2 className="font-bold text-slate-900 mb-1.5">{s.heading}</h2>
             <p className="text-sm text-slate-600 leading-relaxed">{s.body}</p>
           </section>
@@ -150,12 +150,12 @@ export default function GuidePage({ slug }: { slug: string }) {
           </p>
           <div className="flex flex-wrap gap-2">
             {cat && (
-              <Link to={`/category/${cat.id}`} className="px-5 py-2.5 rounded-xl bg-emerald-600 text-white text-sm font-bold hover:bg-emerald-700">
+              <Link to={`/category/${cat.id}`} className="px-5 py-2.5 rounded-xl bg-slate-900 text-white text-sm font-bold hover:bg-slate-800">
                 Browse {cat.name} →
               </Link>
             )}
             {guide.relatedBand && cat && (
-              <Link to={`/category/${cat.id}/${guide.relatedBand}`} className="px-5 py-2.5 rounded-xl border border-slate-600 text-sm font-bold hover:border-emerald-500 hover:text-emerald-400 transition">
+              <Link to={`/category/${cat.id}/${guide.relatedBand}`} className="px-5 py-2.5 rounded-xl border border-slate-600 text-sm font-bold hover:border-orange-500 hover:text-orange-400 transition">
                 See ranked picks by budget →
               </Link>
             )}
@@ -182,7 +182,7 @@ export default function GuidePage({ slug }: { slug: string }) {
           <div className="flex flex-wrap gap-2">
             {others.map((g) => (
               <Link key={g.slug} to={`/guides/${g.slug}`}
-                className="px-4 py-2 rounded-full glass-soft text-sm font-medium text-slate-600 hover:text-emerald-700 transition">
+                className="px-4 py-2 rounded-lg surface-muted text-sm font-medium text-slate-600 hover:text-orange-600 transition">
                 {g.title}
               </Link>
             ))}

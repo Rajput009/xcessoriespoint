@@ -13,6 +13,7 @@ export interface Product {
   id: number;
   name: string;
   category: string;
+  brand?: string | null;
   price: number;
   compareAt: number | null;
   rating: number;

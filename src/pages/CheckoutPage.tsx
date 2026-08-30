@@ -11,15 +11,15 @@ import { buildOrderMessage, openWhatsApp, paymentLabel, WHATSAPP_NUMBER } from "
 const CITIES = ["Lahore", "Karachi", "Islamabad", "Rawalpindi", "Faisalabad", "Multan", "Peshawar", "Quetta", "Sialkot", "Gujranwala", "Hyderabad", "Other"];
 
 const PAY_METHODS = [
-  { id: "cod", label: "Cash on Delivery (COD)", desc: "Pay the courier when your parcel arrives.", icon: "💵" },
-  { id: "whatsapp", label: "Order on WhatsApp (COD)", desc: "We open WhatsApp with your order ready to send — no card needed.", icon: "💬" },
-  { id: "card", label: "Debit / Credit Card", desc: "Visa, Mastercard — secure demo gateway.", icon: "💳" },
-  { id: "wallet", label: "JazzCash / Easypaisa", desc: "Mobile wallet transfer.", icon: "📲" },
+  { id: "cod", label: "Cash on Delivery", desc: "Pay the courier when your parcel arrives.", icon: "💵", available: true },
+  { id: "whatsapp", label: "Confirm on WhatsApp", desc: "We prepare your order and confirm it with you on WhatsApp.", icon: "💬", available: true },
+  { id: "card", label: "Debit / Credit Card", desc: "Online card payments will be available soon.", icon: "💳", available: false },
+  { id: "wallet", label: "JazzCash / Easypaisa", desc: "Mobile wallet payments will be available soon.", icon: "📲", available: false },
 ];
 
 /* Shopify-style field styling */
 const field =
-  "w-full rounded-md border border-slate-300 bg-white px-3.5 py-3 text-[15px] text-slate-900 placeholder:text-transparent outline-none transition focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/25";
+  "w-full rounded-md border border-slate-300 bg-white px-3.5 py-3 text-[15px] text-slate-900 placeholder:text-transparent outline-none transition focus:border-orange-500 focus:ring-2 focus:ring-orange-500/25";
 
 /** Floating-label input, the way Shopify checkout renders its fields. */
 function Field({
@@ -89,10 +89,11 @@ export default function CheckoutPage() {
   const [city, setCity] = useState(saved.city || "Lahore");
   const [postalCode, setPostalCode] = useState(saved.postalCode || "");
   const [notes, setNotes] = useState(saved.notes || "");
-  // ?via=whatsapp deep-links straight to the WhatsApp option of the one checkout form
-  const [payment, setPayment] = useState(
-    new URLSearchParams(window.location.search).get("via") === "whatsapp" ? "whatsapp" : saved.payment || "cod"
-  );
+  // ?via=whatsapp deep-links straight to the WhatsApp option; card/wallet
+  // selections from older sessions fall back to the supported COD flow.
+  const viaWhatsApp = new URLSearchParams(window.location.search).get("via") === "whatsapp";
+  const initialPayment = viaWhatsApp || saved.payment === "whatsapp" ? "whatsapp" : "cod";
+  const [payment, setPayment] = useState(initialPayment);
   const [saveInfo, setSaveInfo] = useState(saved.saveInfo ?? true);
   const [newsletter, setNewsletter] = useState(saved.newsletter ?? false);
   const [showErrors, setShowErrors] = useState(false);
@@ -155,6 +156,9 @@ export default function CheckoutPage() {
   const shipFee = cfgNum(cfg?.shippingFee, 250);
   const shipping = coupon?.freeShip || total >= shipThreshold || total === 0 ? 0 : shipFee;
   const grand = Math.max(0, total - discount + shipping);
+  const deliveryRange = /lahore|karachi/i.test(city)
+    ? cfg?.deliveryDaysCity ?? "2-3"
+    : cfg?.deliveryDaysOther ?? "3-5";
 
   // coupon prefilled by the exit-intent offer
   useEffect(() => {
@@ -189,6 +193,7 @@ export default function CheckoutPage() {
 
   /* ---------------- validation ---------------- */
   const isWhatsApp = payment === "whatsapp";
+  const needsEmail = payment === "card" || payment === "wallet";
   // accept how Pakistanis actually type numbers: +92 / 0092 / spaces / dashes.
   // normalization lives HERE (single source of truth) so the stored value is
   // always canonical and the validator below can't drift from the input mask
@@ -202,7 +207,7 @@ export default function CheckoutPage() {
   const normalizedPhone = normalizePhone(phone);
   const errors = {
     name: !name.trim() ? "Enter a name" : null,
-    email: !email.trim() ? (isWhatsApp ? null : "Enter an email address") : /^\S+@\S+\.\S+$/.test(email) ? null : "Enter a valid email",
+    email: !email.trim() ? (needsEmail ? "Enter an email address" : null) : /^\S+@\S+\.\S+$/.test(email) ? null : "Enter a valid email",
     phone: !/^03[0-9]{9}$/.test(normalizedPhone) ? "Enter a valid phone (03xx xxxxxxx)" : null,
     address: !address.trim() ? "Enter an address" : null,
   };
@@ -331,7 +336,7 @@ export default function CheckoutPage() {
         {items.map(({ product, qty, variantId, variantLabel }) => (
           <li key={`${product.id}:${variantId ?? 0}`} className="flex items-center gap-4">
             <div className="relative shrink-0">
-              <img src={product.image} alt="" className="w-14 h-14 rounded-lg object-cover border border-slate-200 bg-white" />
+              <img src={product.image} alt="" className="w-14 h-14 rounded-lg object-contain border border-slate-200 bg-white p-1" />
               <span className="absolute -top-2 -right-2 min-w-[20px] h-5 px-1 rounded-full bg-slate-500 text-white text-[11px] font-bold flex items-center justify-center">
                 {qty}
               </span>
@@ -347,14 +352,14 @@ export default function CheckoutPage() {
                 </span>
               )}
               <div className="mt-1 flex items-center gap-2">
-                <button onClick={() => setQty(product.id, qty - 1, variantId)} className="w-6 h-6 rounded border border-slate-300 text-slate-600 leading-none">
+                <button type="button" onClick={() => setQty(product.id, qty - 1, variantId)} aria-label={`Decrease ${product.name} quantity`} className="w-6 h-6 rounded border border-slate-300 text-slate-600 leading-none">
                   −
                 </button>
                 <span className="text-xs font-semibold w-4 text-center">{qty}</span>
-                <button onClick={() => setQty(product.id, qty + 1, variantId)} className="w-6 h-6 rounded border border-slate-300 text-slate-600 leading-none">
+                <button type="button" onClick={() => setQty(product.id, qty + 1, variantId)} aria-label={`Increase ${product.name} quantity`} className="w-6 h-6 rounded border border-slate-300 text-slate-600 leading-none">
                   +
                 </button>
-                <button onClick={() => remove(product.id, variantId)} className="ml-1 text-[11px] text-slate-400 hover:text-red-500">
+                <button type="button" onClick={() => remove(product.id, variantId)} className="ml-1 text-[11px] text-slate-400 hover:text-red-500">
                   Remove
                 </button>
               </div>
@@ -367,14 +372,14 @@ export default function CheckoutPage() {
       {/* discount code */}
       <div className="mt-6">
         {coupon ? (
-          <div className="flex items-center justify-between rounded-md bg-emerald-50 border border-emerald-200 px-3 py-2">
-            <span className="text-[13px] font-semibold text-emerald-800">🏷️ {coupon.code} applied</span>
+          <div className="flex items-center justify-between rounded-md bg-orange-50 border border-orange-200 px-3 py-2">
+            <span className="text-[13px] font-semibold text-orange-700">🏷️ {coupon.code} applied</span>
             <button
               onClick={() => {
                 setCoupon(null);
                 setCouponInput("");
               }}
-              className="text-xs text-emerald-700 hover:underline"
+              className="text-xs text-orange-600 hover:underline"
             >
               Remove
             </button>
@@ -385,7 +390,7 @@ export default function CheckoutPage() {
               value={couponInput}
               onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
               placeholder="Discount code"
-              className="flex-1 min-w-0 rounded-md border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20"
+              className="flex-1 min-w-0 rounded-md border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/25"
             />
             <button
               onClick={applyCoupon}
@@ -422,7 +427,7 @@ export default function CheckoutPage() {
       <header className="border-b border-slate-200 bg-white">
         <div className="max-w-[1180px] mx-auto px-5 lg:px-8 py-4 flex items-center justify-between">
           <Link to="/" className="text-xl font-black tracking-tight">
-            Xccessories<span className="text-emerald-600">Point</span>
+            Xccessories<span className="text-orange-600">Point</span>
           </Link>
           <span className="hidden sm:flex items-center gap-1.5 text-xs text-slate-500">🔒 Secure checkout</span>
         </div>
@@ -431,7 +436,7 @@ export default function CheckoutPage() {
       {/* mobile order summary accordion */}
       <div className="lg:hidden bg-[#fafafa] border-b border-slate-200">
         <button onClick={() => setSummaryOpen((v) => !v)} className="w-full max-w-[560px] mx-auto flex items-center justify-between px-5 py-4">
-          <span className="flex items-center gap-2 text-sm text-emerald-700 font-medium">
+          <span className="flex items-center gap-2 text-sm text-orange-600 font-medium">
             🛒 {summaryOpen ? "Hide" : "Show"} order summary
             <span className={`transition-transform ${summaryOpen ? "rotate-180" : ""}`}>▾</span>
           </span>
@@ -449,11 +454,11 @@ export default function CheckoutPage() {
         </aside>
 
         {/* ---------- left: the form ---------- */}
-        <main className="lg:order-1">
+        <main id="main-content" className="lg:order-1">
           <div className="max-w-[560px] lg:ml-auto px-5 lg:px-10 py-8 lg:py-10">
             {/* breadcrumb (single-page checkout — every step is on this page) */}
             <nav className="flex flex-wrap items-center gap-2 text-[13px] text-slate-400 mb-6">
-              <Link to="/shop" className="text-emerald-700 hover:underline">Cart</Link>
+              <Link to="/shop" className="text-orange-600 hover:underline">Cart</Link>
               <span>›</span>
               <span className="text-slate-900 font-medium">Information</span>
               <span>›</span>
@@ -467,61 +472,26 @@ export default function CheckoutPage() {
                 <div className="text-5xl mb-3">🛒</div>
                 <p className="font-bold mb-1">Your cart is empty</p>
                 <p className="text-sm text-slate-500 mb-5">Add a few accessories and come back.</p>
-                <Link to="/shop" className="inline-block px-6 py-3 rounded-md bg-emerald-600 text-white font-semibold hover:bg-emerald-700">
+                <Link to="/shop" className="inline-block px-6 py-3 rounded-md bg-slate-900 text-white font-semibold hover:bg-slate-800">
                   Continue shopping
                 </Link>
               </div>
             ) : (
               <>
-                {/* express checkout — same form, WhatsApp instead of paying online */}
-                <section className="mb-7">
-                  <p className="text-center text-xs uppercase tracking-wider text-slate-400 mb-3">Express checkout</p>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setPayment("whatsapp");
-                      document.getElementById("xp-payment")?.scrollIntoView?.({ behavior: "smooth", block: "center" });
-                    }}
-                    className={`w-full flex items-center justify-center gap-2.5 rounded-md py-3.5 font-bold text-white transition ${
-                      isWhatsApp ? "bg-[#128C7E]" : "bg-[#25D366] hover:brightness-95"
-                    }`}
-                  >
-                    <WaIcon className="w-5 h-5" />
-                    {isWhatsApp ? "WhatsApp selected — fill the form below" : "Order on WhatsApp"}
-                  </button>
-                  <p className="mt-2 text-center text-[11px] text-slate-500">
-                    No card needed — we confirm your order on {"+" + WHATSAPP_NUMBER} in minutes.
-                  </p>
-                  <div className="flex items-center gap-3 mt-6">
-                    <span className="h-px flex-1 bg-slate-200" />
-                    <span className="text-xs text-slate-400">OR</span>
-                    <span className="h-px flex-1 bg-slate-200" />
-                  </div>
-                </section>
-
                 {/* contact */}
                 <section className="mb-8">
-                  <div className="flex items-baseline justify-between mb-3">
+                  <div className="flex items-baseline justify-between mb-1">
                     <h2 className="text-[17px] font-semibold">Contact</h2>
                     {!user && (
-                      <Link to="/" className="text-[13px] text-emerald-700 hover:underline">
+                      <Link to="/" className="text-[13px] text-orange-600 hover:underline">
                         Have an account? Log in
                       </Link>
                     )}
                   </div>
+                  <p className="text-xs text-slate-500 mb-3">We’ll call your mobile number to confirm the COD order before dispatch.</p>
                   <div className="space-y-3">
                     <Field
-                      label="Email"
-                      type="email"
-                      inputMode="email"
-                      autoComplete="email"
-                      value={email}
-                      onChange={setEmail}
-                      optional={isWhatsApp}
-                      error={showErrors ? errors.email : null}
-                    />
-                    <Field
-                      label="Phone (03xx xxxxxxx)"
+                      label="Mobile number (03xx xxxxxxx)"
                       inputMode="tel"
                       autoComplete="tel"
                       value={phone}
@@ -531,10 +501,25 @@ export default function CheckoutPage() {
                       onChange={setPhone}
                       error={showErrors ? errors.phone : null}
                     />
-                    <label className="flex items-center gap-2.5 text-[13px] text-slate-600">
-                      <input type="checkbox" checked={newsletter} onChange={(e) => setNewsletter(e.target.checked)} className="w-4 h-4 accent-emerald-600" />
-                      Email me with news and offers
-                    </label>
+                    <details className="rounded-md border border-slate-200 bg-slate-50 px-3.5 py-2.5">
+                      <summary className="cursor-pointer text-xs font-semibold text-slate-600">Add email for order updates <span className="font-normal text-slate-400">(optional)</span></summary>
+                      <div className="space-y-3 pt-3">
+                        <Field
+                          label="Email address"
+                          type="email"
+                          inputMode="email"
+                          autoComplete="email"
+                          value={email}
+                          onChange={setEmail}
+                          optional={!needsEmail}
+                          error={showErrors ? errors.email : null}
+                        />
+                        <label className="flex items-center gap-2.5 text-[13px] text-slate-600">
+                          <input type="checkbox" checked={newsletter} onChange={(e) => setNewsletter(e.target.checked)} className="w-4 h-4 accent-orange-500" />
+                          Email me with news and offers
+                        </label>
+                      </div>
+                    </details>
                   </div>
                 </section>
 
@@ -549,7 +534,7 @@ export default function CheckoutPage() {
                           key={a.id}
                           type="button"
                           onClick={() => applySaved(a)}
-                          className="px-3 py-2 rounded-md border border-slate-300 text-left text-xs hover:border-emerald-500"
+                          className="px-3 py-2 rounded-md border border-slate-300 text-left text-xs hover:border-orange-500"
                         >
                           <span className="block font-bold text-slate-900">{a.city}</span>
                           <span className="block text-slate-500 max-w-[180px] truncate">{a.address}</span>
@@ -559,44 +544,41 @@ export default function CheckoutPage() {
                   )}
 
                   <div className="space-y-3">
-                    <div className="relative">
-                      <select disabled className="w-full rounded-md border border-slate-300 bg-slate-50 px-3.5 pt-6 pb-1.5 text-[15px] text-slate-700">
-                        <option>Pakistan</option>
-                      </select>
-                      <span className="pointer-events-none absolute left-3.5 top-1.5 text-[11px] text-slate-500">Country / Region</span>
-                    </div>
                     <Field label="Full name" autoComplete="name" value={name} onChange={setName} error={showErrors ? errors.name : null} />
                     <Field label="Address (street, area)" autoComplete="street-address" value={address} onChange={setAddress} error={showErrors ? errors.address : null} />
-                    <Field label="Apartment / suite" value={apartment} onChange={setApartment} optional />
-                    <div className="grid grid-cols-2 gap-3">
-                      <label className="relative block">
-                        <select
-                          value={city}
-                          onChange={(e) => setCity(e.target.value)}
-                          className="w-full rounded-md border border-slate-300 bg-white px-3.5 pt-6 pb-1.5 text-[15px] outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/25"
-                        >
-                          {CITIES.map((c) => (
-                            <option key={c}>{c}</option>
-                          ))}
-                        </select>
-                        <span className="pointer-events-none absolute left-3.5 top-1.5 text-[11px] text-slate-500">City</span>
-                      </label>
-                      <Field label="Postal code" inputMode="numeric" value={postalCode} onChange={(v) => setPostalCode(v.replace(/[^0-9]/g, "").slice(0, 6))} />
-                    </div>
                     <label className="relative block">
-                      <textarea
-                        rows={3}
-                        value={notes}
-                        onChange={(e) => setNotes(e.target.value)}
-                        placeholder="Order notes"
-                        className={`${field} pt-6 pb-2 resize-none`}
-                      />
-                      <span className="pointer-events-none absolute left-3.5 top-1.5 text-[11px] text-slate-500">
-                        Order notes / landmark <span className="text-slate-400">(optional)</span>
-                      </span>
+                      <select
+                        value={city}
+                        onChange={(e) => setCity(e.target.value)}
+                        className="w-full rounded-md border border-slate-300 bg-white px-3.5 pt-6 pb-1.5 text-[15px] outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/25"
+                      >
+                        {CITIES.map((c) => (
+                          <option key={c}>{c}</option>
+                        ))}
+                      </select>
+                      <span className="pointer-events-none absolute left-3.5 top-1.5 text-[11px] text-slate-500">City</span>
                     </label>
+                    <details className="rounded-md border border-slate-200 bg-slate-50 px-3.5 py-2.5">
+                      <summary className="cursor-pointer text-xs font-semibold text-slate-600">Add apartment, postal code or landmark <span className="font-normal text-slate-400">(optional)</span></summary>
+                      <div className="space-y-3 pt-3">
+                        <Field label="Apartment / suite" value={apartment} onChange={setApartment} optional />
+                        <Field label="Postal code" inputMode="numeric" value={postalCode} onChange={(v) => setPostalCode(v.replace(/[^0-9]/g, "").slice(0, 6))} optional />
+                        <label className="relative block">
+                          <textarea
+                            rows={3}
+                            value={notes}
+                            onChange={(e) => setNotes(e.target.value)}
+                            placeholder="Order notes"
+                            className={`${field} pt-6 pb-2 resize-none`}
+                          />
+                          <span className="pointer-events-none absolute left-3.5 top-1.5 text-[11px] text-slate-500">
+                            Order notes / landmark <span className="text-slate-400">(optional)</span>
+                          </span>
+                        </label>
+                      </div>
+                    </details>
                     <label className="flex items-center gap-2.5 text-[13px] text-slate-600">
-                      <input type="checkbox" checked={saveInfo} onChange={(e) => setSaveInfo(e.target.checked)} className="w-4 h-4 accent-emerald-600" />
+                      <input type="checkbox" checked={saveInfo} onChange={(e) => setSaveInfo(e.target.checked)} className="w-4 h-4 accent-orange-500" />
                       Save this information for next time
                     </label>
                   </div>
@@ -605,10 +587,10 @@ export default function CheckoutPage() {
                 {/* shipping method */}
                 <section className="mb-8">
                   <h2 className="text-[17px] font-semibold mb-3">Shipping method</h2>
-                  <div className="flex items-center justify-between rounded-md border-2 border-emerald-600 bg-emerald-50/60 px-4 py-3.5">
+                  <div className="flex items-center justify-between rounded-md border-2 border-orange-500 bg-orange-50/60 px-4 py-3.5">
                     <span className="text-sm">
                       <span className="block font-semibold text-slate-900">Standard courier</span>
-                      <span className="block text-xs text-slate-500">TCS / Leopards · {cfg?.deliveryDaysOther ?? "3-5"} working days</span>
+                      <span className="block text-xs text-slate-500">TCS / Leopards · {deliveryRange} working days</span>
                     </span>
                     <span className="text-sm font-semibold">{shipping === 0 ? "FREE" : fmt(shipping)}</span>
                   </div>
@@ -617,49 +599,66 @@ export default function CheckoutPage() {
                 {/* payment */}
                 <section className="mb-8" id="xp-payment">
                   <h2 className="text-[17px] font-semibold">Payment</h2>
-                  <p className="text-[13px] text-slate-500 mb-3">All transactions are secure and encrypted.</p>
+                  <p className="text-[13px] text-slate-500 mb-3">
+                    {isWhatsApp ? "We’ll confirm your order with you on WhatsApp." : "No online payment required — pay cash when your parcel arrives."}
+                  </p>
                   <div className="rounded-md border border-slate-300 divide-y divide-slate-200 overflow-hidden">
-                    {PAY_METHODS.map((m) => (
-                      <div key={m.id}>
-                        <label
-                          className={`flex items-center gap-3 px-4 py-3.5 cursor-pointer transition ${
-                            payment === m.id ? "bg-emerald-50/70" : "hover:bg-slate-50"
-                          }`}
-                        >
-                          <input type="radio" name="pay" checked={payment === m.id} onChange={() => setPayment(m.id)} className="w-4 h-4 accent-emerald-600" />
-                          <span className="text-lg">{m.icon}</span>
-                          <span className="flex-1">
-                            <span className="block text-sm font-semibold text-slate-900">{m.label}</span>
-                            <span className="block text-xs text-slate-500">{m.desc}</span>
-                          </span>
-                        </label>
+                    {PAY_METHODS.filter((m) => m.available).map((m) => {
+                      const disabled = !m.available;
+                      return (
+                        <div key={m.id}>
+                          <label
+                            className={`flex items-center gap-3 px-4 py-3.5 transition ${
+                              disabled
+                                ? "cursor-not-allowed opacity-55"
+                                : payment === m.id
+                                ? "cursor-pointer bg-orange-50/70"
+                                : "cursor-pointer hover:bg-slate-50"
+                            }`}
+                          >
+                            <input
+                              type="radio"
+                              name="pay"
+                              disabled={disabled}
+                              checked={payment === m.id}
+                              onChange={() => setPayment(m.id)}
+                              className="w-4 h-4 accent-orange-500"
+                            />
+                            <span className="text-lg">{m.icon}</span>
+                            <span className="flex-1">
+                              <span className="block text-sm font-semibold text-slate-900">{m.label}</span>
+                              <span className="block text-xs text-slate-500">{m.desc}</span>
+                            </span>
+                            {disabled && <span className="text-[10px] font-bold uppercase tracking-wide text-slate-400">Coming soon</span>}
+                          </label>
                         {payment === m.id && m.id === "whatsapp" && (
-                          <div className="bg-[#f6fdf8] border-t border-emerald-100 px-4 py-4">
+                          <div className="bg-[#f5f8ff] border-t border-orange-100 px-4 py-4">
                             <p className="text-[13px] text-slate-600 mb-2">
                               Placing the order opens WhatsApp with everything below pre-written to{" "}
                               <span className="font-semibold">+{WHATSAPP_NUMBER}</span> — just press send. Email is optional for this option.
                             </p>
-                            <pre className="max-h-40 overflow-auto whitespace-pre-wrap rounded-md border border-emerald-100 bg-white p-3 text-[11px] leading-relaxed text-slate-600">
+                            <pre className="max-h-40 overflow-auto whitespace-pre-wrap rounded-md border border-orange-100 bg-white p-3 text-[11px] leading-relaxed text-slate-600">
                               {waMessage}
                             </pre>
                           </div>
                         )}
-                        {payment === m.id && (m.id === "card" || m.id === "wallet") && (
-                          <div className="bg-slate-50 border-t border-slate-200 px-4 py-4 text-xs text-slate-500">
-                            Demo gateway — you'll be redirected to a secure page after placing the order.
-                          </div>
-                        )}
-                      </div>
-                    ))}
+                        </div>
+                      );
+                    })}
                   </div>
                 </section>
+
+                <div className="mb-4 rounded-md border border-orange-200 bg-orange-50 px-4 py-3">
+                  <p className="text-sm font-bold text-orange-700">💵 Cash on Delivery across Pakistan</p>
+                  <p className="mt-1 text-xs leading-relaxed text-orange-700">We’ll call to confirm your order before dispatch. Pay the courier only after you receive the parcel.</p>
+                </div>
 
                 {/* submit */}
                 <button
                   onClick={submit}
                   disabled={busy}
                   className={`w-full rounded-md py-4 text-[15px] font-bold text-white transition disabled:opacity-60 ${
-                    isWhatsApp ? "bg-[#25D366] hover:brightness-95" : "bg-slate-900 hover:bg-emerald-700"
+                    isWhatsApp ? "bg-[#25D366] hover:brightness-95" : "bg-slate-900 hover:bg-slate-800"
                   }`}
                 >
                   {busy ? (
@@ -670,7 +669,7 @@ export default function CheckoutPage() {
                       Complete order on WhatsApp · {fmt(grand)}
                     </span>
                   ) : (
-                    `Pay now · ${fmt(grand)}`
+                    <span>Place COD order · {fmt(grand)}</span>
                   )}
                 </button>
 
@@ -681,7 +680,7 @@ export default function CheckoutPage() {
                   <span>✓ No account needed</span>
                 </div>
 
-                <footer className="mt-8 border-t border-slate-200 pt-5 flex flex-wrap gap-4 text-[12px] text-emerald-700">
+                <footer className="mt-8 border-t border-slate-200 pt-5 flex flex-wrap gap-4 text-[12px] text-orange-600">
                   <Link to="/returns" className="hover:underline">Refund policy</Link>
                   <Link to="/privacy" className="hover:underline">Privacy policy</Link>
                   <Link to="/terms" className="hover:underline">Terms of service</Link>
@@ -697,7 +696,7 @@ export default function CheckoutPage() {
 
 function Row({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
   return (
-    <div className={`flex justify-between ${accent ? "text-emerald-700 font-semibold" : "text-slate-600"}`}>
+    <div className={`flex justify-between ${accent ? "text-orange-600 font-semibold" : "text-slate-600"}`}>
       <span>{label}</span>
       <span className={accent ? "" : "text-slate-900"}>{value}</span>
     </div>
@@ -766,7 +765,7 @@ function ThankYou({
       <header className="border-b border-slate-200">
         <div className="max-w-[1180px] mx-auto px-5 lg:px-8 py-4">
           <Link to="/" className="text-xl font-black tracking-tight">
-            Xccessories<span className="text-emerald-600">Point</span>
+            Xccessories<span className="text-orange-600">Point</span>
           </Link>
         </div>
       </header>
@@ -794,14 +793,14 @@ function ThankYou({
           </div>
         </aside>
 
-        <main className="lg:order-1">
+        <main id="main-content" className="lg:order-1">
           <div className="max-w-[560px] lg:ml-auto px-5 lg:px-10 py-10 fade-up">
             <div className="flex items-start gap-4">
-              <span className="w-11 h-11 rounded-full bg-emerald-600 text-white flex items-center justify-center text-xl shrink-0">✓</span>
+              <span className="w-11 h-11 rounded-full bg-slate-900 text-white flex items-center justify-center text-xl shrink-0">✓</span>
               <div>
                 <p className="text-sm text-slate-500">
                   Order <span className="font-semibold text-slate-700 select-all">{order.id}</span>
-                  <button onClick={onCopy} className="ml-2 text-xs font-bold text-emerald-700 hover:underline">Copy</button>
+                  <button onClick={onCopy} className="ml-2 text-xs font-bold text-orange-600 hover:underline">Copy</button>
                 </p>
                 <h1 className="text-2xl font-bold text-slate-900 mt-0.5">Thank you, {meta.name.split(" ")[0] || "friend"}!</h1>
               </div>
@@ -836,7 +835,7 @@ function ThankYou({
                       <div className="flex flex-col items-center">
                         <span
                           className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 ${
-                            s.done ? "bg-emerald-600 text-white" : "border-2 border-slate-200 text-transparent"
+                            s.done ? "bg-slate-900 text-white" : "border-2 border-slate-200 text-transparent"
                           }`}
                         >
                           ✓
@@ -844,7 +843,7 @@ function ThankYou({
                         {i < arr.length - 1 && <span className="w-px flex-1 bg-slate-200 my-0.5" />}
                       </div>
                       <div className={i < arr.length - 1 ? "pb-4" : ""}>
-                        <p className={`text-sm font-semibold leading-5 ${s.done ? "text-emerald-700" : "text-slate-700"}`}>
+                        <p className={`text-sm font-semibold leading-5 ${s.done ? "text-orange-600" : "text-slate-700"}`}>
                           {s.label}
                         </p>
                         <p className="text-xs text-slate-400">{s.sub}</p>
@@ -923,14 +922,14 @@ function ThankYou({
               <button onClick={() => printInvoice(order, meta, () => push("Popup blocked — allow popups to print the invoice", "error"))} className="flex-1 min-w-[160px] rounded-md border border-slate-300 py-3 text-sm font-semibold hover:bg-slate-50">
                 🧾 Download invoice
               </button>
-              <button onClick={onShop} className="flex-1 min-w-[160px] rounded-md bg-slate-900 py-3 text-sm font-semibold text-white hover:bg-emerald-700">
+              <button onClick={onShop} className="flex-1 min-w-[160px] rounded-md bg-slate-900 py-3 text-sm font-semibold text-white hover:bg-slate-800">
                 Continue shopping
               </button>
             </div>
 
             {/* one-click account upgrade — pre-filled with the details just used */}
             {showUpgrade && !acctDone && (
-              <div className="mt-5 rounded-lg border border-emerald-200 bg-emerald-50/60 p-5">
+              <div className="mt-5 rounded-lg border border-orange-200 bg-orange-50/60 p-5">
                 <p className="font-semibold text-slate-900 text-sm">Save your details & track orders</p>
                 <p className="text-xs text-slate-500 mt-0.5 mb-3">
                   Create a password for <span className="font-semibold text-slate-700">{meta.email}</span> — your
@@ -945,30 +944,30 @@ function ThankYou({
                       onKeyDown={(e) => e.key === "Enter" && createAccount()}
                       placeholder="Choose a password (6+ characters)"
                       autoComplete="new-password"
-                      className="flex-1 rounded-md border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-emerald-500 bg-white"
+                      className="flex-1 rounded-md border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-orange-500 bg-white"
                     />
                     <button
                       onClick={createAccount}
                       disabled={pwBusy}
-                      className="rounded-md bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-emerald-700 disabled:opacity-50 whitespace-nowrap"
+                      className="rounded-md bg-slate-900 px-4 py-2.5 text-sm font-bold text-white hover:bg-slate-800 disabled:opacity-50 whitespace-nowrap"
                     >
                       {pwBusy ? "Creating…" : "Create account"}
                     </button>
                   </div>
                 ) : (
-                  <button onClick={() => setPwOpen(true)} className="text-sm font-bold text-emerald-700 hover:underline">
+                  <button onClick={() => setPwOpen(true)} className="text-sm font-bold text-orange-600 hover:underline">
                     Yes, save my details →
                   </button>
                 )}
               </div>
             )}
             {acctDone && (
-              <p className="mt-4 text-sm font-semibold text-emerald-700">✓ Account created — your address is saved for next time.</p>
+              <p className="mt-4 text-sm font-semibold text-orange-600">✓ Account created — your address is saved for next time.</p>
             )}
 
             <p className="mt-6 text-sm text-slate-500">
               Need help?{" "}
-              <button onClick={onHome} className="text-emerald-700 hover:underline">
+              <button onClick={onHome} className="text-orange-600 hover:underline">
                 Back to store
               </button>
             </p>
@@ -1000,7 +999,7 @@ function printInvoice(
     table{width:100%;border-collapse:collapse;margin:20px 0;font-size:14px}
     th,td{padding:8px 6px;border-bottom:1px solid #e2e8f0;text-align:left}
     th{font-size:11px;text-transform:uppercase;color:#64748b}
-    .tot{font-weight:800} .brand{color:#059669}
+    .tot{font-weight:800} .brand{color:#2563eb}
   </style></head><body>
     <h1>Xccessories<span class="brand">Point</span> — Invoice</h1>
     <p class="muted">Order <b>${escHtml(order.id)}</b> · ${new Date(order.createdAt ?? Date.now()).toLocaleDateString()} · Payment: ${escHtml(meta.payment.toUpperCase())}</p>

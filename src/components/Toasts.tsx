@@ -9,13 +9,15 @@ export default function Toasts() {
       {toasts.map((t) => (
         <div
           key={t.id}
+          role={t.type === "error" ? "alert" : "status"}
+          aria-live={t.type === "error" ? "assertive" : "polite"}
           onClick={() => dismiss(t.id)}
-          className={`fade-up flex items-center gap-2.5 px-4 py-3 rounded-2xl backdrop-blur-xl border text-sm font-medium text-white cursor-pointer select-none transition-all hover:opacity-90 ${
+          className={`fade-up flex items-center gap-2.5 px-4 py-3 rounded-2xl  border text-sm font-medium text-white cursor-pointer select-none transition-all hover:opacity-90 ${
             t.type === "error"
               ? "bg-red-600/90 border-red-400/40 shadow-lg shadow-red-600/25"
               : t.type === "info"
               ? "bg-slate-900/85 border-white/15 shadow-lg shadow-slate-900/25"
-              : "bg-emerald-600/90 border-emerald-300/40 neon-glow"
+              : "bg-slate-900/90 border-orange-300/40 neon-glow"
           }`}
         >
           <span className="font-bold">{t.type === "error" ? "✕" : t.type === "info" ? "ℹ" : "✓"}</span>

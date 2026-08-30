@@ -78,9 +78,9 @@ export default function PolicyPage() {
   const sections = normalizeSections(policy.sections);
 
   return (
-    <main className="pt-[120px] md:pt-44 max-w-3xl mx-auto px-6 pb-16">
+    <main id="main-content" className="pt-[120px] md:pt-44 max-w-3xl mx-auto px-6 pb-16">
       <nav className="text-xs text-slate-400 mb-4">
-        <Link to="/" className="hover:text-emerald-600">Home</Link>
+        <Link to="/" className="hover:text-orange-600">Home</Link>
         <span className="mx-1.5">/</span>
         <span className="text-slate-600 font-medium">{policy.title}</span>
       </nav>
@@ -88,7 +88,7 @@ export default function PolicyPage() {
       <p className="text-xs text-slate-400 mb-8">Last updated: {policy.updated}</p>
       <div className="space-y-4">
         {sections.map(([h, body]) => (
-          <section key={h} className="glass rounded-2xl p-5">
+          <section key={h} className="surface rounded-2xl p-5">
             <h2 className="font-bold text-slate-900 mb-1.5">{h}</h2>
             <p className="text-sm text-slate-600 leading-relaxed">{body}</p>
           </section>
@@ -98,7 +98,7 @@ export default function PolicyPage() {
         {Object.entries(FALLBACK)
           .filter(([p]) => p !== path)
           .map(([p, pol]) => (
-            <Link key={p} to={p} className="text-emerald-700 hover:underline">
+            <Link key={p} to={p} className="text-orange-600 hover:underline">
               {pol.title} →
             </Link>
           ))}

@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
+import { StarIcon } from "../components/icons";
 import { Link, useRouter } from "../router";
 import { useProducts, useUI } from "../context/store";
 import ProductCard from "../components/ProductCard";
+import ViewToggle, { type ProductView } from "../components/ViewToggle";
 import RecentlyViewed from "../components/RecentlyViewed";
 import { smartSearch, didYouMean } from "../lib/fuzzy";
 import { track } from "../lib/tracking";
@@ -26,7 +28,7 @@ const PRICE_BANDS = [
 
 function Skeleton() {
   return (
-    <div className="glass-soft rounded-2xl overflow-hidden animate-pulse">
+    <div className="surface-muted rounded-lg overflow-hidden animate-pulse">
       <div className="aspect-square bg-slate-100" />
       <div className="p-4 space-y-2.5">
         <div className="h-3 bg-slate-100 rounded w-1/3" />
@@ -44,6 +46,7 @@ export default function ShopPage() {
   const { searchQuery, setSearchQuery } = useUI();
   const [cat, setCat] = useState(query.get("cat") || "all");
   const [sort, setSort] = useState("featured");
+  const [view, setView] = useState<ProductView>("grid");
   const [visible, setVisible] = useState(12);
   const [priceBand, setPriceBand] = useState("all");
   const [inStockOnly, setInStockOnly] = useState(false);
@@ -120,8 +123,8 @@ export default function ShopPage() {
       onClick={() => setCat(id)}
       className={`text-left px-4 py-2.5 rounded-lg text-sm font-medium transition whitespace-nowrap ${
         cat === id
-          ? "bg-emerald-600 text-white neon-glow-soft"
-          : "glass-soft text-slate-600 hover:text-emerald-700 lg:bg-transparent lg:border-transparent lg:hover:bg-white/50"
+          ? "bg-slate-900 text-white"
+          : "surface-muted text-slate-600 hover:text-slate-900 lg:bg-transparent lg:border-transparent lg:hover:bg-white/50"
       }`}
     >
       {name}
@@ -129,10 +132,10 @@ export default function ShopPage() {
   );
 
   return (
-    <main className="pt-[120px] md:pt-44 max-w-7xl mx-auto px-6 pb-10">
+    <main id="main-content" className="pt-[120px] md:pt-44 max-w-7xl mx-auto px-6 pb-10">
       {/* breadcrumb */}
       <nav className="text-xs text-slate-400 mb-3">
-        <Link to="/" className="hover:text-emerald-600">Home</Link>
+        <Link to="/" className="hover:text-slate-900">Home</Link>
         <span className="mx-1.5">/</span>
         <span className="text-slate-600 font-medium">Shop</span>
       </nav>
@@ -159,23 +162,26 @@ export default function ShopPage() {
             {categories.map((c) => catBtn(c.id, c.name))}
           </div>
 
-          {/* search + sort */}
-          <div className="flex flex-col sm:flex-row gap-3 mb-4">
+          {/* search + sort + view toggle */}
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
             <input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search in shop…"
-              className="flex-1 rounded-xl glass-soft px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-300/60"
+              className="flex-1 rounded-lg surface-muted px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-slate-300/80"
             />
             <select
               value={sort}
               onChange={(e) => setSort(e.target.value)}
-              className="rounded-xl glass-soft px-3 py-2.5 text-sm outline-none"
+              className="rounded-lg surface-muted px-3 py-2.5 text-sm outline-none"
             >
               {SORTS.map((s) => (
                 <option key={s.id} value={s.id}>{s.label}</option>
               ))}
             </select>
+            <div className="flex items-center justify-between gap-3 sm:justify-end">
+              <ViewToggle view={view} onChange={setView} />
+            </div>
           </div>
 
           {/* refinement chips */}
@@ -183,7 +189,7 @@ export default function ShopPage() {
             <select
               value={priceBand}
               onChange={(e) => setPriceBand(e.target.value)}
-              className="rounded-full glass-soft px-3 py-1.5 text-xs font-semibold outline-none"
+              className="rounded-lg surface-muted px-3 py-1.5 text-xs font-semibold outline-none"
             >
               {PRICE_BANDS.map((b) => (
                 <option key={b.id} value={b.id}>{b.label}</option>
@@ -191,40 +197,40 @@ export default function ShopPage() {
             </select>
             <button
               onClick={() => setInStockOnly((v) => !v)}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition ${
-                inStockOnly ? "bg-emerald-600 text-white neon-glow-soft" : "glass-soft text-slate-600"
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition ${
+                inStockOnly ? "bg-slate-900 text-white" : "surface-muted text-slate-600 hover:text-slate-900"
               }`}
             >
               ✓ In stock
             </button>
             <button
               onClick={() => setTopRatedOnly((v) => !v)}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition ${
-                topRatedOnly ? "bg-emerald-600 text-white neon-glow-soft" : "glass-soft text-slate-600"
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition ${
+                topRatedOnly ? "bg-slate-900 text-white" : "surface-muted text-slate-600 hover:text-slate-900"
               }`}
             >
-              ★ 4+ rated
+              <span className="inline-flex items-center gap-1"><StarIcon size={12} className="text-amber-400" /> 4+ rated</span>
             </button>
           </div>
 
           {/* synonym interpretation notice (Urdu / Roman-Urdu / market terms) */}
           {searchQuery.trim() && !fuzzyUsed && interpretedAs && list.length > 0 && (
-            <div className="glass-soft rounded-xl px-4 py-2.5 mb-4 text-sm text-slate-600">
-              Showing results for "<span className="font-bold text-emerald-700">{interpretedAs}</span>"
+            <div className="surface-muted rounded-lg px-4 py-2.5 mb-4 text-sm text-slate-600">
+              Showing results for "<span className="font-bold text-slate-900">{interpretedAs}</span>"
               <span className="text-slate-400"> (searched: "{searchQuery}")</span>
             </div>
           )}
 
           {/* typo-tolerance notices */}
           {searchQuery.trim() && fuzzyUsed && list.length > 0 && (
-            <div className="glass-soft rounded-xl px-4 py-2.5 mb-4 text-sm text-slate-600">
+            <div className="surface-muted rounded-lg px-4 py-2.5 mb-4 text-sm text-slate-600">
               No exact matches for "<span className="font-bold">{searchQuery}</span>" — showing the closest matches.
               {suggestion && (
                 <>
                   {" "}Did you mean{" "}
                   <button
                     onClick={() => setSearchQuery(suggestion)}
-                    className="font-bold text-emerald-700 underline decoration-dotted hover:text-emerald-800"
+                    className="font-bold text-slate-900 underline decoration-dotted hover:text-slate-600"
                   >
                     {suggestion}
                   </button>
@@ -240,7 +246,7 @@ export default function ShopPage() {
               {loading ? "Loading products…" : `${list.length} product${list.length === 1 ? "" : "s"}`}
             </p>
             {(cat !== "all" || searchQuery || sort !== "featured" || priceBand !== "all" || inStockOnly || topRatedOnly) && (
-              <button onClick={clear} className="text-sm font-semibold text-emerald-600 hover:underline">
+              <button onClick={clear} className="text-sm font-semibold text-slate-600 hover:text-slate-900 hover:underline">
                 Clear filters
               </button>
             )}
@@ -248,7 +254,7 @@ export default function ShopPage() {
 
           {/* grid / skeletons / empty */}
           {loading ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
               {Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} />)}
             </div>
           ) : list.length === 0 ? (
@@ -263,7 +269,7 @@ export default function ShopPage() {
                     Did you mean{" "}
                     <button
                       onClick={() => setSearchQuery(suggestion)}
-                      className="font-bold text-emerald-700 underline decoration-dotted hover:text-emerald-800"
+                      className="font-bold text-slate-900 underline decoration-dotted hover:text-slate-600"
                     >
                       {suggestion}
                     </button>
@@ -274,7 +280,7 @@ export default function ShopPage() {
                 )}
                 <button
                   onClick={clear}
-                  className="px-6 py-2.5 rounded-lg bg-emerald-600 text-white font-semibold hover:bg-emerald-700"
+                  className="px-6 py-2.5 rounded-lg bg-slate-900 text-white font-semibold hover:bg-slate-700 transition"
                 >
                   Clear filters
                 </button>
@@ -289,16 +295,24 @@ export default function ShopPage() {
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
-                {list.slice(0, visible).map((p) => (
-                  <ProductCard key={p.id} product={p} />
-                ))}
-              </div>
+              {view === "list" ? (
+                <div className="flex flex-col gap-3">
+                  {list.slice(0, visible).map((p) => (
+                    <ProductCard key={p.id} product={p} view="list" />
+                  ))}
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
+                  {list.slice(0, visible).map((p) => (
+                    <ProductCard key={p.id} product={p} />
+                  ))}
+                </div>
+              )}
               {list.length > visible && (
                 <div className="text-center mt-8">
                   <button
                     onClick={() => setVisible((v) => v + 12)}
-                    className="px-8 py-3 rounded-full glass font-bold text-slate-700 hover:text-emerald-700 hover:shadow-lg transition-all"
+                    className="px-8 py-3 rounded-lg bg-slate-900 text-white font-bold text-sm hover:bg-slate-700 transition-all"
                   >
                     Load more ({list.length - visible} remaining)
                   </button>

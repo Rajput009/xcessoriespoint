@@ -659,6 +659,37 @@ route("GET", "/products/:id/stats", (ctx) => {
   ).get(ctx.params.id);
   return { soldThisWeek: row.v, topVariantId: topVariant?.variantId ?? null };
 });
+/* real social proof feed — recent purchases from ACTUAL orders.
+ * Exposes first name + city only (what PK storefronts conventionally show);
+ * nothing that identifies a customer beyond that. */
+route("GET", "/social-proof", () => {
+  const rows = db.prepare(
+    `SELECT oi.productId, oi.name AS productName, o.customer, o.city, o.createdAt
+     FROM order_items oi JOIN orders o ON o.id = oi.orderId
+     WHERE o.status NOT IN ('Cancelled','Failed')
+       AND o.createdAt > datetime('now', '-48 hours')
+     ORDER BY o.createdAt DESC LIMIT 12`
+  ).all();
+  const imgStmt = db.prepare("SELECT image FROM products WHERE id = ?");
+  const now = Date.now();
+  const out = [];
+  for (const r of rows) {
+    const t = new Date(String(r.createdAt).replace(" ", "T") + "Z").getTime();
+    if (!Number.isFinite(t)) continue;
+    const first = String(r.customer || "").trim().split(/\s+/)[0];
+    const p = r.productId ? imgStmt.get(r.productId) : null;
+    out.push({
+      productId: r.productId ?? null,
+      product: r.productName,
+      image: p?.image ?? null,
+      customer: first || "A customer",
+      city: String(r.city || "").trim() || null,
+      minsAgo: Math.max(1, Math.round((now - t) / 60000)),
+    });
+    if (out.length >= 10) break;
+  }
+  return out;
+});
 
 /* ---- products (admin CRUD) ---- */
 route("POST", "/products", (ctx) => {
@@ -1305,8 +1336,19 @@ route("GET", "/admin/analytics", (ctx) => {
 
 /* ---- reviews ---- */
 route("GET", "/products/:id/reviews", (ctx) =>
-  db.prepare("SELECT id, name, rating, text, createdAt FROM reviews WHERE productId = ? AND status = 'approved' ORDER BY createdAt DESC")
-    .all(ctx.params.id)
+  db.prepare(
+    `SELECT r.id, r.name, r.rating, r.text, r.createdAt,
+            CASE WHEN r.email <> '' AND EXISTS (
+              SELECT 1 FROM orders o
+              JOIN order_items oi ON oi.orderId = o.id
+              WHERE oi.productId = r.productId
+                AND lower(o.email) = lower(r.email)
+                AND o.status NOT IN ('Cancelled', 'Failed')
+            ) THEN 1 ELSE 0 END AS verified
+     FROM reviews r
+     WHERE r.productId = ? AND r.status = 'approved'
+     ORDER BY r.createdAt DESC`
+  ).all(ctx.params.id).map((r) => ({ ...r, verified: !!r.verified }))
 );
 route("POST", "/products/:id/reviews", (ctx) => {
   rateLimit(ctx, "reviews");

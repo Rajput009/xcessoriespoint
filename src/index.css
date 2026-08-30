@@ -1,9 +1,25 @@
 @import "tailwindcss";
+@import "@fontsource-variable/inter";
+@import "@fontsource-variable/outfit";
+
+@theme {
+  /* Self-hosted variable fonts — bundled locally, no runtime CDN dependency */
+  --font-sans: "Inter Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-display: "Outfit Variable", "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+}
 
 html { scroll-behavior: smooth; }
-body { @apply bg-[#eef6f1] text-slate-800 antialiased; }
 
-/* ambient neon blobs — gives frosted panels something to refract */
+body {
+  @apply font-sans text-slate-800 antialiased;
+  font-feature-settings: "cv11", "ss01";
+  /* Soft tinted canvas — a whisper of the hero's sky→violet gradient.
+     White cards and bands pop slightly more than on flat white. */
+  background-color: #fafbfd;
+}
+
+/* Fixed gradient wash behind the whole page (viewport-sized, never scrolls,
+   doesn't re-render on scroll). Corner glows echo the hero card's tints. */
 body::before {
   content: "";
   position: fixed;
@@ -11,35 +27,39 @@ body::before {
   z-index: -1;
   pointer-events: none;
   background:
-    radial-gradient(640px circle at 12% 18%, rgba(16, 185, 129, 0.15), transparent 62%),
-    radial-gradient(720px circle at 88% 8%, rgba(139, 92, 246, 0.10), transparent 62%),
-    radial-gradient(560px circle at 42% 50%, rgba(251, 191, 36, 0.08), transparent 60%),
-    radial-gradient(600px circle at 8% 80%, rgba(244, 114, 182, 0.08), transparent 60%),
-    radial-gradient(820px circle at 82% 92%, rgba(34, 211, 238, 0.10), transparent 62%);
+    radial-gradient(60rem 40rem at 85% -10%, rgba(224, 231, 255, 0.55), transparent 60%),
+    radial-gradient(50rem 36rem at -10% 30%, rgba(204, 219, 252, 0.40), transparent 60%),
+    radial-gradient(55rem 40rem at 50% 120%, rgba(233, 213, 255, 0.35), transparent 60%),
+    linear-gradient(180deg, #fbfcfe 0%, #f7f9fd 100%);
 }
 
-/* ---- glassmorphism tokens ---- */
-.glass {
-  background: rgba(255, 255, 255, 0.55);
-  backdrop-filter: blur(20px) saturate(1.4);
-  -webkit-backdrop-filter: blur(20px) saturate(1.4);
-  border: 1px solid rgba(255, 255, 255, 0.7);
-  box-shadow: 0 8px 32px rgba(6, 78, 59, 0.08);
+/* Headlines & section titles use the display face; body copy stays Inter */
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  letter-spacing: -0.015em;
 }
-.glass-soft {
-  background: rgba(255, 255, 255, 0.4);
-  backdrop-filter: blur(14px) saturate(1.3);
-  -webkit-backdrop-filter: blur(14px) saturate(1.3);
-  border: 1px solid rgba(255, 255, 255, 0.55);
+
+.font-display { font-family: var(--font-display); }
+
+/* ---- professional storefront surfaces ---- */
+/* Shared retail surfaces keep cards clean, solid and easy to scan. */
+.surface {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06);
 }
-.glass-dark {
-  background: rgba(2, 44, 34, 0.6);
-  backdrop-filter: blur(20px) saturate(1.3);
-  -webkit-backdrop-filter: blur(20px) saturate(1.3);
-  border: 1px solid rgba(255, 255, 255, 0.14);
+.surface-muted {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
 }
-.neon-glow { box-shadow: 0 8px 28px rgba(16, 185, 129, 0.4); }
-.neon-glow-soft { box-shadow: 0 6px 20px rgba(16, 185, 129, 0.22); }
+.surface-dark {
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.12);
+}
+.neon-glow { box-shadow: 0 6px 18px rgba(37, 99, 235, 0.18); }
+.neon-glow-soft { box-shadow: 0 4px 12px rgba(37, 99, 235, 0.14); }
 
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
@@ -49,6 +69,20 @@ body::before {
   50% { transform: translateY(-14px) rotate(1.2deg); }
 }
 .float-slow { animation: floatSlow 5.5s ease-in-out infinite; }
+
+/* Keep hero product cutouts inside their grid cell across browsers and viewport sizes. */
+.hero-product {
+  width: auto;
+  height: auto;
+  max-width: min(14rem, 100%);
+  max-height: 240px;
+}
+@media (min-width: 768px) {
+  .hero-product {
+    max-width: 320px;
+    max-height: 340px;
+  }
+}
 
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(14px); }
@@ -62,6 +96,16 @@ body::before {
 }
 .slide-in { animation: slideIn .3s ease both; }
 
+@keyframes slideInLeft {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+.slide-in-left {
+  animation: slideInLeft .24s cubic-bezier(.22, 1, .36, 1) both;
+  will-change: transform;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
 
 /* ---- micro-interactions ---- */
 button:active { transform: scale(0.97); }
@@ -73,9 +117,21 @@ button:active { transform: scale(0.97); }
 }
 .badge-pop { animation: badgePop 0.35s ease; }
 
+/* flip-clock tick for countdown digits — replays each second via key remount */
+@keyframes flipTick {
+  0% { transform: rotateX(80deg); opacity: 0.25; }
+  60% { transform: rotateX(-10deg); opacity: 1; }
+  100% { transform: rotateX(0deg); }
+}
+.flip-tick {
+  animation: flipTick 0.45s cubic-bezier(0.2, 0.7, 0.3, 1);
+  backface-visibility: hidden;
+  transform-origin: center top;
+}
+
 /* accessibility: respect reduced-motion preferences */
 @media (prefers-reduced-motion: reduce) {
-  .float-slow, .fade-up, .slide-in, .badge-pop { animation: none !important; }
+  .float-slow, .fade-up, .slide-in, .slide-in-left, .badge-pop, .flip-tick { animation: none !important; }
   html { scroll-behavior: auto; }
   button:active { transform: none; }
 }
