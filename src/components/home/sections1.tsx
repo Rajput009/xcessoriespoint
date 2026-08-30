@@ -165,6 +165,10 @@ const STAGE_TINTS = [
   { tile: "bg-emerald-100", ring: "ring-emerald-100" },
 ];
 
+/* Organic blob (slide 1), arch/doorway (2), soft squircle (3) */
+const BLOB = "border-radius: 58% 42% 55% 45% / 52% 55% 45% 48%;";
+const ARCH = "border-radius: 999px 999px 1.75rem 1.75rem;";
+
 const HERO_TICKS = ["Free shipping over Rs 5,000", "COD nationwide", "7-day returns"];
 
 export function HeroSection() {
@@ -279,11 +283,22 @@ export function HeroSection() {
                     )}
                   </div>
 
-                  {/* product stage — floating cutout on a soft circle */}
+                  {/* product stage — floating cutout on a per-slide shape */}
                   <div className="relative z-0 order-1 lg:order-2 flex justify-center items-center min-h-[240px] md:min-h-[340px]">
                     <div
                       aria-hidden="true"
-                      className={`absolute h-[230px] w-[230px] md:h-[320px] md:w-[320px] rounded-full ${tint.tile} ring-[10px] ring-white shadow-[0_24px_60px_rgba(15,23,42,0.10)]`}
+                      style={i % 3 === 0 ? undefined : { borderRadius: i % 3 === 1 ? ARCH : "2.5rem" }}
+                      className={`absolute h-[240px] w-[240px] md:h-[330px] md:w-[330px] ${tint.tile} ring-[10px] ring-white shadow-[0_24px_60px_rgba(15,23,42,0.10)] ${
+                        i % 3 === 0 ? "" : i % 3 === 2 ? "rotate-3" : ""
+                      }`}
+                    />
+                    {/* outline echo of the stage shape — quiet depth, no confetti */}
+                    <div
+                      aria-hidden="true"
+                      style={i % 3 === 0 ? { borderRadius: "58% 42% 55% 45% / 52% 55% 45% 48%" } : { borderRadius: i % 3 === 1 ? "999px 999px 1.75rem 1.75rem" : "2.5rem" }}
+                      className={`absolute h-[240px] w-[240px] md:h-[330px] md:w-[330px] border-2 border-dashed border-slate-900/10 ${
+                        i % 3 === 2 ? "-rotate-2" : ""
+                      }`}
                     />
                     {loaded.includes(i) && (
                       <img
@@ -299,7 +314,7 @@ export function HeroSection() {
                     {discount > 0 && (
                       <div
                         aria-hidden="true"
-                        className={`absolute top-3 right-[14%] md:right-[18%] flex h-16 w-16 md:h-20 md:w-20 rotate-6 flex-col items-center justify-center rounded-full bg-orange-500 text-white shadow-lg shadow-orange-500/40 transition-opacity duration-700 ${
+                        className={`absolute top-3 right-[14%] md:right-[18%] flex h-16 w-16 md:h-20 md:w-20 rotate-6 flex-col items-center justify-center rounded-2xl bg-orange-500 text-white shadow-lg shadow-orange-500/40 transition-opacity duration-700 ${
                           active ? "opacity-100" : "opacity-0"
                         }`}
                       >
@@ -483,12 +498,12 @@ export function BestSelling() {
 
   return (
     <section className="max-w-7xl mx-auto px-6 py-7 md:py-9">
-      <div className="flex flex-wrap items-center justify-between gap-4 mb-5">
-        <div>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-5">
+        <div className="shrink-0">
           <p className="text-[11px] font-black uppercase tracking-[0.2em] text-orange-500 mb-1">Customer favourites</p>
           <h2 className="text-3xl md:text-4xl font-black uppercase tracking-tight text-slate-900">Best Selling</h2>
         </div>
-        <div className="flex min-w-0 flex-1 items-center justify-end gap-3">
+        <div className="flex min-w-0 items-center justify-between gap-3 sm:justify-end sm:flex-1">
           {/* desktop tabs */}
           <div className="hidden md:flex flex-wrap justify-end gap-2 min-w-0">
             {[{ id: "all", name: "All" }, ...categories].map((c) => (
@@ -509,7 +524,7 @@ export function BestSelling() {
           <select
             value={tab}
             onChange={(e) => setTab(e.target.value)}
-            className="md:hidden rounded-xl surface-muted px-3 py-2 text-sm outline-none"
+            className="md:hidden min-w-0 flex-1 sm:flex-none sm:w-48 rounded-xl surface-muted px-3 py-2 text-sm outline-none"
           >
             <option value="all">All categories</option>
             {categories.map((c) => (
