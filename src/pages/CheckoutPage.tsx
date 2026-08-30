@@ -7,6 +7,7 @@ import { swatchFor, swatchStyle } from "../lib/swatch";
 import { pixelTrack } from "../lib/pixel";
 import { useStoreConfig, cfgNum } from "../lib/config";
 import { buildOrderMessage, openWhatsApp, paymentLabel, WHATSAPP_NUMBER } from "../lib/whatsapp";
+import { Logo } from "../components/brand";
 
 const CITIES = ["Lahore", "Karachi", "Islamabad", "Rawalpindi", "Faisalabad", "Multan", "Peshawar", "Quetta", "Sialkot", "Gujranwala", "Hyderabad", "Other"];
 
@@ -364,7 +365,7 @@ export default function CheckoutPage() {
                 </button>
               </div>
             </div>
-            <span className="text-[13px] font-semibold text-slate-900">{fmt(product.price * qty)}</span>
+            <span className="font-mono text-[13px] font-semibold tabular-nums text-slate-900">{fmt(product.price * qty)}</span>
           </li>
         ))}
       </ul>
@@ -413,7 +414,7 @@ export default function CheckoutPage() {
           <span className="text-base font-semibold text-slate-900">Total</span>
           <span className="flex items-baseline gap-2">
             <span className="text-xs text-slate-500">PKR</span>
-            <span className="text-2xl font-bold text-slate-900">{fmt(grand)}</span>
+            <span className="font-mono text-2xl font-bold tabular-nums text-slate-900">{fmt(grand)}</span>
           </span>
         </div>
         {shipping > 0 && <p className="text-[11px] text-slate-500">Free shipping on orders over Rs 5,000</p>}
@@ -426,15 +427,15 @@ export default function CheckoutPage() {
       {/* ---------- Shopify-style checkout header ---------- */}
       <header className="border-b border-slate-200 bg-white">
         <div className="max-w-[1180px] mx-auto px-5 lg:px-8 py-4 flex items-center justify-between">
-          <Link to="/" className="text-xl font-black tracking-tight">
-            Xccessories<span className="text-orange-600">Point</span>
+          <Link to="/" className="flex items-center">
+            <Logo compact markSize={26} />
           </Link>
           <span className="hidden sm:flex items-center gap-1.5 text-xs text-slate-500">🔒 Secure checkout</span>
         </div>
       </header>
 
       {/* mobile order summary accordion */}
-      <div className="lg:hidden bg-[#fafafa] border-b border-slate-200">
+      <div className="lg:hidden bg-[#f8f7f2] border-b border-slate-200">
         <button onClick={() => setSummaryOpen((v) => !v)} className="w-full max-w-[560px] mx-auto flex items-center justify-between px-5 py-4">
           <span className="flex items-center gap-2 text-sm text-orange-600 font-medium">
             🛒 {summaryOpen ? "Hide" : "Show"} order summary
@@ -447,7 +448,7 @@ export default function CheckoutPage() {
 
       <div className="lg:grid lg:grid-cols-2 lg:min-h-[calc(100vh-61px)]">
         {/* ---------- right: order summary (desktop) ---------- */}
-        <aside className="hidden lg:block lg:order-2 bg-[#fafafa] border-l border-slate-200">
+        <aside className="hidden lg:block lg:order-2 bg-[#f8f7f2] border-l border-slate-200">
           <div className="max-w-[430px] px-10 py-10 sticky top-0">
             {items.length === 0 ? <p className="text-sm text-slate-500">Your cart is empty.</p> : summary}
           </div>
@@ -469,7 +470,9 @@ export default function CheckoutPage() {
 
             {items.length === 0 ? (
               <div className="rounded-lg border border-slate-200 p-10 text-center">
-                <div className="text-5xl mb-3">🛒</div>
+                <div className="flex justify-center mb-4">
+                <BoltMark size={64} sw={5} className="text-slate-200" />
+              </div>
                 <p className="font-bold mb-1">Your cart is empty</p>
                 <p className="text-sm text-slate-500 mb-5">Add a few accessories and come back.</p>
                 <Link to="/shop" className="inline-block px-6 py-3 rounded-md bg-slate-900 text-white font-semibold hover:bg-slate-800">
@@ -632,7 +635,7 @@ export default function CheckoutPage() {
                             {disabled && <span className="text-[10px] font-bold uppercase tracking-wide text-slate-400">Coming soon</span>}
                           </label>
                         {payment === m.id && m.id === "whatsapp" && (
-                          <div className="bg-[#f5f8ff] border-t border-orange-100 px-4 py-4">
+                          <div className="bg-teal-50/80 border-t border-teal-100 px-4 py-4">
                             <p className="text-[13px] text-slate-600 mb-2">
                               Placing the order opens WhatsApp with everything below pre-written to{" "}
                               <span className="font-semibold">+{WHATSAPP_NUMBER}</span> — just press send. Email is optional for this option.
@@ -698,7 +701,7 @@ function Row({ label, value, accent }: { label: string; value: string; accent?: 
   return (
     <div className={`flex justify-between ${accent ? "text-orange-600 font-semibold" : "text-slate-600"}`}>
       <span>{label}</span>
-      <span className={accent ? "" : "text-slate-900"}>{value}</span>
+      <span className={`font-mono tabular-nums ${accent ? "" : "text-slate-900"}`}>{value}</span>
     </div>
   );
 }
@@ -764,8 +767,8 @@ function ThankYou({
     <div className="min-h-screen bg-white">
       <header className="border-b border-slate-200">
         <div className="max-w-[1180px] mx-auto px-5 lg:px-8 py-4">
-          <Link to="/" className="text-xl font-black tracking-tight">
-            Xccessories<span className="text-orange-600">Point</span>
+          <Link to="/" className="flex items-center">
+            <Logo compact markSize={26} />
           </Link>
         </div>
       </header>

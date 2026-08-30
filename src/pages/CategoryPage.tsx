@@ -278,16 +278,16 @@ export default function CategoryPage({ id, band }: { id: string; band?: string }
       {hubGuide && (
         <Link
           to={`/guides/${hubGuide.slug}`}
-          className="block rounded-2xl border border-orange-100 bg-orange-50/60 p-4 mb-8 hover:border-orange-300 transition"
+          className="block rounded-2xl border border-teal-100 bg-teal-50/60 p-4 mb-8 hover:border-teal-300 transition"
         >
-          <p className="text-xs font-bold uppercase tracking-wide text-orange-600 mb-0.5">📖 New to {cat?.name}?</p>
+          <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.28em] text-teal-600 mb-1">New to {cat?.name}?</p>
           <p className="text-sm font-semibold text-slate-800">{hubGuide.title} →</p>
         </Link>
       )}
 
       {/* budget guides (programmatic pages, only live ones are linked) */}
       {hubBands.length > 0 && (
-        <section className="mb-10 rounded-2xl border border-orange-100 bg-orange-50/60 p-5">
+        <section className="mb-10 rounded-2xl border border-teal-100 bg-teal-50/60 p-5">
           <h2 className="text-sm font-black text-slate-900 mb-2">Shopping by budget?</h2>
           <p className="text-xs text-slate-500 mb-3">
             Ranked guides built from what's actually selling this week.
@@ -295,7 +295,7 @@ export default function CategoryPage({ id, band }: { id: string; band?: string }
           <div className="flex flex-wrap gap-2">
             {hubBands.map((b) => (
               <Link key={b.url} to={b.url}
-                className="px-4 py-2 rounded-lg bg-white border border-orange-200 text-sm font-semibold text-orange-600 hover:bg-slate-900 hover:text-white transition">
+                className="px-4 py-2 rounded-lg bg-white border border-teal-200 text-sm font-semibold text-teal-700 hover:bg-slate-900 hover:text-white transition">
                 {b.bandLabel}
               </Link>
             ))}

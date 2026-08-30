@@ -5,6 +5,7 @@ import { useStoreConfig } from "../../lib/config";
 import { Stars } from "../ProductCard";
 import ProductCard from "../ProductCard";
 import ViewToggle, { type ProductView } from "../ViewToggle";
+import { BoltMark, Kicker } from "../brand";
 
 /* ---------- countdown hook ---------- */
 export function useCountdown(target: number) {
@@ -63,7 +64,7 @@ function FlipUnit({ v, label }: { v: number; label: string }) {
         <span aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 h-1/2 bg-white/10" />
         <span
           key={text}
-          className="flip-tick block px-1 py-2.5 text-center text-xl md:text-2xl font-black text-white tabular-nums leading-none"
+          className="flip-tick font-mono block px-1 py-2.5 text-center text-xl md:text-2xl font-black text-white tabular-nums leading-none"
         >
           {text}
         </span>
@@ -160,7 +161,7 @@ function useSlides(): Slide[] {
 
 /* Per-slide pastel for the product stage circle */
 const STAGE_TINTS = [
-  { tile: "bg-violet-100", ring: "ring-violet-100" },
+  { tile: "bg-teal-100", ring: "ring-teal-100" },
   { tile: "bg-amber-100", ring: "ring-amber-100" },
   { tile: "bg-emerald-100", ring: "ring-emerald-100" },
 ];
@@ -192,10 +193,11 @@ export function HeroSection() {
   return (
     <section className="relative max-w-7xl mx-auto px-4 md:px-6 pt-[84px] md:pt-[148px] pb-6">
       {/* the banner card */}
-      <div className="relative overflow-hidden rounded-[2rem] border border-slate-200/70 bg-gradient-to-br from-sky-50 via-white to-violet-50 shadow-sm">
-        {/* barely-there soft shapes */}
-        <div aria-hidden="true" className="absolute -top-24 -right-16 h-80 w-80 rounded-full bg-sky-100/70 blur-3xl" />
-        <div aria-hidden="true" className="absolute -bottom-28 -left-12 h-80 w-80 rounded-full bg-violet-100/70 blur-3xl" />
+      <div className="relative overflow-hidden rounded-[2rem] border border-slate-200/70 bg-gradient-to-br from-teal-50 via-white to-amber-50 shadow-sm">
+        {/* barely-there soft shapes + signature bolt-X watermark */}
+        <BoltMark size={300} className="pointer-events-none absolute -top-16 -right-14 rotate-12 text-slate-900/[0.04]" />
+        <div aria-hidden="true" className="absolute -top-24 -right-16 h-80 w-80 rounded-full bg-teal-100/70 blur-3xl" />
+        <div aria-hidden="true" className="absolute -bottom-28 -left-12 h-80 w-80 rounded-full bg-amber-100/70 blur-3xl" />
 
         <div className="relative px-6 md:px-10 lg:px-14 pt-8 md:pt-10 pb-6 md:pb-8">
           {/* all slides share one grid cell — hero height never jumps between slides (no CLS) */}
@@ -240,7 +242,7 @@ export function HeroSection() {
                     </h1>
 
                     <div className="mb-4 flex flex-wrap items-baseline justify-center lg:justify-start gap-x-3 gap-y-1">
-                      <span className="text-3xl md:text-4xl font-black text-red-600">{fmt(sl.price)}</span>
+                      <span className="font-mono text-3xl md:text-4xl font-black tabular-nums text-orange-600">{fmt(sl.price)}</span>
                       <span className="text-lg text-slate-400 line-through font-medium">{fmt(sl.compareAt)}</span>
                       {discount > 0 && (
                         <span className="rounded-md bg-orange-500 px-2 py-0.5 text-xs font-black text-white">
@@ -349,9 +351,9 @@ export function HeroSection() {
 
 /* ---------- 2. CategoryIcons (compact scrollable image tiles) ---------- */
 const CAT_IMG: Record<string, { img: string; count: string; tint: string }> = {
-  audio: { img: "/img/cat-audio.webp", count: "Earbuds & headphones", tint: "bg-violet-200" },
+  audio: { img: "/img/cat-audio.webp", count: "Earbuds & headphones", tint: "bg-teal-200" },
   wearables: { img: "/img/cat-wearables.webp", count: "Watches & bands", tint: "bg-amber-200" },
-  power: { img: "/img/cat-power.webp", count: "Banks & chargers", tint: "bg-sky-200" },
+  power: { img: "/img/cat-power.webp", count: "Banks & chargers", tint: "bg-teal-100" },
   cases: { img: "/img/cat-cases.webp", count: "Covers & protection", tint: "bg-emerald-200" },
   cables: { img: "/img/cat-cables.webp", count: "Cables & hubs", tint: "bg-rose-200" },
 };
@@ -389,7 +391,7 @@ export function CategoryIcons() {
     <section className="max-w-7xl mx-auto px-6 pt-12 pb-8">
       <div className="flex items-end justify-between mb-5">
         <div>
-          <p className="text-[11px] font-black uppercase tracking-[0.2em] text-orange-500 mb-1">Browse the range</p>
+          <Kicker>Browse the range</Kicker>
           <h2 className="text-3xl md:text-4xl font-black uppercase tracking-tight text-slate-900">Shop by Category</h2>
         </div>
         <div className="hidden md:flex gap-2">
@@ -500,7 +502,7 @@ export function BestSelling() {
     <section className="max-w-7xl mx-auto px-6 py-7 md:py-9">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-5">
         <div className="shrink-0">
-          <p className="text-[11px] font-black uppercase tracking-[0.2em] text-orange-500 mb-1">Customer favourites</p>
+          <Kicker>Customer favourites</Kicker>
           <h2 className="text-3xl md:text-4xl font-black uppercase tracking-tight text-slate-900">Best Selling</h2>
         </div>
         <div className="flex min-w-0 items-center justify-between gap-3 sm:justify-end sm:flex-1">
@@ -639,7 +641,7 @@ function DealCard({ id }: { id: number }) {
         )}
 
         <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
-          <span className="text-xl font-black text-red-600">{fmt(p.price)}</span>
+          <span className="text-xl font-black text-orange-600 font-mono tabular-nums">{fmt(p.price)}</span>
           {p.compareAt && p.compareAt > p.price && (
             <span className="text-xs text-slate-400 line-through">{fmt(p.compareAt)}</span>
           )}
@@ -684,7 +686,7 @@ function DealCard({ id }: { id: number }) {
               <>
                 <div className="h-1 rounded-full bg-slate-100 overflow-hidden">
                   <div
-                    className="h-full rounded-full bg-gradient-to-r from-orange-400 to-red-500 transition-[width] duration-700"
+                    className="h-full rounded-full bg-gradient-to-r from-amber-400 to-orange-500 transition-[width] duration-700"
                     style={{ width: `${soldPct}%` }}
                   />
                 </div>
@@ -762,7 +764,7 @@ export function DealsOfDay() {
     <section className="max-w-7xl mx-auto px-6 py-6 md:py-8">
       <div className="flex flex-wrap items-end justify-between gap-4 mb-5">
         <div>
-          <p className="text-[11px] font-black uppercase tracking-[0.2em] text-orange-500 mb-1">Limited-stock offers</p>
+          <Kicker>Limited-stock offers</Kicker>
           <h2 className="text-3xl md:text-4xl font-black uppercase tracking-tight text-slate-900">
             Deals <span className="text-orange-600">of the Day</span>
           </h2>
@@ -771,7 +773,7 @@ export function DealsOfDay() {
           <span className="inline-flex items-center gap-2 rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-black text-white tabular-nums shadow-md shadow-slate-900/30">
             <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-orange-500" aria-hidden="true" />
             <span className="uppercase tracking-wide text-slate-300">Ends in</span>
-            <span className="text-orange-400">{pad2(hours)}:{pad2(mins)}:{pad2(secs)}</span>
+            <span className="text-orange-400 font-mono tabular-nums">{pad2(hours)}:{pad2(mins)}:{pad2(secs)}</span>
           </span>
           <Link to="/shop" className="text-xs font-bold uppercase tracking-wider text-slate-900 hover:text-slate-600 transition-colors">
             See More →
@@ -781,25 +783,27 @@ export function DealsOfDay() {
 
       <div className="grid gap-4 lg:grid-cols-[240px_minmax(0,1fr)_minmax(0,1fr)]">
         {/* promo poster tile */}
-        <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-fuchsia-600 via-purple-600 to-indigo-800 p-5 flex flex-col justify-between text-white">
+        <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-teal-600 via-slate-900 to-slate-950 p-5 flex flex-col justify-between text-white">
           <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10 blur-2xl" aria-hidden="true" />
-          <div className="absolute -left-8 bottom-0 h-32 w-32 rounded-full bg-sky-400/20 blur-2xl" aria-hidden="true" />
+          <div className="absolute -left-8 bottom-0 h-32 w-32 rounded-full bg-amber-400/20 blur-2xl" aria-hidden="true" />
+          {/* pixel-X echo */}
+          <BoltMark size={240} className="pointer-events-none absolute -bottom-16 -right-14 text-white/10" />
           <div className="relative">
-            <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-fuchsia-200">End of Season</p>
+            <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.3em] text-amber-200">End of Season</p>
             <p
-              className="mt-2 text-4xl font-black uppercase leading-[0.95] tracking-tight"
-              style={{ textShadow: "0 0 26px rgba(232,121,249,0.85), 0 0 64px rgba(168,85,247,0.55)" }}
+              className="mt-2 font-display text-4xl font-black uppercase leading-[0.95] tracking-tight"
+              style={{ textShadow: "0 0 26px rgba(231,181,46,0.45), 0 0 64px rgba(231,181,46,0.22)" }}
             >
               Mega<br />Deals
             </p>
-            <span className="mt-3 inline-flex rounded-md bg-yellow-300 px-2 py-1 text-[11px] font-black uppercase tracking-wide text-slate-900 shadow shadow-yellow-300/40">
+            <span className="mt-3 inline-flex rounded-md bg-amber-300 px-2 py-1 text-[11px] font-black uppercase tracking-wide text-slate-900 shadow shadow-amber-300/40">
               Up to 40% off
             </span>
           </div>
           <button
             type="button"
             onClick={() => navigate("/shop")}
-            className="relative self-start mt-6 rounded-lg bg-white/15 border border-white/25 px-4 py-2 text-xs font-bold text-white backdrop-blur transition hover:bg-white hover:text-purple-800"
+            className="relative self-start mt-6 rounded-lg bg-white/15 border border-white/25 px-4 py-2 text-xs font-bold text-white backdrop-blur transition hover:bg-white hover:text-teal-800"
           >
             View all offers →
           </button>

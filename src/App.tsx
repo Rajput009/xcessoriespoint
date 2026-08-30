@@ -22,6 +22,7 @@ import { Link } from "./router";
 import { lazy, Suspense, useEffect, useRef } from "react";
 import { initPixel, pixelPageView } from "./lib/pixel";
 import { setMeta } from "./lib/seo";
+import { BoltMark } from "./components/brand";
 
 // Admin is code-split — shoppers never download the dashboard bundle
 const AdminPage = lazy(() => import("./pages/AdminPage"));
@@ -64,7 +65,9 @@ function NotFound() {
   return (
     <main id="main-content" className="pt-40 pb-20 px-6 max-w-7xl mx-auto">
       <div className="text-center mb-12">
-        <div className="text-6xl mb-4">🧭</div>
+      <div className="flex justify-center mb-4">
+        <BoltMark size={88} sw={5.5} className="text-slate-300" />
+      </div>
         <h1 className="text-3xl font-black text-slate-900 mb-2">Page not found</h1>
         <p className="text-sm text-slate-500 mb-6">The page you're looking for doesn't exist — but these do:</p>
         <Link

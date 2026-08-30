@@ -5,6 +5,7 @@ import { useProducts, useUI } from "../context/store";
 import ProductCard from "../components/ProductCard";
 import ViewToggle, { type ProductView } from "../components/ViewToggle";
 import RecentlyViewed from "../components/RecentlyViewed";
+import { BoltMark, Kicker } from "../components/brand";
 import { smartSearch, didYouMean } from "../lib/fuzzy";
 import { track } from "../lib/tracking";
 import { pixelTrack } from "../lib/pixel";
@@ -260,7 +261,9 @@ export default function ShopPage() {
           ) : list.length === 0 ? (
             <div className="py-12">
               <div className="text-center mb-8">
-                <div className="text-5xl mb-4">🔎</div>
+              <div className="flex justify-center mb-4">
+                <BoltMark size={72} sw={5} className="text-slate-200" />
+              </div>
                 <p className="font-bold text-slate-900 mb-1">
                   No products found{searchQuery.trim() ? ` for "${searchQuery}"` : ""}
                 </p>
@@ -285,7 +288,7 @@ export default function ShopPage() {
                   Clear filters
                 </button>
               </div>
-              <p className="text-[11px] font-black uppercase tracking-[0.2em] text-amber-600 mb-1">Meanwhile</p>
+              <Kicker center className="text-amber-600">Meanwhile</Kicker>
               <h3 className="text-lg font-black text-slate-900 mb-4">Customers are loving these</h3>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {products.filter((p) => p.bestSeller).slice(0, 4).map((p) => (

@@ -189,7 +189,7 @@ export default function ProductCard({
 
       {/* ---------- content ---------- */}
       <div className={`flex min-w-0 flex-1 flex-col ${listView ? "py-1 pr-1" : "pt-2.5"}`}>
-        <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-400">{catName}</span>
+        <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-400">{catName}</span>
 
         <Link to={`/product/${product.id}`} className="mt-1">
           <h3 className={`font-bold leading-snug text-slate-900 transition-colors group-hover:text-orange-600 ${
@@ -206,14 +206,14 @@ export default function ProductCard({
         )}
 
         <div className="mt-1.5 flex flex-nowrap items-center gap-x-1.5 min-w-0">
-          <span className="shrink-0 text-lg font-black text-red-600">{fmt(effPrice)}</span>
+          <span className="shrink-0 text-lg font-black text-orange-600 font-mono tabular-nums">{fmt(effPrice)}</span>
           {product.compareAt && product.compareAt > effPrice && (
             <span className="min-w-0 truncate text-xs text-slate-400 line-through">{fmt(product.compareAt)}</span>
           )}
           {discount > 0 && <span className="shrink-0"><DiscountArrow discount={discount} /></span>}
         </div>
 
-        {lowStock && <p className="mt-1.5 text-[11px] font-bold text-red-500">Hurry! Only {product.stock} left</p>}
+        {lowStock && <p className="mt-1.5 text-[11px] font-bold text-orange-600">Hurry! Only {product.stock} left</p>}
 
         {/* ---------- inline variant selection ---------- */}
         {!compact && hasVariants && (

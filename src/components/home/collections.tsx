@@ -4,6 +4,7 @@ import { useProducts, fmt } from "../../context/store";
 import type { Product } from "../../types";
 import ProductCard from "../ProductCard";
 import { PhoneIcon, TruckIcon, StarIcon, PlusIcon } from "../icons";
+import { Kicker } from "../brand";
 
 const BRAND_LOGOS = [
   { name: "Anker", logo: "/img/brands/anker.png" },
@@ -19,7 +20,7 @@ export function ShopByBrand() {
   return (
     <section className="max-w-7xl mx-auto px-6 py-7 md:py-9">
       <div className="mb-5">
-        <p className="text-[11px] font-black uppercase tracking-[0.2em] text-orange-500 mb-1">Trusted names</p>
+        <Kicker>Trusted names</Kicker>
         <h2 className="text-2xl md:text-3xl font-black text-slate-900">Popular Brands</h2>
       </div>
       {/* open logo strip — no cards: brands float on the page edge-to-edge */}
@@ -237,7 +238,7 @@ export function ShopByDevice() {
   return (
     <section className="max-w-7xl mx-auto px-6 py-7 md:py-9">
       <div className="mb-5">
-        <p className="text-[11px] font-black uppercase tracking-[0.2em] text-orange-500 mb-1">Find it fast</p>
+        <Kicker>Find it fast</Kicker>
         <h2 className="text-2xl md:text-3xl font-black text-slate-900">Shop by Device &amp; Connection</h2>
       </div>
       <WayGrid items={groups} />
@@ -251,7 +252,7 @@ export function ShopByNeed() {
   return (
     <section className="max-w-7xl mx-auto px-6 py-7 md:py-9">
       <div className="mb-5">
-        <p className="text-[11px] font-black uppercase tracking-[0.2em] text-orange-500 mb-1">Solve it in one tap</p>
+        <Kicker>Solve it in one tap</Kicker>
         <h2 className="text-2xl md:text-3xl font-black text-slate-900">Shop by Need</h2>
       </div>
       <WayGrid items={needs} />
@@ -271,7 +272,7 @@ export function TrustStrip() {
   return (
     <section className="max-w-7xl mx-auto px-6 py-7 md:py-9">
       <div className="mb-5">
-        <p className="text-[11px] font-black uppercase tracking-[0.2em] text-orange-500 mb-1">Shop with confidence</p>
+        <Kicker>Shop with confidence</Kicker>
         <h2 className="text-2xl md:text-3xl font-black text-slate-900 sr-only">Why shop with us</h2>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-10 gap-y-6">
