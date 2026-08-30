@@ -17,6 +17,19 @@ function base({ size = 20, ...props }: IconProps) {
   };
 }
 
+export const PlusIcon = ({ size = 20, ...props }: IconProps) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" aria-hidden="true" {...props}>
+    <path d="M12 5v14M5 12h14" />
+  </svg>
+);
+
+/** Filled star with rounded points — used for ratings (crisper than text glyphs) */
+export const StarIcon = ({ size = 20, ...props }: IconProps) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" {...props}>
+    <path d="M11.05 2.92a1.1 1.1 0 0 1 1.9 0l2.62 5.06 5.62.9c.86.14 1.2 1.19.58 1.8l-4.02 3.94.94 5.6c.15.86-.76 1.51-1.53 1.1L12 18.66l-5.16 2.66c-.77.4-1.68-.24-1.53-1.1l.94-5.6-4.02-3.93c-.62-.62-.28-1.67.58-1.81l5.62-.9 2.62-5.06Z" />
+  </svg>
+);
+
 export const SearchIcon = (p: IconProps) => (
   <svg {...base(p)}>
     <circle cx="11" cy="11" r="7" />

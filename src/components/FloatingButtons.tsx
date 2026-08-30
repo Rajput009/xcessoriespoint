@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { ArrowUpIcon } from "./icons";
+import { ArrowUpIcon, StarIcon } from "./icons";
 import { openWhatsApp, WHATSAPP_NUMBER, waLink } from "../lib/whatsapp";
+import { useRouter } from "../router";
 
 function WhatsAppGlyph({ size = 22 }: { size?: number }) {
   return (
@@ -12,6 +13,7 @@ function WhatsAppGlyph({ size = 22 }: { size?: number }) {
 
 export default function FloatingButtons() {
   const [visible, setVisible] = useState(false);
+  const { navigate, path } = useRouter();
 
   useEffect(() => {
     const onScroll = () => setVisible(window.scrollY > 300);
@@ -19,8 +21,30 @@ export default function FloatingButtons() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  // Amaze-style right-edge tab: jump to the reviews block (home) or go home first
+  const goReviews = () => {
+    const scroll = () =>
+      document.getElementById("reviews")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    if (path === "/") scroll();
+    else {
+      navigate("/");
+      window.setTimeout(scroll, 400);
+    }
+  };
+
   return (
     <>
+      {/* Our Reviews — vertical side tab, like the PK competitor stores */}
+      <button
+        type="button"
+        onClick={goReviews}
+        aria-label="Read customer reviews"
+        className="fixed right-0 top-1/2 z-40 -translate-y-1/2 flex flex-col items-center gap-1 rounded-l-lg bg-slate-900 px-1.5 py-3 text-white shadow-lg transition-colors hover:bg-slate-700 [writing-mode:vertical-rl]"
+      >
+        <StarIcon size={13} className="text-amber-400" />
+        <span className="text-[11px] font-bold tracking-wide">Our Reviews</span>
+      </button>
+
       {/* WhatsApp — always available, like the PK competitor stores */}
       <a
         href={waLink("Hi! I need help with an order on XccessoriesPoint.")}

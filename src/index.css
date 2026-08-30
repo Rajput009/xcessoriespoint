@@ -11,16 +11,26 @@
 html { scroll-behavior: smooth; }
 
 body {
-  @apply font-sans bg-slate-50 text-slate-800 antialiased;
+  @apply font-sans text-slate-800 antialiased;
   font-feature-settings: "cv11", "ss01";
-  background-color: #f8fafc;
-  /* Subtle paper-like texture: enough depth to avoid a flat canvas, without
-     competing with products or looking like a decorative overlay. */
-  background-image:
-    radial-gradient(circle at 1px 1px, rgba(15, 23, 42, 0.035) 1px, transparent 1px),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.75), rgba(248, 250, 252, 0.15));
-  background-size: 24px 24px, 100% 100%;
-  background-attachment: fixed;
+  /* Soft tinted canvas — a whisper of the hero's sky→violet gradient.
+     White cards and bands pop slightly more than on flat white. */
+  background-color: #fafbfd;
+}
+
+/* Fixed gradient wash behind the whole page (viewport-sized, never scrolls,
+   doesn't re-render on scroll). Corner glows echo the hero card's tints. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(60rem 40rem at 85% -10%, rgba(224, 231, 255, 0.55), transparent 60%),
+    radial-gradient(50rem 36rem at -10% 30%, rgba(204, 219, 252, 0.40), transparent 60%),
+    radial-gradient(55rem 40rem at 50% 120%, rgba(233, 213, 255, 0.35), transparent 60%),
+    linear-gradient(180deg, #fbfcfe 0%, #f7f9fd 100%);
 }
 
 /* Headlines & section titles use the display face; body copy stays Inter */
@@ -107,9 +117,21 @@ button:active { transform: scale(0.97); }
 }
 .badge-pop { animation: badgePop 0.35s ease; }
 
+/* flip-clock tick for countdown digits — replays each second via key remount */
+@keyframes flipTick {
+  0% { transform: rotateX(80deg); opacity: 0.25; }
+  60% { transform: rotateX(-10deg); opacity: 1; }
+  100% { transform: rotateX(0deg); }
+}
+.flip-tick {
+  animation: flipTick 0.45s cubic-bezier(0.2, 0.7, 0.3, 1);
+  backface-visibility: hidden;
+  transform-origin: center top;
+}
+
 /* accessibility: respect reduced-motion preferences */
 @media (prefers-reduced-motion: reduce) {
-  .float-slow, .fade-up, .slide-in, .slide-in-left, .badge-pop { animation: none !important; }
+  .float-slow, .fade-up, .slide-in, .slide-in-left, .badge-pop, .flip-tick { animation: none !important; }
   html { scroll-behavior: auto; }
   button:active { transform: none; }
 }

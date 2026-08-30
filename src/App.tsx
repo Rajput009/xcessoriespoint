@@ -5,6 +5,7 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import FloatingButtons from "./components/FloatingButtons";
+import PurchaseToast from "./components/PurchaseToast";
 import MobileBottomNav from "./components/MobileBottomNav";
 import Modals from "./components/Modals";
 import Toasts from "./components/Toasts";
@@ -146,6 +147,7 @@ function Routes() {
       )}
       <Footer />
       <FloatingButtons />
+      <PurchaseToast />
       <MobileBottomNav />
     </>
   );

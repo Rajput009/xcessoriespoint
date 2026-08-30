@@ -10,11 +10,11 @@ export default function Footer() {
   const [email, setEmail] = useState("");
 
   return (
-    <footer className="bg-gradient-to-b from-slate-900 via-blue-950 to-blue-950 text-slate-300 mt-20 pb-20 md:pb-0">
+    <footer className="bg-gradient-to-b from-slate-900 via-slate-950 to-slate-950 text-slate-300 mt-20 pb-20 md:pb-0">
       <div className="max-w-7xl mx-auto px-6 py-14 grid gap-10 sm:grid-cols-2 lg:grid-cols-5">
         <div>
           <p className="text-xl font-black text-white mb-3">
-            Xccessories<span className="text-blue-500">Point</span>
+            Xccessories<span className="text-orange-500">Point</span>
           </p>
           <p className="text-sm text-slate-400 leading-relaxed">
             Premium tech accessories at honest prices. Earbuds, wearables, power

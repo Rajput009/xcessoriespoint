@@ -659,6 +659,37 @@ route("GET", "/products/:id/stats", (ctx) => {
   ).get(ctx.params.id);
   return { soldThisWeek: row.v, topVariantId: topVariant?.variantId ?? null };
 });
+/* real social proof feed — recent purchases from ACTUAL orders.
+ * Exposes first name + city only (what PK storefronts conventionally show);
+ * nothing that identifies a customer beyond that. */
+route("GET", "/social-proof", () => {
+  const rows = db.prepare(
+    `SELECT oi.productId, oi.name AS productName, o.customer, o.city, o.createdAt
+     FROM order_items oi JOIN orders o ON o.id = oi.orderId
+     WHERE o.status NOT IN ('Cancelled','Failed')
+       AND o.createdAt > datetime('now', '-48 hours')
+     ORDER BY o.createdAt DESC LIMIT 12`
+  ).all();
+  const imgStmt = db.prepare("SELECT image FROM products WHERE id = ?");
+  const now = Date.now();
+  const out = [];
+  for (const r of rows) {
+    const t = new Date(String(r.createdAt).replace(" ", "T") + "Z").getTime();
+    if (!Number.isFinite(t)) continue;
+    const first = String(r.customer || "").trim().split(/\s+/)[0];
+    const p = r.productId ? imgStmt.get(r.productId) : null;
+    out.push({
+      productId: r.productId ?? null,
+      product: r.productName,
+      image: p?.image ?? null,
+      customer: first || "A customer",
+      city: String(r.city || "").trim() || null,
+      minsAgo: Math.max(1, Math.round((now - t) / 60000)),
+    });
+    if (out.length >= 10) break;
+  }
+  return out;
+});
 
 /* ---- products (admin CRUD) ---- */
 route("POST", "/products", (ctx) => {

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { Link, useRouter } from "../router";
 import { useAuth, useCart, useProducts, useToast, useWishlist, fmt } from "../context/store";
 import ProductCard, { Stars } from "../components/ProductCard";
-import { HeartIcon, TruckIcon } from "../components/icons";
+import { HeartIcon, TruckIcon, StarIcon } from "../components/icons";
 import RecentlyViewed from "../components/RecentlyViewed";
 import { swatchFor, allColorVariants, swatchStyle } from "../lib/swatch";
 import { track } from "../lib/tracking";
@@ -35,11 +35,11 @@ function PaymentOptions() {
       <div className="mt-3 grid grid-cols-2 gap-2">
         <div className="rounded-md border border-slate-200 bg-slate-50 px-2.5 py-2 text-center">
           <p className="text-xs font-bold text-slate-800">Cash on Delivery</p>
-          <p className="mt-0.5 text-[10px] font-semibold text-blue-700">Available nationwide</p>
+          <p className="mt-0.5 text-[10px] font-semibold text-orange-600">Available nationwide</p>
         </div>
         <div className="rounded-md border border-slate-200 bg-slate-50 px-2.5 py-2 text-center">
           <p className="text-xs font-bold text-slate-800">WhatsApp COD</p>
-          <p className="mt-0.5 text-[10px] font-semibold text-blue-700">Confirm in minutes</p>
+          <p className="mt-0.5 text-[10px] font-semibold text-orange-600">Confirm in minutes</p>
         </div>
       </div>
       <p className="mt-2 text-center text-[10px] text-slate-400">Card and mobile-wallet payments are coming soon.</p>
@@ -65,7 +65,7 @@ function ProductInfoTabs({ product, perks }: { product: Product; perks: string[]
           Orders ship within 2–5 business days.
         </p>
         <p className="flex items-center gap-2.5">
-          <TruckIcon size={16} className="text-blue-700" aria-hidden="true" />
+          <TruckIcon size={16} className="text-orange-600" aria-hidden="true" />
           <span>Hooray! Free Shipping Over <strong className="font-semibold text-slate-800">Rs 5,000</strong></span>
         </p>
       </div>
@@ -104,7 +104,7 @@ function ProductInfoTabs({ product, perks }: { product: Product; perks: string[]
                 <ul className="space-y-1.5">
                   {perks.map((perk) => (
                     <li key={perk} className="flex items-start gap-2">
-                      <span className="mt-1 text-blue-700" aria-hidden="true">✓</span>
+                      <span className="mt-1 text-orange-600" aria-hidden="true">✓</span>
                       <span>{perk}</span>
                     </li>
                   ))}
@@ -305,7 +305,7 @@ export default function ProductPage({ id }: { id: number }) {
       <main id="main-content" className="pt-20 md:pt-44 max-w-7xl mx-auto px-6 pb-16 text-center">
         <div className="text-5xl mb-4">🔎</div>
         <h1 className="text-2xl font-black text-slate-900 mb-2">Product not found</h1>
-        <Link to="/shop" className="text-blue-600 font-semibold hover:underline">← Back to shop</Link>
+        <Link to="/shop" className="text-orange-600 font-semibold hover:underline">← Back to shop</Link>
       </main>
     );
 
@@ -386,11 +386,11 @@ export default function ProductPage({ id }: { id: number }) {
     <main id="main-content" className="pt-20 md:pt-44 max-w-7xl mx-auto px-6 pb-16">
       {/* breadcrumb */}
       <nav className="text-xs text-slate-400 mb-4">
-        <Link to="/" className="hover:text-blue-600">Home</Link>
+        <Link to="/" className="hover:text-orange-600">Home</Link>
         <span className="mx-1.5">/</span>
-        <Link to="/shop" className="hover:text-blue-600">Shop</Link>
+        <Link to="/shop" className="hover:text-orange-600">Shop</Link>
         <span className="mx-1.5">/</span>
-        <Link to={`/category/${product.category}`} className="hover:text-blue-600 capitalize">{catName}</Link>
+        <Link to={`/category/${product.category}`} className="hover:text-orange-600 capitalize">{catName}</Link>
         <span className="mx-1.5">/</span>
         <span className="text-slate-600 font-medium">{product.name}</span>
       </nav>
@@ -400,7 +400,7 @@ export default function ProductPage({ id }: { id: number }) {
         <div>
           <div className="surface rounded-xl shadow-none overflow-hidden relative">
             {product.badge && (
-              <span className="absolute top-4 left-4 z-10 bg-blue-700 text-white text-sm font-bold px-3 py-1.5 rounded-lg shadow-md shadow-blue-700/25">
+              <span className="absolute top-4 left-4 z-10 bg-slate-900 text-white text-sm font-bold px-3 py-1.5 rounded-lg shadow-md shadow-slate-900/25">
                 {product.badge}
               </span>
             )}
@@ -454,7 +454,7 @@ export default function ProductPage({ id }: { id: number }) {
                   aria-label={`Image ${i + 1}`}
                   className={`shrink-0 w-18 h-18 md:w-20 md:h-20 rounded-xl overflow-hidden transition-all ${
                     i === imgIdx
-                      ? "ring-2 ring-blue-500 ring-offset-2 ring-offset-transparent"
+                      ? "ring-2 ring-orange-500 ring-offset-2 ring-offset-transparent"
                       : "opacity-60 hover:opacity-100 surface-muted"
                   }`}
                 >
@@ -474,7 +474,7 @@ export default function ProductPage({ id }: { id: number }) {
         {/* purchase panel */}
         <div>
           <div className="lg:sticky lg:top-24 self-start">
-            <Link to={`/category/${product.category}`} className="text-xs font-bold uppercase tracking-widest text-blue-600 hover:underline">
+            <Link to={`/category/${product.category}`} className="text-xs font-bold uppercase tracking-widest text-orange-600 hover:underline">
             {catName}
           </Link>
           <h1 className="text-2xl md:text-4xl font-black uppercase text-slate-900 mt-2 mb-3">
@@ -484,13 +484,13 @@ export default function ProductPage({ id }: { id: number }) {
           <div className="flex items-center gap-2 mb-4 flex-wrap">
             <Stars rating={product.rating} />
             <span className="text-xs text-slate-500">({product.reviews})</span>
-            <a href="#reviews" className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 hover:text-blue-700 hover:underline">
+            <a href="#reviews" className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 hover:text-orange-600 hover:underline">
               View all reviews
             </a>
           </div>
           <p className="text-sm text-slate-600 leading-relaxed mb-4">{summary}</p>
           <div className="flex items-baseline gap-3 mb-1.5 flex-wrap">
-            <span className="text-3xl font-black text-blue-700">{fmt(unitPrice)}</span>
+            <span className="text-3xl font-black text-orange-600">{fmt(unitPrice)}</span>
             {comparePrice && (
               <span className="text-lg text-slate-400 line-through">{fmt(comparePrice)}</span>
             )}
@@ -500,7 +500,7 @@ export default function ProductPage({ id }: { id: number }) {
           </div>
 
           {/* stock */}
-          <p className={`text-sm font-semibold mb-5 ${out ? "text-red-600" : low ? "text-amber-600" : "text-blue-600"}`}>
+          <p className={`text-sm font-semibold mb-5 ${out ? "text-red-600" : low ? "text-amber-600" : "text-orange-600"}`}>
             {out ? "✕ Out of stock" : low ? `⚠ Only ${availableStock} left — order soon` : "✓ In stock, ready to ship"}
           </p>
 
@@ -511,7 +511,7 @@ export default function ProductPage({ id }: { id: number }) {
                 <span>Only {availableStock} left</span>
               </div>
               <div className="h-2 rounded-full bg-slate-100 overflow-hidden">
-                <div className="h-full rounded-full bg-blue-600 transition-all" style={{ width: `${soldPercent}%` }} />
+                <div className="h-full rounded-full bg-slate-900 transition-all" style={{ width: `${soldPercent}%` }} />
               </div>
             </div>
           )}
@@ -526,7 +526,7 @@ export default function ProductPage({ id }: { id: number }) {
                   )}
                 </span> : null}
                 {topVariantId !== null && variant?.id === topVariantId && (
-                  <span className="ml-2 normal-case bg-blue-100 text-blue-700 px-2 py-0.5 rounded-md">🔥 Most popular</span>
+                  <span className="ml-2 normal-case bg-orange-100 text-orange-600 px-2 py-0.5 rounded-md">🔥 Most popular</span>
                 )}
               </p>
               {allColorVariants(product.variants) ? (
@@ -548,10 +548,10 @@ export default function ProductPage({ id }: { id: number }) {
                         onMouseLeave={() => setHoverPreview(null)}
                         className={`relative w-11 h-11 rounded-lg transition-all ${
                           selected
-                            ? "ring-[3px] ring-blue-500 ring-offset-2 scale-110"
+                            ? "ring-[3px] ring-orange-500 ring-offset-2 scale-110"
                             : out2
                             ? "opacity-40 cursor-not-allowed"
-                            : "ring-1 ring-slate-300 hover:ring-2 hover:ring-blue-400 hover:scale-105"
+                            : "ring-1 ring-slate-300 hover:ring-2 hover:ring-orange-400 hover:scale-105"
                         }`}
                         style={swatchStyle(color)}
                       >
@@ -585,10 +585,10 @@ export default function ProductPage({ id }: { id: number }) {
                         onClick={() => { variantTouched.current = true; setVariantId(v.id); setQty(1); setImgIdx(0); }}
                         className={`px-4 py-2.5 rounded-xl text-sm font-semibold transition-all inline-flex items-center gap-2 ${
                           v.id === variantId
-                            ? "bg-blue-600 text-white neon-glow-soft"
+                            ? "bg-slate-900 text-white neon-glow-soft"
                             : v.stock <= 0
                             ? "surface-muted text-slate-300 line-through cursor-not-allowed"
-                            : "surface-muted text-slate-700 hover:ring-2 hover:ring-blue-300"
+                            : "surface-muted text-slate-700 hover:ring-2 hover:ring-orange-300"
                         }`}
                       >
                         {color && (
@@ -596,7 +596,7 @@ export default function ProductPage({ id }: { id: number }) {
                         )}
                         {v.label}
                         {v.priceDelta !== 0 && (
-                          <span className={`text-[11px] ${v.id === variantId ? "text-blue-100" : "text-slate-400"}`}>
+                          <span className={`text-[11px] ${v.id === variantId ? "text-orange-100" : "text-slate-400"}`}>
                             {v.priceDelta > 0 ? "+" : "−"}{fmt(Math.abs(v.priceDelta)).replace("Rs ", "Rs")}
                           </span>
                         )}
@@ -612,7 +612,7 @@ export default function ProductPage({ id }: { id: number }) {
           {out && (
             <div className="surface rounded-2xl p-4 mb-6">
               {alertDone ? (
-                <p className="text-sm font-semibold text-blue-700">
+                <p className="text-sm font-semibold text-orange-600">
                   ✓ You're on the list — we'll email you the moment it's back!
                 </p>
               ) : (
@@ -642,9 +642,9 @@ export default function ProductPage({ id }: { id: number }) {
                       value={alertEmail}
                       onChange={(e) => setAlertEmail(e.target.value)}
                       placeholder="you@email.com"
-                      className="flex-1 min-w-0 rounded-xl bg-white border border-slate-200 px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-300/60"
+                      className="flex-1 min-w-0 rounded-xl bg-white border border-slate-200 px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-orange-300/60"
                     />
-                    <button className="px-4 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-bold hover:bg-blue-700">
+                    <button className="px-4 py-2.5 rounded-xl bg-slate-900 text-white text-sm font-bold hover:bg-slate-800">
                       Notify me
                     </button>
                   </form>
@@ -657,14 +657,14 @@ export default function ProductPage({ id }: { id: number }) {
           {/* qty + actions */}
           <div className="flex items-center gap-3 mb-5">
             <div className="flex items-center surface-muted rounded-xl">
-              <button type="button" onClick={() => setQty((q) => Math.max(1, q - 1))} aria-label="Decrease quantity" className="w-10 h-11 text-slate-600 hover:text-blue-700 font-bold">−</button>
+              <button type="button" onClick={() => setQty((q) => Math.max(1, q - 1))} aria-label="Decrease quantity" className="w-10 h-11 text-slate-600 hover:text-orange-600 font-bold">−</button>
               <span className="w-10 text-center font-bold" aria-live="polite">{qty}</span>
-              <button type="button" onClick={() => setQty((q) => Math.min(Math.max(1, availableStock), q + 1))} aria-label="Increase quantity" className="w-10 h-11 text-slate-600 hover:text-blue-700 font-bold">+</button>
+              <button type="button" onClick={() => setQty((q) => Math.min(Math.max(1, availableStock), q + 1))} aria-label="Increase quantity" className="w-10 h-11 text-slate-600 hover:text-orange-600 font-bold">+</button>
             </div>
             <button
               disabled={out}
               onClick={() => add(product, qty, variantId)}
-              className="flex-1 py-3.5 rounded-xl bg-slate-900 text-white font-bold hover:bg-blue-600 hover:shadow-lg hover:shadow-blue-500/40 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+              className="flex-1 py-3.5 rounded-xl bg-slate-900 text-white font-bold hover:bg-slate-900 hover:shadow-lg hover:shadow-orange-500/40 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
             >
               Add to Cart · {fmt(unitPrice * qty)}
             </button>
@@ -672,7 +672,7 @@ export default function ProductPage({ id }: { id: number }) {
               onClick={() => toggle(product.id)}
               aria-label="Toggle wishlist"
               className={`w-12 h-12 rounded-xl flex items-center justify-center transition ${
-                has(product.id) ? "bg-blue-600 text-white neon-glow-soft" : "surface-muted text-slate-500 hover:text-blue-600"
+                has(product.id) ? "bg-slate-900 text-white neon-glow-soft" : "surface-muted text-slate-500 hover:text-orange-600"
               }`}
             >
               <HeartIcon size={20} filled={has(product.id)} />
@@ -683,7 +683,7 @@ export default function ProductPage({ id }: { id: number }) {
           <button
             disabled={out}
             onClick={() => { add(product, qty, variantId); navigate("/checkout"); }}
-            className="w-full py-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold hover:from-blue-700 hover:to-indigo-700 neon-glow-soft transition-all mb-3 disabled:opacity-40"
+            className="w-full py-3 rounded-xl bg-gradient-to-r from-slate-900 to-indigo-600 text-white font-bold hover:from-slate-800 hover:to-indigo-700 neon-glow-soft transition-all mb-3 disabled:opacity-40"
           >
             Buy Now →
           </button>
@@ -730,7 +730,7 @@ export default function ProductPage({ id }: { id: number }) {
                   const percentage = Math.round((count / reviews.length) * 100);
                   return (
                     <div key={rating} className="flex items-center gap-2 text-[11px] text-slate-500">
-                      <span className="w-7 shrink-0">{rating}★</span>
+                      <span className="flex w-7 shrink-0 items-center gap-0.5">{rating}<StarIcon size={11} className="text-amber-400" /></span>
                       <div className="h-1.5 flex-1 rounded-full bg-slate-100 overflow-hidden">
                         <div className="h-full rounded-full bg-amber-400" style={{ width: `${percentage}%` }} />
                       </div>
@@ -741,7 +741,7 @@ export default function ProductPage({ id }: { id: number }) {
               </div>
             )}
             {verifiedReviewCount > 0 && (
-              <p className="text-[11px] font-semibold text-blue-700 mt-3">✓ {verifiedReviewCount} verified purchase{verifiedReviewCount === 1 ? "" : "s"}</p>
+              <p className="text-[11px] font-semibold text-orange-600 mt-3">✓ {verifiedReviewCount} verified purchase{verifiedReviewCount === 1 ? "" : "s"}</p>
             )}
           </div>
           <h2 className="text-xl font-black text-slate-900 mb-4">Customer Reviews ({reviews.length})</h2>
@@ -752,11 +752,11 @@ export default function ProductPage({ id }: { id: number }) {
               {reviews.map((r) => (
                 <div key={r.id} className="surface rounded-xl shadow-none p-4">
                   <div className="flex items-center gap-2.5 mb-1.5">
-                    <span className="w-8 h-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center text-sm font-bold">
+                    <span className="w-8 h-8 rounded-lg bg-orange-100 text-orange-600 flex items-center justify-center text-sm font-bold">
                       {r.name.charAt(0)}
                     </span>
                     <span className="font-semibold text-slate-900 text-sm">{r.name}</span>
-                    {r.verified && <span className="text-[10px] font-bold text-blue-700">✓ Verified purchase</span>}
+                    {r.verified && <span className="text-[10px] font-bold text-orange-600">✓ Verified purchase</span>}
                     <span className="text-xs text-slate-400 ml-auto">{r.createdAt?.slice(0, 10)}</span>
                   </div>
                   <Stars rating={r.rating} size="text-xs" />
@@ -774,7 +774,7 @@ export default function ProductPage({ id }: { id: number }) {
               onChange={(e) => setRevName(e.target.value)}
               placeholder="Your name"
               required
-              className="w-full rounded-xl bg-white border border-slate-200 px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-300/60"
+              className="w-full rounded-xl bg-white border border-slate-200 px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-orange-300/60"
             />
             <div className="flex items-center gap-1">
               {[1, 2, 3, 4, 5].map((n) => (
@@ -782,10 +782,10 @@ export default function ProductPage({ id }: { id: number }) {
                   key={n}
                   type="button"
                   onClick={() => setRevRating(n)}
-                  className={`text-2xl transition ${n <= revRating ? "text-amber-400" : "text-slate-300 hover:text-amber-300"}`}
+                  className={`transition ${n <= revRating ? "text-amber-400" : "text-slate-300 hover:text-amber-300"}`}
                   aria-label={`${n} stars`}
                 >
-                  ★
+                  <StarIcon size={24} />
                 </button>
               ))}
               <span className="ml-2 text-sm text-slate-500">{revRating}/5</span>
@@ -795,11 +795,11 @@ export default function ProductPage({ id }: { id: number }) {
               onChange={(e) => setRevText(e.target.value)}
               rows={4}
               placeholder="What did you think of it?"
-              className="w-full rounded-xl bg-white border border-slate-200 px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-300/60"
+              className="w-full rounded-xl bg-white border border-slate-200 px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-orange-300/60"
             />
             <button
               disabled={revBusy}
-              className="w-full py-3 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-700 neon-glow-soft disabled:opacity-50"
+              className="w-full py-3 rounded-xl bg-slate-900 text-white font-bold hover:bg-slate-800 neon-glow-soft disabled:opacity-50"
             >
               {revBusy ? "Submitting…" : "Submit review"}
             </button>
@@ -815,14 +815,14 @@ export default function ProductPage({ id }: { id: number }) {
             <img src={variant?.image || product.image} alt="" className="w-11 h-11 rounded-xl object-cover" />
             <div className="min-w-0 flex-1">
               <p className="text-xs font-bold text-slate-900 truncate">{product.name}</p>
-              <p className="text-sm font-black text-blue-700">
+              <p className="text-sm font-black text-orange-600">
                 {fmt(unitPrice)}
                 {variant && <span className="ml-1.5 text-[10px] font-bold text-slate-400">{variant.label}</span>}
               </p>
             </div>
             <button
               onClick={() => add(product, qty, variantId)}
-              className="px-5 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-bold neon-glow-soft"
+              className="px-5 py-2.5 rounded-xl bg-slate-900 text-white text-sm font-bold neon-glow-soft"
             >
               Add to Cart
             </button>
@@ -836,7 +836,7 @@ export default function ProductPage({ id }: { id: number }) {
       {related.length > 0 && (
         <section className="mt-16 border-t border-slate-200 pt-10">
           <div className="text-center mb-6">
-            <p className="text-[11px] font-black uppercase tracking-[0.2em] text-blue-700 mb-1">You might also like</p>
+            <p className="text-[11px] font-black uppercase tracking-[0.2em] text-orange-600 mb-1">You might also like</p>
             <h2 className="text-2xl font-black text-slate-900">Related Products</h2>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

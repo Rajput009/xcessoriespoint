@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
+import { StarIcon } from "../components/icons";
 import { Link, useRouter } from "../router";
 import { useProducts, useUI } from "../context/store";
 import ProductCard from "../components/ProductCard";
+import ViewToggle, { type ProductView } from "../components/ViewToggle";
 import RecentlyViewed from "../components/RecentlyViewed";
 import { smartSearch, didYouMean } from "../lib/fuzzy";
 import { track } from "../lib/tracking";
@@ -44,6 +46,7 @@ export default function ShopPage() {
   const { searchQuery, setSearchQuery } = useUI();
   const [cat, setCat] = useState(query.get("cat") || "all");
   const [sort, setSort] = useState("featured");
+  const [view, setView] = useState<ProductView>("grid");
   const [visible, setVisible] = useState(12);
   const [priceBand, setPriceBand] = useState("all");
   const [inStockOnly, setInStockOnly] = useState(false);
@@ -159,8 +162,8 @@ export default function ShopPage() {
             {categories.map((c) => catBtn(c.id, c.name))}
           </div>
 
-          {/* search + sort */}
-          <div className="flex flex-col sm:flex-row gap-3 mb-4">
+          {/* search + sort + view toggle */}
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
             <input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -176,6 +179,9 @@ export default function ShopPage() {
                 <option key={s.id} value={s.id}>{s.label}</option>
               ))}
             </select>
+            <div className="flex items-center justify-between gap-3 sm:justify-end">
+              <ViewToggle view={view} onChange={setView} />
+            </div>
           </div>
 
           {/* refinement chips */}
@@ -203,7 +209,7 @@ export default function ShopPage() {
                 topRatedOnly ? "bg-slate-900 text-white" : "surface-muted text-slate-600 hover:text-slate-900"
               }`}
             >
-              ★ 4+ rated
+              <span className="inline-flex items-center gap-1"><StarIcon size={12} className="text-amber-400" /> 4+ rated</span>
             </button>
           </div>
 
@@ -248,7 +254,7 @@ export default function ShopPage() {
 
           {/* grid / skeletons / empty */}
           {loading ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
               {Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} />)}
             </div>
           ) : list.length === 0 ? (
@@ -289,11 +295,19 @@ export default function ShopPage() {
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
-                {list.slice(0, visible).map((p) => (
-                  <ProductCard key={p.id} product={p} />
-                ))}
-              </div>
+              {view === "list" ? (
+                <div className="flex flex-col gap-3">
+                  {list.slice(0, visible).map((p) => (
+                    <ProductCard key={p.id} product={p} view="list" />
+                  ))}
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
+                  {list.slice(0, visible).map((p) => (
+                    <ProductCard key={p.id} product={p} />
+                  ))}
+                </div>
+              )}
               {list.length > visible && (
                 <div className="text-center mt-8">
                   <button

@@ -3,7 +3,7 @@ import { Link } from "../../router";
 import { useProducts, fmt } from "../../context/store";
 import type { Product } from "../../types";
 import ProductCard from "../ProductCard";
-import { PhoneIcon, TruckIcon } from "../icons";
+import { PhoneIcon, TruckIcon, StarIcon, PlusIcon } from "../icons";
 
 const BRAND_LOGOS = [
   { name: "Anker", logo: "/img/brands/anker.png" },
@@ -17,9 +17,9 @@ const BRAND_LOGOS = [
 
 export function ShopByBrand() {
   return (
-    <section className="max-w-7xl mx-auto px-6 py-10">
-      <div className="mb-6">
-        <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 mb-1">Trusted names</p>
+    <section className="max-w-7xl mx-auto px-6 py-7 md:py-9">
+      <div className="mb-5">
+        <p className="text-[11px] font-black uppercase tracking-[0.2em] text-orange-500 mb-1">Trusted names</p>
         <h2 className="text-2xl md:text-3xl font-black text-slate-900">Popular Brands</h2>
       </div>
       {/* open logo strip — no cards: brands float on the page edge-to-edge */}
@@ -72,7 +72,7 @@ export function PopularCategoryShelves() {
         <section key={category.id} className="max-w-7xl mx-auto px-6 py-9">
           <div className="flex items-end justify-between gap-4 mb-5">
             <h2 className="text-2xl md:text-3xl font-black text-slate-900">{category.name}</h2>
-            <Link to={`/category/${category.id}`} className="text-sm font-bold text-blue-700 hover:text-blue-900">
+            <Link to={`/category/${category.id}`} className="text-sm font-bold text-orange-600 hover:text-orange-700">
               View all →
             </Link>
           </div>
@@ -91,6 +91,7 @@ type GroupDef = {
   copy: string;
   to: string;
   img: string;
+  compact?: boolean;
   match: (product: Product) => boolean;
 };
 
@@ -128,6 +129,7 @@ const DEVICE_GROUPS: GroupDef[] = [
 const NEEDS: GroupDef[] = [
   {
     label: "Travel charging",
+    compact: true,
     copy: "Power banks & compact chargers",
     to: "/category/power",
     img: "/img/powerbank.jpg",
@@ -135,6 +137,7 @@ const NEEDS: GroupDef[] = [
   },
   {
     label: "Desk setup",
+    compact: true,
     copy: "Hubs, cables & fast charging",
     to: "/category/cables",
     img: "/img/charger-2.jpg",
@@ -142,6 +145,7 @@ const NEEDS: GroupDef[] = [
   },
   {
     label: "Everyday audio",
+    compact: true,
     copy: "Simple sound for every commute",
     to: "/category/audio",
     img: "/img/headphones.jpg",
@@ -149,6 +153,7 @@ const NEEDS: GroupDef[] = [
   },
   {
     label: "Everyday protection",
+    compact: true,
     copy: "Slim and rugged phone cases",
     to: "/category/cases",
     img: "/img/case.jpg",
@@ -188,9 +193,9 @@ function WayGrid({ items }: { items: ReturnType<typeof useGroupStats> }) {
         <Link
           key={g.label}
           to={g.to}
-          className="group block focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-600"
+          className="group block focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-orange-600"
         >
-          <span className="block aspect-square rounded-lg bg-slate-100 overflow-hidden transition-transform duration-200 group-hover:scale-[1.02]">
+          <span className={`block aspect-square rounded-lg bg-slate-100 overflow-hidden transition-transform duration-200 group-hover:scale-[1.02] ${g.compact ? "p-5 md:p-7" : ""}`}>
             <img
               src={g.img}
               alt=""
@@ -230,9 +235,9 @@ export function ShopByDevice() {
   const groups = useGroupStats(DEVICE_GROUPS);
   if (groups.length === 0) return null;
   return (
-    <section className="max-w-7xl mx-auto px-6 py-10">
-      <div className="mb-8">
-        <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 mb-1">Find it fast</p>
+    <section className="max-w-7xl mx-auto px-6 py-7 md:py-9">
+      <div className="mb-5">
+        <p className="text-[11px] font-black uppercase tracking-[0.2em] text-orange-500 mb-1">Find it fast</p>
         <h2 className="text-2xl md:text-3xl font-black text-slate-900">Shop by Device &amp; Connection</h2>
       </div>
       <WayGrid items={groups} />
@@ -244,15 +249,16 @@ export function ShopByNeed() {
   const needs = useGroupStats(NEEDS);
   if (needs.length === 0) return null;
   return (
-    <section className="max-w-7xl mx-auto px-6 py-10">
-      <div className="mb-8">
-        <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 mb-1">Solve it in one tap</p>
+    <section className="max-w-7xl mx-auto px-6 py-7 md:py-9">
+      <div className="mb-5">
+        <p className="text-[11px] font-black uppercase tracking-[0.2em] text-orange-500 mb-1">Solve it in one tap</p>
         <h2 className="text-2xl md:text-3xl font-black text-slate-900">Shop by Need</h2>
       </div>
       <WayGrid items={needs} />
     </section>
   );
 }
+
 
 export function TrustStrip() {
   const perks = [
@@ -263,15 +269,17 @@ export function TrustStrip() {
   ];
 
   return (
-    <section className="max-w-7xl mx-auto px-6 py-10">
-      <div className="mb-8">
-        <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 mb-1">Shop with confidence</p>
+    <section className="max-w-7xl mx-auto px-6 py-7 md:py-9">
+      <div className="mb-5">
+        <p className="text-[11px] font-black uppercase tracking-[0.2em] text-orange-500 mb-1">Shop with confidence</p>
         <h2 className="text-2xl md:text-3xl font-black text-slate-900 sr-only">Why shop with us</h2>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-10 gap-y-6">
-        {perks.map((perk) => (
+        {perks.map((perk, pi) => (
           <div key={perk.title} className="flex items-center gap-3">
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-sm font-black text-slate-700">
+            <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-sm font-black ${
+              ["bg-emerald-100 text-emerald-700", "bg-orange-100 text-orange-600", "bg-amber-100 text-amber-700", "bg-teal-100 text-teal-700"][pi % 4]
+            }`}>
               {perk.icon}
             </span>
             <span>
@@ -295,17 +303,21 @@ export function StatsStrip() {
   const stats = [
     { big: loading ? "—" : `${products.length}`, label: "Products", suffix: "+" },
     { big: loading ? "—" : `${categories.length}`, label: "Categories", suffix: "" },
-    { big: loading ? "—" : rating ? rating.toFixed(1) : "—", label: "Average rating", suffix: "★" },
+    { big: loading ? "—" : rating ? rating.toFixed(1) : "—", label: "Average rating", star: true },
     { big: loading ? "—" : reviews.toLocaleString("en-PK"), label: "Customer reviews", suffix: "+" },
   ];
   return (
-    <section className="max-w-7xl mx-auto px-6 py-10">
+    <section className="max-w-7xl mx-auto px-6 py-7 md:py-9">
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-10 gap-y-8">
         {stats.map((s) => (
           <div key={s.label}>
-            <p className="text-3xl md:text-4xl font-black text-slate-900 tracking-tight">
+            <p className="flex items-start text-3xl md:text-4xl font-black text-slate-900 tracking-tight">
               {s.big}
-              {s.suffix && <span className="text-slate-300 ml-1">{s.suffix}</span>}
+              {"star" in s && s.star ? (
+                <StarIcon size={26} className="ml-1.5 text-amber-400" />
+              ) : (
+                s.suffix && <PlusIcon size={22} className="ml-1 mt-1 text-slate-300" />
+              )}
             </p>
             <p className="mt-1 text-[11px] font-bold uppercase tracking-[0.16em] text-slate-400">{s.label}</p>
           </div>

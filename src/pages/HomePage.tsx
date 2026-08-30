@@ -26,13 +26,13 @@ export default function HomePage() {
     <main id="main-content">
       <HeroSection />
 
-      <div className="bg-white">
+      <div className="bg-white/70">
         <CategoryIcons />
       </div>
 
       <BestSelling />
 
-      <div className="bg-white">
+      <div className="bg-white/70">
         <TrustStrip />
         <StatsStrip />
         <ReviewsSummary />
@@ -40,25 +40,25 @@ export default function HomePage() {
 
       <ShopByBrand />
 
-      <div className="bg-white">
+      <div className="bg-white/70">
         <DealsOfDay />
       </div>
 
       <NewArrivalsCarousel />
 
-      <div className="bg-white">
+      <div className="bg-white/70">
         <PopularCategoryShelves />
       </div>
 
       <ShopByDevice />
 
-      <div className="bg-white">
+      <div className="bg-white/70">
         <ShopByNeed />
       </div>
 
       <VideoStrip />
 
-      <div className="bg-white">
+      <div className="bg-white/70">
         <FaqSection />
       </div>
     </main>
