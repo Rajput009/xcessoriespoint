@@ -4,6 +4,7 @@ import { useProducts } from "../context/store";
 import ProductCard, { Stars } from "../components/ProductCard";
 import ViewToggle, { type ProductView } from "../components/ViewToggle";
 import { setMeta } from "../lib/seo";
+import { categoryArt } from "../lib/categoryArt";
 
 interface BandData {
   categoryId: string;
@@ -150,11 +151,11 @@ export default function CategoryPage({ id, band }: { id: string; band?: string }
     if (bandState === "empty" || !bandData)
       return (
         <main id="main-content" className="pt-40 pb-20 px-6 max-w-7xl mx-auto text-center">
-          <h1 className="text-3xl font-black text-slate-900 mb-2">Nothing to rank here yet</h1>
+          <h1 className="text-3xl font-bold text-slate-900 mb-2">Nothing to rank here yet</h1>
           <p className="text-sm text-slate-500 mb-6">
             We only publish buying guides once we can recommend at least three in-stock picks.
           </p>
-          <Link to={`/category/${id}`} className="px-6 py-2.5 rounded-lg bg-slate-900 text-white font-semibold hover:bg-slate-800">
+          <Link to={`/category/${id}`} className="btn-primary px-6 py-3">
             Browse the full category
           </Link>
         </main>
@@ -165,18 +166,18 @@ export default function CategoryPage({ id, band }: { id: string; band?: string }
       <main id="main-content" className="pt-[120px] md:pt-44 max-w-7xl mx-auto px-6 pb-16">
         {/* breadcrumb */}
         <nav className="text-xs text-slate-400 mb-3">
-          <Link to="/" className="hover:text-orange-600">Home</Link>
+          <Link to="/" className="hover:text-teal-700">Home</Link>
           <span className="mx-1.5">/</span>
-          <Link to="/shop" className="hover:text-orange-600">Shop</Link>
+          <Link to="/shop" className="hover:text-teal-700">Shop</Link>
           <span className="mx-1.5">/</span>
-          <Link to={`/category/${bandData.categoryId}`} className="hover:text-orange-600">{bandData.categoryName}</Link>
+          <Link to={`/category/${bandData.categoryId}`} className="hover:text-teal-700">{bandData.categoryName}</Link>
           <span className="mx-1.5">/</span>
           <span className="text-slate-600 font-medium">{bandData.bandLabel}</span>
         </nav>
 
-        <h1 className="text-3xl md:text-4xl font-black text-slate-900">
+        <h1 className="text-3xl md:text-4xl font-bold text-slate-900">
           {bandData.categoryName} {bandData.bandLabel} in Pakistan
-          <span className="text-orange-600"> — Top {bandData.total} ({year})</span>
+          <span className="text-teal-700"> — Top {bandData.total} ({year})</span>
         </h1>
         <p className="text-sm md:text-base text-slate-500 leading-relaxed mt-2 max-w-3xl">{bandData.intro}</p>
 
@@ -184,23 +185,23 @@ export default function CategoryPage({ id, band }: { id: string; band?: string }
           {bandData.items.map((it) => (
             <li key={it.id}>
               <div className="flex items-start gap-4 surface rounded-2xl p-4 hover:shadow-lg transition">
-                <span className={`shrink-0 w-9 h-9 rounded-lg flex items-center justify-center font-black text-sm ${
+                <span className={`shrink-0 w-9 h-9 rounded-lg flex items-center justify-center font-bold text-sm ${
                   it.rank <= 3 ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-500"
                 }`}>{it.rank}</span>
                 <img src={it.image} alt={it.name} width={112} height={112}
                   loading="lazy"
                   className="w-20 h-20 sm:w-28 sm:h-28 rounded-xl object-cover ring-1 ring-slate-200 shrink-0" />
                 <div className="min-w-0 flex-1">
-                  <Link to={`/product/${it.id}`} className="font-bold text-slate-900 hover:text-orange-600 line-clamp-1">
+                  <Link to={`/product/${it.id}`} className="font-bold text-slate-900 hover:text-teal-700 line-clamp-1">
                     {it.name}
                   </Link>
                   <div className="flex items-center gap-2 mt-0.5">
                     <Stars rating={it.rating} />
                     <span className="text-xs text-slate-400">{it.reviews} reviews</span>
                   </div>
-                  <p className="text-xs font-semibold text-orange-600 mt-1">{it.why}</p>
+                  <p className="text-xs font-semibold text-teal-700 mt-1">{it.why}</p>
                   <p className="text-sm text-slate-400 mt-1 hidden sm:block line-clamp-2">{it.description}</p>
-                  <p className="mt-1.5 font-black text-slate-900">
+                  <p className="mt-1.5 font-bold text-slate-900">
                     Rs {it.price.toLocaleString("en-PK")}
                     {it.compareAt && <span className="ml-2 text-xs text-slate-400 line-through font-medium">Rs {it.compareAt.toLocaleString("en-PK")}</span>}
                   </p>
@@ -219,15 +220,15 @@ export default function CategoryPage({ id, band }: { id: string; band?: string }
         {/* sibling bands */}
         {bandData.siblings.length > 0 && (
           <section className="mt-12">
-            <h2 className="text-lg font-black text-slate-900 mb-3">Other budgets in {bandData.categoryName}</h2>
+            <h2 className="text-lg font-bold text-slate-900 mb-3">Other budgets in {bandData.categoryName}</h2>
             <div className="flex flex-wrap gap-2">
               <Link to={`/category/${bandData.categoryId}`}
-                className="px-4 py-2 rounded-lg surface-muted text-sm font-medium text-slate-600 hover:text-orange-600 transition">
+                className="px-4 py-2 rounded-full bg-white ring-1 ring-slate-200 text-sm font-medium text-slate-600 hover:text-teal-700 transition">
                 All {bandData.categoryName}
               </Link>
               {bandData.siblings.map((s) => (
                 <Link key={s.url} to={s.url}
-                  className="px-4 py-2 rounded-lg surface-muted text-sm font-medium text-slate-600 hover:text-orange-600 transition">
+                  className="px-4 py-2 rounded-full bg-white ring-1 ring-slate-200 text-sm font-medium text-slate-600 hover:text-teal-700 transition">
                   {s.bandLabel}
                 </Link>
               ))}
@@ -242,37 +243,100 @@ export default function CategoryPage({ id, band }: { id: string; band?: string }
   if (!loading && !cat)
     return (
       <main id="main-content" className="pt-40 pb-20 px-6 max-w-7xl mx-auto text-center">
-        <h1 className="text-3xl font-black text-slate-900 mb-2">Category not found</h1>
-        <Link to="/shop" className="px-6 py-2.5 rounded-lg bg-slate-900 text-white font-semibold hover:bg-slate-800">
+        <h1 className="text-3xl font-bold text-slate-900 mb-2">Category not found</h1>
+        <Link to="/shop" className="btn-primary px-6 py-3">
           Browse all products
         </Link>
       </main>
     );
 
   return (
-    <main id="main-content" className="pt-[120px] md:pt-44 max-w-7xl mx-auto px-6 pb-16">
-      {/* breadcrumb */}
-      <nav className="text-xs text-slate-400 mb-3">
-        <Link to="/" className="hover:text-orange-600">Home</Link>
-        <span className="mx-1.5">/</span>
-        <Link to="/shop" className="hover:text-orange-600">Shop</Link>
-        <span className="mx-1.5">/</span>
-        <span className="text-slate-600 font-medium">{cat?.name ?? "…"}</span>
-      </nav>
+    <main id="main-content" className="pt-20 md:pt-32 pb-16">
+      {/* ---- department banner — a clear "you are here in Audio / Wearables…" cue ---- */}
+      <section className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-900 to-teal-950 text-white">
+        <div aria-hidden="true" className="xp-pattern absolute inset-0 opacity-60" />
+        <div aria-hidden="true" className="absolute -right-16 -top-20 h-72 w-72 rounded-full bg-teal-500/20 blur-3xl" />
+        <div aria-hidden="true" className="absolute -left-10 bottom-0 h-56 w-56 rounded-full bg-amber-400/10 blur-3xl" />
+        <div className="relative mx-auto max-w-7xl px-6 py-10 md:py-14">
+          {/* breadcrumb */}
+          <nav className="mb-4 flex items-center gap-1.5 text-xs text-slate-400">
+            <Link to="/" className="transition-colors hover:text-white">Home</Link>
+            <span aria-hidden="true">/</span>
+            <Link to="/shop" className="transition-colors hover:text-white">Shop</Link>
+            <span aria-hidden="true">/</span>
+            <span className="font-semibold text-teal-300">{cat?.name ?? "…"}</span>
+          </nav>
 
-      <h1 className="text-3xl md:text-4xl font-black text-slate-900">
-        {cat ? cat.name : "\u00A0"}
-        <span className="text-orange-600"> in Pakistan</span>
-      </h1>
-      {cat?.description && (
-        <p className="text-sm md:text-base text-slate-500 leading-relaxed mt-2 mb-4 max-w-3xl">{cat.description}</p>
-      )}
-      {!loading && (
-        <p className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-6">
-          {items.length} product{items.length === 1 ? "" : "s"}
-          {items.some((p) => p.stock > 0) && " · in stock · COD available"}
-        </p>
-      )}
+          <div className="flex flex-wrap items-center gap-8">
+            <div className="min-w-0 flex-1">
+              <p className="mb-2 inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 ring-1 ring-white/15">
+                <span className="h-1.5 w-1.5 rounded-full bg-teal-400" />
+                <span className="text-[11px] font-bold uppercase tracking-[0.16em] text-teal-200">Department</span>
+              </p>
+              <h1 className="font-display text-4xl md:text-5xl font-bold tracking-tight">
+                {cat ? cat.name : "\u00A0"}
+              </h1>
+              {cat?.description && (
+                <p className="mt-3 max-w-2xl text-sm md:text-base leading-relaxed text-slate-300">{cat.description}</p>
+              )}
+              {!loading && (
+                <p className="mt-4 text-sm font-semibold text-slate-300">
+                  {items.length} product{items.length === 1 ? "" : "s"}
+                  {items.some((p) => p.stock > 0) && (
+                    <span className="text-teal-300"> · in stock · COD available</span>
+                  )}
+                </p>
+              )}
+            </div>
+
+            {/* category logo on a light chip so it stays legible on the dark band */}
+            <div className="hidden sm:block">
+              <div className="flex h-32 w-32 items-center justify-center rounded-3xl bg-white p-4 shadow-2xl ring-1 ring-white/20 md:h-40 md:w-40">
+                {cat && categoryArt(cat) ? (
+                  <img
+                    src={categoryArt(cat) as string}
+                    alt=""
+                    loading="lazy"
+                    className="h-full w-full object-contain"
+                  />
+                ) : (
+                  <span className="text-6xl">{cat?.icon || "🗂"}</span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* jump to other departments */}
+          <div className="mt-7 flex flex-wrap gap-2">
+            {categories.map((c) => {
+              const active = c.id === id;
+              return (
+                <Link
+                  key={c.id}
+                  to={`/category/${c.id}`}
+                  aria-current={active ? "page" : undefined}
+                  className={`inline-flex items-center gap-2 rounded-full py-2 pl-2 pr-4 text-sm font-semibold transition-all ${
+                    active
+                      ? "bg-teal-500 text-white shadow-sm"
+                      : "bg-white/10 text-slate-200 ring-1 ring-white/15 hover:bg-white/20"
+                  }`}
+                >
+                  <span className="flex h-6 w-6 items-center justify-center overflow-hidden rounded-full bg-white/90">
+                    {categoryArt(c) ? (
+                      <img src={categoryArt(c) as string} alt="" loading="lazy" className="h-full w-full object-contain p-0.5" />
+                    ) : (
+                      <span className="text-sm leading-none">{c.icon || "🗂"}</span>
+                    )}
+                  </span>
+                  {c.name}
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      <div className="mx-auto max-w-7xl px-6 mt-8 md:mt-10">
 
       {/* related buying guide */}
       {hubGuide && (
@@ -288,7 +352,7 @@ export default function CategoryPage({ id, band }: { id: string; band?: string }
       {/* budget guides (programmatic pages, only live ones are linked) */}
       {hubBands.length > 0 && (
         <section className="mb-10 rounded-2xl border border-teal-100 bg-teal-50/60 p-5">
-          <h2 className="text-sm font-black text-slate-900 mb-2">Shopping by budget?</h2>
+          <h2 className="text-sm font-bold text-slate-900 mb-2">Shopping by budget?</h2>
           <p className="text-xs text-slate-500 mb-3">
             Ranked guides built from what's actually selling this week.
           </p>
@@ -337,25 +401,11 @@ export default function CategoryPage({ id, band }: { id: string; band?: string }
       ) : (
         <div className="surface-muted rounded-2xl p-10 text-center text-slate-500 text-sm">
           Nothing here yet — new stock lands weekly.
-          {" "}Check back soon or browse <Link to="/shop" className="font-bold text-orange-600 hover:underline">all products</Link>.
+          {" "}Check back soon or browse <Link to="/shop" className="font-bold text-teal-700 hover:underline">all products</Link>.
         </div>
       )}
 
-      {/* sibling categories — internal linking between topical clusters */}
-      <section className="mt-14">
-        <h2 className="text-lg font-black text-slate-900 mb-3">Explore other categories</h2>
-        <div className="flex flex-wrap gap-2">
-          {categories.filter((c) => c.id !== id).map((c) => (
-            <Link
-              key={c.id}
-              to={`/category/${c.id}`}
-              className="px-4 py-2 rounded-lg surface-muted text-sm font-medium text-slate-600 hover:text-orange-600 transition"
-            >
-              {c.icon} {c.name}
-            </Link>
-          ))}
-        </div>
-      </section>
+      </div>
     </main>
   );
 }

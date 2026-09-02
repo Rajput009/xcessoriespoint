@@ -80,11 +80,11 @@ export default function PolicyPage() {
   return (
     <main id="main-content" className="pt-[120px] md:pt-44 max-w-3xl mx-auto px-6 pb-16">
       <nav className="text-xs text-slate-400 mb-4">
-        <Link to="/" className="hover:text-orange-600">Home</Link>
+        <Link to="/" className="hover:text-teal-700">Home</Link>
         <span className="mx-1.5">/</span>
         <span className="text-slate-600 font-medium">{policy.title}</span>
       </nav>
-      <h1 className="text-3xl md:text-4xl font-black text-slate-900 mb-1">{policy.title}</h1>
+      <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-1">{policy.title}</h1>
       <p className="text-xs text-slate-400 mb-8">Last updated: {policy.updated}</p>
       <div className="space-y-4">
         {sections.map(([h, body]) => (
@@ -98,7 +98,7 @@ export default function PolicyPage() {
         {Object.entries(FALLBACK)
           .filter(([p]) => p !== path)
           .map(([p, pol]) => (
-            <Link key={p} to={p} className="text-orange-600 hover:underline">
+            <Link key={p} to={p} className="text-teal-700 hover:underline">
               {pol.title} →
             </Link>
           ))}

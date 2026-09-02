@@ -11,19 +11,19 @@
 
   /* ---- Brand neutrals: warm teal-ink (replaces stock cold blue-slate).
      Every existing slate-xxx class keeps working — it just reads as brand now. ---- */
-  --color-slate-50: #f4f8f6;
-  --color-slate-100: #e9f0ed;
-  --color-slate-200: #d6e2dd;
-  --color-slate-300: #b4c9c1;
-  --color-slate-400: #8aa69c;
-  --color-slate-500: #64847a;
-  --color-slate-600: #47665c;
-  --color-slate-700: #334f47;
-  --color-slate-800: #203a33;
-  --color-slate-900: #122822;
-  --color-slate-950: #0a1714;
+  --color-slate-50: #f4f7f5;
+  --color-slate-100: #e9efec;
+  --color-slate-200: #d9e2dd;
+  --color-slate-300: #b7c9c1;
+  --color-slate-400: #8ba79d;
+  --color-slate-500: #65857b;
+  --color-slate-600: #48675e;
+  --color-slate-700: #345048;
+  --color-slate-800: #213b34;
+  --color-slate-900: #132a23;
+  --color-slate-950: #0a1814;
 
-  /* ---- Signal orange — sale & price only (secondary accent) ---- */
+  /* ---- Signal orange — sale & discount only (never decoration) ---- */
   --color-orange-50: #fff6ee;
   --color-orange-100: #ffe9d8;
   --color-orange-200: #ffd0ac;
@@ -35,7 +35,7 @@
   --color-orange-800: #922f11;
   --color-orange-900: #78290f;
 
-  /* ---- Gold — ratings & trust ---- */
+  /* ---- Gold — ratings & trust only ---- */
   --color-amber-50: #fdf8e9;
   --color-amber-100: #faedc6;
   --color-amber-200: #f4dd8f;
@@ -72,6 +72,12 @@
   --color-blue-800: #104c43;
   --color-blue-900: #0f3f38;
   --color-blue-950: #07241f;
+
+  /* ---- Elevation: soft, layered, warm-tinted (no harsh black slabs) ---- */
+  --shadow-xs: 0 1px 2px rgba(16, 42, 36, 0.05);
+  --shadow-sm: 0 1px 2px rgba(16, 42, 36, 0.04), 0 6px 16px -10px rgba(16, 42, 36, 0.12);
+  --shadow-md: 0 2px 6px rgba(16, 42, 36, 0.05), 0 14px 34px -14px rgba(16, 42, 36, 0.18);
+  --shadow-lg: 0 4px 12px rgba(16, 42, 36, 0.06), 0 28px 60px -20px rgba(16, 42, 36, 0.25);
 }
 
 html { scroll-behavior: smooth; }
@@ -80,11 +86,11 @@ body {
   @apply font-sans text-slate-800 antialiased;
   font-feature-settings: "cv11", "ss01";
   /* Warm ivory canvas — the paper under the teal-ink brand */
-  background-color: #fbfaf6;
+  background-color: #f7f6f1;
 }
 
-/* Fixed gradient wash behind the whole page (viewport-sized, never scrolls,
-   doesn't re-render on scroll). Corner glows echo the brand: teal + gold. */
+/* Fixed, barely-there wash behind the whole page. Corner glows echo the
+   brand at low intensity — texture, not decoration. */
 body::before {
   content: "";
   position: fixed;
@@ -92,39 +98,56 @@ body::before {
   z-index: -1;
   pointer-events: none;
   background:
-    radial-gradient(52rem 32rem at 90% -10%, rgba(47, 143, 126, 0.07), transparent 62%),
-    radial-gradient(44rem 30rem at -10% 35%, rgba(20, 117, 100, 0.05), transparent 62%),
-    linear-gradient(180deg, #fdfcf9 0%, #f8f7f2 100%);
+    radial-gradient(56rem 34rem at 88% -8%, rgba(20, 117, 100, 0.055), transparent 60%),
+    radial-gradient(48rem 32rem at -12% 30%, rgba(20, 117, 100, 0.04), transparent 60%),
+    radial-gradient(40rem 28rem at 50% 108%, rgba(231, 181, 46, 0.045), transparent 62%);
 }
+
+::selection {
+  background: rgba(20, 117, 100, 0.16);
+  color: var(--color-teal-950);
+}
+
+/* Quiet, branded scrollbar */
+::-webkit-scrollbar { width: 11px; height: 11px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: #cdd6d1;
+  border: 3px solid #f7f6f1;
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover { background: #b3c0b9; }
 
 /* Headlines & section titles use the display face; body copy stays sans */
 h1, h2, h3, h4 {
   font-family: var(--font-display);
-  letter-spacing: -0.015em;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
 }
 
 .font-display { font-family: var(--font-display); }
 .font-mono { font-family: var(--font-mono); }
 
-/* ---- professional storefront surfaces ---- */
-/* Shared retail surfaces keep cards clean, solid and easy to scan. */
+/* ---- professional storefront surfaces ----
+   Clean white cards with a warm hairline and soft layered shadow.
+   Legacy class names kept so every screen inherits the upgrade. */
 .surface {
   background: #ffffff;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06);
+  border: 1px solid #e7e9e3;
+  box-shadow: var(--shadow-sm);
 }
 .surface-muted {
   background: #ffffff;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+  border: 1px solid #e7e9e3;
+  box-shadow: var(--shadow-xs);
 }
 .surface-dark {
-  background: #0a1714;
+  background: #0d201b;
   border: 1px solid #203a33;
-  box-shadow: 0 4px 16px rgba(10, 23, 20, 0.14);
+  box-shadow: var(--shadow-md);
 }
-.neon-glow { box-shadow: 0 6px 18px rgba(20, 117, 100, 0.20); }
-.neon-glow-soft { box-shadow: 0 4px 12px rgba(20, 117, 100, 0.15); }
+.neon-glow { box-shadow: 0 10px 28px -10px rgba(20, 117, 100, 0.35); }
+.neon-glow-soft { box-shadow: 0 6px 18px -8px rgba(20, 117, 100, 0.28); }
 
 /* ---- signature motif: repeating pixel-X whisper pattern (footer, posters) ---- */
 .xp-pattern {
@@ -133,6 +156,74 @@ h1, h2, h3, h4 {
 
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* ---- Button system: one primary, one quiet ghost, pills everywhere ---- */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 999px;
+  background: var(--color-slate-900);
+  color: #fff;
+  padding: 0.8rem 1.6rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.005em;
+  white-space: nowrap;
+  box-shadow: 0 1px 2px rgba(16, 42, 36, 0.18), 0 10px 22px -10px rgba(16, 42, 36, 0.45);
+  transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1), background-color 0.2s ease, box-shadow 0.22s ease;
+}
+.btn-primary:hover {
+  background: var(--color-slate-800);
+  transform: translateY(-1.5px);
+  box-shadow: 0 2px 4px rgba(16, 42, 36, 0.12), 0 16px 32px -12px rgba(16, 42, 36, 0.5);
+}
+.btn-primary:active { transform: translateY(0) scale(0.98); }
+.btn-primary:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px #fff, 0 0 0 5px var(--color-teal-500);
+}
+
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 999px;
+  background: #fff;
+  color: var(--color-slate-800);
+  border: 1px solid #e2e5df;
+  padding: 0.8rem 1.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  white-space: nowrap;
+  box-shadow: var(--shadow-xs);
+  transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.22s ease;
+}
+.btn-ghost:hover {
+  border-color: #cdd6d0;
+  background: var(--color-slate-50);
+  transform: translateY(-1.5px);
+  box-shadow: var(--shadow-sm);
+}
+.btn-ghost:active { transform: translateY(0) scale(0.98); }
+.btn-ghost:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px #fff, 0 0 0 5px var(--color-teal-500);
+}
+
+/* Section eyebrow label */
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
+  color: var(--color-teal-700);
+}
 
 @keyframes floatSlow {
   0%, 100% { transform: translateY(0) rotate(0deg); }
@@ -178,7 +269,7 @@ h1, h2, h3, h4 {
 }
 
 /* ---- micro-interactions ---- */
-button:active { transform: scale(0.97); }
+button:active { transform: scale(0.98); }
 
 @keyframes badgePop {
   0% { transform: scale(1); }
@@ -204,4 +295,5 @@ button:active { transform: scale(0.97); }
   .float-slow, .fade-up, .slide-in, .slide-in-left, .badge-pop, .flip-tick { animation: none !important; }
   html { scroll-behavior: auto; }
   button:active { transform: none; }
+  .btn-primary, .btn-ghost { transition: none; }
 }

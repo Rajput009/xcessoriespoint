@@ -46,28 +46,28 @@ export default function ExitIntentOffer() {
         >
           ✕
         </button>
-        <div className="text-5xl mb-3">🎁</div>
-        <h2 className="text-2xl font-black text-slate-900 mb-2">Wait — your cart misses you!</h2>
+        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-teal-50 text-2xl ring-1 ring-teal-100">🎁</div>
+        <h2 className="font-display text-2xl font-bold tracking-tight text-slate-900 mb-2">Wait — your cart misses you</h2>
         <p className="text-sm text-slate-600 mb-1">
-          You have <span className="font-bold">{count} item{count > 1 ? "s" : ""}</span> worth{" "}
-          <span className="font-bold text-orange-600">{fmt(total)}</span> waiting.
+          You have <span className="font-semibold">{count} item{count > 1 ? "s" : ""}</span> worth{" "}
+          <span className="font-semibold text-slate-900">{fmt(total)}</span> waiting.
         </p>
         <p className="text-sm text-slate-600 mb-5">
-          Complete your order now and take <span className="font-black text-orange-600">10% OFF</span> with:
+          Complete your order now and take <span className="font-semibold text-orange-600">10% off</span> with:
         </p>
-        <div className="inline-block border-2 border-dashed border-orange-400 bg-orange-50 rounded-xl px-6 py-2.5 font-black text-orange-600 tracking-widest text-lg mb-6">
+        <div className="mb-6 inline-block rounded-full border-2 border-dashed border-orange-300 bg-orange-50 px-6 py-2.5 font-mono text-lg font-bold tracking-[0.2em] text-orange-600">
           WELCOME10
         </div>
         <div className="flex gap-3">
           <button
             onClick={claim}
-            className="flex-1 py-3 rounded-xl bg-slate-900 text-white font-bold hover:bg-slate-800 neon-glow-soft"
+            className="btn-primary flex-1"
           >
-            Apply & checkout →
+            Apply &amp; checkout →
           </button>
           <button
             onClick={() => setOpen(false)}
-            className="px-5 py-3 rounded-xl surface-muted text-sm font-semibold text-slate-600"
+            className="btn-ghost px-5"
           >
             Maybe later
           </button>

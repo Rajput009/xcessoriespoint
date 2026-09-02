@@ -3,7 +3,8 @@ import { Link } from "../../router";
 import { useProducts, fmt } from "../../context/store";
 import type { Product } from "../../types";
 import ProductCard from "../ProductCard";
-import { PhoneIcon, TruckIcon, StarIcon, PlusIcon } from "../icons";
+import CategoryLogo from "../CategoryLogo";
+import { PhoneIcon, TruckIcon, StarIcon } from "../icons";
 import { Kicker } from "../brand";
 
 const BRAND_LOGOS = [
@@ -18,26 +19,27 @@ const BRAND_LOGOS = [
 
 export function ShopByBrand() {
   return (
-    <section className="max-w-7xl mx-auto px-6 py-7 md:py-9">
-      <div className="mb-5">
-        <Kicker>Trusted names</Kicker>
-        <h2 className="text-2xl md:text-3xl font-black text-slate-900">Popular Brands</h2>
+    <section className="max-w-7xl mx-auto px-6 py-10 md:py-14">
+      <div className="mb-7 text-center">
+        <Kicker center>Trusted names</Kicker>
+        <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">Popular brands</h2>
       </div>
-      {/* open logo strip — no cards: brands float on the page edge-to-edge */}
-      <div className="flex flex-wrap items-center justify-center gap-x-10 gap-y-6 border-y border-slate-200 py-7 md:justify-between">
+      <div className="grid grid-cols-3 gap-3 rounded-2xl bg-white p-6 ring-1 ring-slate-900/5 shadow-[0_1px_2px_rgba(16,42,36,0.04),0_12px_32px_-18px_rgba(16,42,36,0.18)] sm:grid-cols-4 md:grid-cols-7 md:gap-4 md:p-8">
         {BRAND_LOGOS.map((brand) => (
           <Link
             key={brand.name}
             to="/shop"
             aria-label={`Browse ${brand.name}`}
-            className="group flex flex-col items-center gap-1.5 transition-transform duration-200 hover:-translate-y-0.5"
+            className="group flex flex-col items-center gap-2"
           >
-            <img
-              src={brand.logo}
-              alt={`${brand.name} logo`}
-              className="h-8 max-w-[140px] object-contain opacity-80 transition duration-200 group-hover:opacity-100 group-hover:scale-105"
-            />
-            <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400 transition-colors group-hover:text-slate-900">
+            <span className="flex h-14 w-full items-center justify-center grayscale opacity-70 transition-all duration-300 group-hover:grayscale-0 group-hover:opacity-100">
+              <img
+                src={brand.logo}
+                alt={`${brand.name} logo`}
+                className="h-9 max-w-[110px] object-contain"
+              />
+            </span>
+            <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-400 transition-colors group-hover:text-slate-700">
               {brand.name}
             </span>
           </Link>
@@ -70,14 +72,21 @@ export function PopularCategoryShelves() {
   return (
     <div>
       {shelves.map(({ category, items }) => (
-        <section key={category.id} className="max-w-7xl mx-auto px-6 py-9">
-          <div className="flex items-end justify-between gap-4 mb-5">
-            <h2 className="text-2xl md:text-3xl font-black text-slate-900">{category.name}</h2>
-            <Link to={`/category/${category.id}`} className="text-sm font-bold text-orange-600 hover:text-orange-700">
-              View all →
+        <section key={category.id} className="max-w-7xl mx-auto px-6 py-8 md:py-10">
+          <div className="flex items-end justify-between gap-4 mb-6">
+            <div className="flex items-center gap-3">
+              <CategoryLogo category={category} size={48} className="hidden sm:flex" />
+              <div>
+                <Kicker>Browse the range</Kicker>
+                <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">{category.name}</h2>
+              </div>
+            </div>
+            <Link to={`/category/${category.id}`} className="group inline-flex items-center gap-1 text-sm font-semibold text-teal-700 hover:text-teal-800">
+              View all
+              <span aria-hidden="true" className="transition-transform group-hover:translate-x-0.5">→</span>
             </Link>
           </div>
-          <div className="grid grid-cols-2 gap-2 md:grid-cols-3 lg:grid-cols-4 md:gap-4">
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4 md:gap-5">
             {items.map((product) => <ProductCard key={product.id} product={product} />)}
           </div>
         </section>
@@ -189,14 +198,14 @@ function useGroupStats(groups: GroupDef[]) {
 
 function WayGrid({ items }: { items: ReturnType<typeof useGroupStats> }) {
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-5 md:gap-6">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
       {items.map((g) => (
         <Link
           key={g.label}
           to={g.to}
-          className="group block focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-orange-600"
+          className="group block overflow-hidden rounded-2xl bg-white ring-1 ring-slate-900/5 shadow-[0_1px_2px_rgba(16,42,36,0.04),0_10px_28px_-18px_rgba(16,42,36,0.2)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_2px_6px_rgba(16,42,36,0.05),0_22px_44px_-20px_rgba(16,42,36,0.3)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-teal-600"
         >
-          <span className={`block aspect-square rounded-lg bg-slate-100 overflow-hidden transition-transform duration-200 group-hover:scale-[1.02] ${g.compact ? "p-5 md:p-7" : ""}`}>
+          <span className={`block aspect-[4/3] overflow-hidden bg-gradient-to-b from-slate-50 to-white ${g.compact ? "p-6 md:p-8" : "p-4 md:p-5"}`}>
             <img
               src={g.img}
               alt=""
@@ -204,26 +213,28 @@ function WayGrid({ items }: { items: ReturnType<typeof useGroupStats> }) {
               decoding="async"
               width={480}
               height={480}
-              className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105"
+              className="h-full w-full object-contain transition-transform duration-500 group-hover:scale-105"
             />
           </span>
-          <span className="block pt-3">
+          <span className="block border-t border-slate-100 p-4 md:p-5">
             <span className="flex items-center gap-1.5">
-              <span className="text-sm md:text-base font-black text-slate-900 leading-tight transition-colors group-hover:text-slate-600">
+              <span className="text-sm md:text-base font-semibold text-slate-900 leading-tight transition-colors group-hover:text-teal-700">
                 {g.label}
-              </span>
-              <span aria-hidden="true" className="text-slate-300 transition-all group-hover:text-slate-900 group-hover:translate-x-1">
-                →
               </span>
             </span>
             <span className="mt-0.5 block text-xs text-slate-500">{g.copy}</span>
-            <span className="mt-1 block text-xs font-semibold text-slate-400">
-              {g.count} {g.count === 1 ? "product" : "products"}
-              {g.fromPrice > 0 && (
-                <>
-                  {" "}· from <span className="text-slate-600">{fmt(g.fromPrice)}</span>
-                </>
-              )}
+            <span className="mt-2 flex items-center justify-between text-xs font-medium text-slate-400">
+              <span>
+                {g.count} {g.count === 1 ? "product" : "products"}
+                {g.fromPrice > 0 && (
+                  <>
+                    {" "}· from <span className="font-semibold text-slate-600">{fmt(g.fromPrice)}</span>
+                  </>
+                )}
+              </span>
+              <span aria-hidden="true" className="flex h-6 w-6 items-center justify-center rounded-full bg-slate-100 text-slate-500 transition-all group-hover:bg-teal-600 group-hover:text-white">
+                →
+              </span>
             </span>
           </span>
         </Link>
@@ -236,10 +247,10 @@ export function ShopByDevice() {
   const groups = useGroupStats(DEVICE_GROUPS);
   if (groups.length === 0) return null;
   return (
-    <section className="max-w-7xl mx-auto px-6 py-7 md:py-9">
-      <div className="mb-5">
+    <section className="max-w-7xl mx-auto px-6 py-10 md:py-14">
+      <div className="mb-7">
         <Kicker>Find it fast</Kicker>
-        <h2 className="text-2xl md:text-3xl font-black text-slate-900">Shop by Device &amp; Connection</h2>
+        <h2 className="text-3xl md:text-[2.6rem] font-bold tracking-tight leading-tight text-slate-900">Shop by device &amp; connection</h2>
       </div>
       <WayGrid items={groups} />
     </section>
@@ -250,10 +261,10 @@ export function ShopByNeed() {
   const needs = useGroupStats(NEEDS);
   if (needs.length === 0) return null;
   return (
-    <section className="max-w-7xl mx-auto px-6 py-7 md:py-9">
-      <div className="mb-5">
+    <section className="max-w-7xl mx-auto px-6 py-10 md:py-14">
+      <div className="mb-7">
         <Kicker>Solve it in one tap</Kicker>
-        <h2 className="text-2xl md:text-3xl font-black text-slate-900">Shop by Need</h2>
+        <h2 className="text-3xl md:text-[2.6rem] font-bold tracking-tight leading-tight text-slate-900">Shop by need</h2>
       </div>
       <WayGrid items={needs} />
     </section>
@@ -261,31 +272,43 @@ export function ShopByNeed() {
 }
 
 
+function ShieldCheckIcon({ size = 18 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M12 3 5 6v5c0 4.5 3 8 7 10 4-2 7-5.5 7-10V6l-7-3Z" />
+      <path d="m9 12 2 2 4-4" />
+    </svg>
+  );
+}
+
+function ReturnIcon({ size = 18 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M3 7h13a5 5 0 0 1 5 5v0a5 5 0 0 1-5 5H8" />
+      <path d="m7 3-4 4 4 4" />
+    </svg>
+  );
+}
+
 export function TrustStrip() {
   const perks = [
-    { title: "Cash on Delivery", copy: "Available nationwide", icon: "✓" },
+    { title: "Cash on delivery", copy: "Available nationwide", icon: <ShieldCheckIcon size={18} /> },
     { title: "Free shipping", copy: "On orders over Rs 5,000", icon: <TruckIcon size={18} /> },
-    { title: "7-day returns", copy: "Simple return support", icon: "↩" },
+    { title: "7-day returns", copy: "Simple, no-questions support", icon: <ReturnIcon size={18} /> },
     { title: "WhatsApp support", copy: "Quick order assistance", icon: <PhoneIcon size={18} /> },
   ];
 
   return (
-    <section className="max-w-7xl mx-auto px-6 py-7 md:py-9">
-      <div className="mb-5">
-        <Kicker>Shop with confidence</Kicker>
-        <h2 className="text-2xl md:text-3xl font-black text-slate-900 sr-only">Why shop with us</h2>
-      </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-10 gap-y-6">
-        {perks.map((perk, pi) => (
+    <section className="max-w-7xl mx-auto px-6 pt-12 md:pt-16">
+      <div className="grid grid-cols-2 gap-3 rounded-2xl bg-white p-5 ring-1 ring-slate-900/5 shadow-[0_1px_2px_rgba(16,42,36,0.04),0_12px_32px_-18px_rgba(16,42,36,0.18)] sm:grid-cols-4 md:gap-4 md:p-7">
+        {perks.map((perk) => (
           <div key={perk.title} className="flex items-center gap-3">
-            <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-sm font-black ${
-              ["bg-emerald-100 text-emerald-700", "bg-orange-100 text-orange-600", "bg-amber-100 text-amber-700", "bg-teal-100 text-teal-700"][pi % 4]
-            }`}>
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-teal-50 text-teal-700 ring-1 ring-teal-100">
               {perk.icon}
             </span>
-            <span>
-              <span className="block text-xs font-bold text-slate-900">{perk.title}</span>
-              <span className="block text-[11px] text-slate-500">{perk.copy}</span>
+            <span className="min-w-0">
+              <span className="block text-sm font-semibold text-slate-900">{perk.title}</span>
+              <span className="block text-xs text-slate-500 truncate">{perk.copy}</span>
             </span>
           </div>
         ))}
@@ -294,7 +317,7 @@ export function TrustStrip() {
   );
 }
 
-/* ---------- StatsStrip — live credibility numbers (Amaze-style) ---------- */
+/* ---------- StatsStrip — live credibility numbers ---------- */
 export function StatsStrip() {
   const { products, categories, loading } = useProducts();
   const reviews = products.reduce((sum, p) => sum + (p.reviews || 0), 0);
@@ -308,19 +331,19 @@ export function StatsStrip() {
     { big: loading ? "—" : reviews.toLocaleString("en-PK"), label: "Customer reviews", suffix: "+" },
   ];
   return (
-    <section className="max-w-7xl mx-auto px-6 py-7 md:py-9">
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-10 gap-y-8">
+    <section className="max-w-7xl mx-auto px-6 py-6 md:py-8">
+      <div className="grid grid-cols-2 gap-y-6 lg:grid-cols-4">
         {stats.map((s) => (
-          <div key={s.label}>
-            <p className="flex items-start text-3xl md:text-4xl font-black text-slate-900 tracking-tight">
+          <div key={s.label} className="flex items-baseline gap-2">
+            <p className="font-display text-4xl md:text-5xl font-bold tracking-tight text-slate-900">
               {s.big}
-              {"star" in s && s.star ? (
-                <StarIcon size={26} className="ml-1.5 text-amber-400" />
-              ) : (
-                s.suffix && <PlusIcon size={22} className="ml-1 mt-1 text-slate-300" />
-              )}
             </p>
-            <p className="mt-1 text-[11px] font-bold uppercase tracking-[0.16em] text-slate-400">{s.label}</p>
+            {"star" in s && s.star ? (
+              <StarIcon size={22} className="mb-1.5 text-amber-400" />
+            ) : (
+              s.suffix && <span className="text-2xl font-bold text-teal-600">{s.suffix}</span>
+            )}
+            <p className="ml-1 text-xs font-semibold uppercase tracking-[0.12em] text-slate-400">{s.label}</p>
           </div>
         ))}
       </div>

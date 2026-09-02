@@ -3,6 +3,7 @@ import http from "node:http";
 import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
+import zlib from "node:zlib";
 import { fileURLToPath } from "node:url";
 import {
   db, seed, notify, getSetting, hashPassword, verifyPassword,
@@ -1671,13 +1672,34 @@ function serveStatic(req, res, urlPath) {
     res.end();
     return true;
   }
+
+  // Text-based assets (JS/CSS/JSON/SVG/HTML) are already small-ish on the wire but
+  // gzip 3–4× — negotiate Brotli → gzip → identity from the Accept-Encoding header.
+  // Images/woff2 are already compressed, so they stream straight through.
+  const type = MIME[ext] || "application/octet-stream";
+  const compressible = /javascript|css|json|svg|html|xml|text/.test(type);
+  const accept = String(req.headers["accept-encoding"] || "");
+  let stream = fs.createReadStream(filePath);
+  const extra = {};
+  if (compressible && stat.size > 1024) {
+    if (/\bbr\b/.test(accept)) {
+      extra["Content-Encoding"] = "br";
+      stream = stream.pipe(zlib.createBrotliCompress({ params: { [zlib.constants.BROTLI_PARAM_QUALITY]: 5 } }));
+    } else if (/\bgzip\b/.test(accept)) {
+      extra["Content-Encoding"] = "gzip";
+      stream = stream.pipe(zlib.createGzip({ level: zlib.constants.Z_BEST_SPEED }));
+    }
+    extra["Vary"] = "Accept-Encoding";
+  }
+
   res.writeHead(200, {
-    "Content-Type": MIME[ext] || "application/octet-stream",
+    "Content-Type": type,
     "Cache-Control": cacheControl,
     ETag: etag,
     "Last-Modified": lastModified,
+    ...extra,
   });
-  fs.createReadStream(filePath).pipe(res);
+  stream.pipe(res);
   return true;
 }
 

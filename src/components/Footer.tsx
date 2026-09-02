@@ -89,9 +89,9 @@ export default function Footer() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@email.com"
-              className="flex-1 min-w-0 rounded-lg bg-white/10 border border-white/15 px-3 py-2 text-sm outline-none focus:border-white/50 placeholder-slate-400"
+              className="flex-1 min-w-0 rounded-full bg-white/10 border border-white/15 px-4 py-2.5 text-sm outline-none focus:border-white/40 placeholder-slate-400"
             />
-            <button className="px-4 py-2 rounded-lg bg-white text-slate-900 text-sm font-semibold hover:bg-slate-200 transition-colors">
+            <button className="px-5 py-2.5 rounded-full bg-white text-slate-900 text-sm font-semibold hover:bg-teal-50 transition-colors">
               Join
             </button>
           </form>

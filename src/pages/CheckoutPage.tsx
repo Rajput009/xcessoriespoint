@@ -20,7 +20,7 @@ const PAY_METHODS = [
 
 /* Shopify-style field styling */
 const field =
-  "w-full rounded-md border border-slate-300 bg-white px-3.5 py-3 text-[15px] text-slate-900 placeholder:text-transparent outline-none transition focus:border-orange-500 focus:ring-2 focus:ring-orange-500/25";
+  "w-full rounded-md border border-slate-300 bg-white px-3.5 py-3 text-[15px] text-slate-900 placeholder:text-transparent outline-none transition focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10";
 
 /** Floating-label input, the way Shopify checkout renders its fields. */
 function Field({
@@ -373,14 +373,14 @@ export default function CheckoutPage() {
       {/* discount code */}
       <div className="mt-6">
         {coupon ? (
-          <div className="flex items-center justify-between rounded-md bg-orange-50 border border-orange-200 px-3 py-2">
-            <span className="text-[13px] font-semibold text-orange-700">🏷️ {coupon.code} applied</span>
+          <div className="flex items-center justify-between rounded-md bg-teal-50 ring-1 ring-teal-100 px-3 py-2">
+            <span className="text-[13px] font-semibold text-teal-700">🏷️ {coupon.code} applied</span>
             <button
               onClick={() => {
                 setCoupon(null);
                 setCouponInput("");
               }}
-              className="text-xs text-orange-600 hover:underline"
+              className="text-xs text-teal-700 hover:underline"
             >
               Remove
             </button>
@@ -391,7 +391,7 @@ export default function CheckoutPage() {
               value={couponInput}
               onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
               placeholder="Discount code"
-              className="flex-1 min-w-0 rounded-md border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/25"
+              className="flex-1 min-w-0 rounded-md border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10"
             />
             <button
               onClick={applyCoupon}
@@ -437,7 +437,7 @@ export default function CheckoutPage() {
       {/* mobile order summary accordion */}
       <div className="lg:hidden bg-[#f8f7f2] border-b border-slate-200">
         <button onClick={() => setSummaryOpen((v) => !v)} className="w-full max-w-[560px] mx-auto flex items-center justify-between px-5 py-4">
-          <span className="flex items-center gap-2 text-sm text-orange-600 font-medium">
+          <span className="flex items-center gap-2 text-sm text-teal-700 font-medium">
             🛒 {summaryOpen ? "Hide" : "Show"} order summary
             <span className={`transition-transform ${summaryOpen ? "rotate-180" : ""}`}>▾</span>
           </span>
@@ -459,7 +459,7 @@ export default function CheckoutPage() {
           <div className="max-w-[560px] lg:ml-auto px-5 lg:px-10 py-8 lg:py-10">
             {/* breadcrumb (single-page checkout — every step is on this page) */}
             <nav className="flex flex-wrap items-center gap-2 text-[13px] text-slate-400 mb-6">
-              <Link to="/shop" className="text-orange-600 hover:underline">Cart</Link>
+              <Link to="/shop" className="text-teal-700 hover:underline">Cart</Link>
               <span>›</span>
               <span className="text-slate-900 font-medium">Information</span>
               <span>›</span>
@@ -486,7 +486,7 @@ export default function CheckoutPage() {
                   <div className="flex items-baseline justify-between mb-1">
                     <h2 className="text-[17px] font-semibold">Contact</h2>
                     {!user && (
-                      <Link to="/" className="text-[13px] text-orange-600 hover:underline">
+                      <Link to="/" className="text-[13px] text-teal-700 hover:underline">
                         Have an account? Log in
                       </Link>
                     )}
@@ -518,7 +518,7 @@ export default function CheckoutPage() {
                           error={showErrors ? errors.email : null}
                         />
                         <label className="flex items-center gap-2.5 text-[13px] text-slate-600">
-                          <input type="checkbox" checked={newsletter} onChange={(e) => setNewsletter(e.target.checked)} className="w-4 h-4 accent-orange-500" />
+                          <input type="checkbox" checked={newsletter} onChange={(e) => setNewsletter(e.target.checked)} className="w-4 h-4 accent-teal-600" />
                           Email me with news and offers
                         </label>
                       </div>
@@ -537,7 +537,7 @@ export default function CheckoutPage() {
                           key={a.id}
                           type="button"
                           onClick={() => applySaved(a)}
-                          className="px-3 py-2 rounded-md border border-slate-300 text-left text-xs hover:border-orange-500"
+                          className="px-3 py-2 rounded-md border border-slate-300 text-left text-xs hover:border-teal-500"
                         >
                           <span className="block font-bold text-slate-900">{a.city}</span>
                           <span className="block text-slate-500 max-w-[180px] truncate">{a.address}</span>
@@ -553,7 +553,7 @@ export default function CheckoutPage() {
                       <select
                         value={city}
                         onChange={(e) => setCity(e.target.value)}
-                        className="w-full rounded-md border border-slate-300 bg-white px-3.5 pt-6 pb-1.5 text-[15px] outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/25"
+                        className="w-full rounded-md border border-slate-300 bg-white px-3.5 pt-6 pb-1.5 text-[15px] outline-none focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10"
                       >
                         {CITIES.map((c) => (
                           <option key={c}>{c}</option>
@@ -581,7 +581,7 @@ export default function CheckoutPage() {
                       </div>
                     </details>
                     <label className="flex items-center gap-2.5 text-[13px] text-slate-600">
-                      <input type="checkbox" checked={saveInfo} onChange={(e) => setSaveInfo(e.target.checked)} className="w-4 h-4 accent-orange-500" />
+                      <input type="checkbox" checked={saveInfo} onChange={(e) => setSaveInfo(e.target.checked)} className="w-4 h-4 accent-teal-600" />
                       Save this information for next time
                     </label>
                   </div>
@@ -590,7 +590,7 @@ export default function CheckoutPage() {
                 {/* shipping method */}
                 <section className="mb-8">
                   <h2 className="text-[17px] font-semibold mb-3">Shipping method</h2>
-                  <div className="flex items-center justify-between rounded-md border-2 border-orange-500 bg-orange-50/60 px-4 py-3.5">
+                  <div className="flex items-center justify-between rounded-md border-2 border-teal-500 bg-teal-50/70 px-4 py-3.5">
                     <span className="text-sm">
                       <span className="block font-semibold text-slate-900">Standard courier</span>
                       <span className="block text-xs text-slate-500">TCS / Leopards · {deliveryRange} working days</span>
@@ -615,7 +615,7 @@ export default function CheckoutPage() {
                               disabled
                                 ? "cursor-not-allowed opacity-55"
                                 : payment === m.id
-                                ? "cursor-pointer bg-orange-50/70"
+                                ? "cursor-pointer bg-teal-50/80"
                                 : "cursor-pointer hover:bg-slate-50"
                             }`}
                           >
@@ -625,7 +625,7 @@ export default function CheckoutPage() {
                               disabled={disabled}
                               checked={payment === m.id}
                               onChange={() => setPayment(m.id)}
-                              className="w-4 h-4 accent-orange-500"
+                              className="w-4 h-4 accent-teal-600"
                             />
                             <span className="text-lg">{m.icon}</span>
                             <span className="flex-1">
@@ -640,7 +640,7 @@ export default function CheckoutPage() {
                               Placing the order opens WhatsApp with everything below pre-written to{" "}
                               <span className="font-semibold">+{WHATSAPP_NUMBER}</span> — just press send. Email is optional for this option.
                             </p>
-                            <pre className="max-h-40 overflow-auto whitespace-pre-wrap rounded-md border border-orange-100 bg-white p-3 text-[11px] leading-relaxed text-slate-600">
+                            <pre className="max-h-40 overflow-auto whitespace-pre-wrap rounded-md border border-teal-100 bg-white p-3 text-[11px] leading-relaxed text-slate-600">
                               {waMessage}
                             </pre>
                           </div>
@@ -651,17 +651,17 @@ export default function CheckoutPage() {
                   </div>
                 </section>
 
-                <div className="mb-4 rounded-md border border-orange-200 bg-orange-50 px-4 py-3">
-                  <p className="text-sm font-bold text-orange-700">Cash on Delivery across Pakistan</p>
-                  <p className="mt-1 text-xs leading-relaxed text-orange-700">We’ll call to confirm your order before dispatch. Pay the courier only after you receive the parcel.</p>
+                <div className="mb-4 rounded-md ring-1 ring-teal-100 bg-teal-50 px-4 py-3">
+                  <p className="text-sm font-bold text-teal-700">Cash on Delivery across Pakistan</p>
+                  <p className="mt-1 text-xs leading-relaxed text-teal-700">We’ll call to confirm your order before dispatch. Pay the courier only after you receive the parcel.</p>
                 </div>
 
                 {/* submit */}
                 <button
                   onClick={submit}
                   disabled={busy}
-                  className={`w-full rounded-md py-4 text-[15px] font-bold text-white transition disabled:opacity-60 ${
-                    isWhatsApp ? "bg-[#25D366] hover:brightness-95" : "bg-slate-900 hover:bg-slate-800"
+                  className={`w-full rounded-full py-4 text-[15px] font-semibold text-white transition disabled:opacity-60 ${
+                    isWhatsApp ? "bg-[#25D366] hover:brightness-95" : "btn-primary hover:bg-slate-900"
                   }`}
                 >
                   {busy ? (
@@ -683,7 +683,7 @@ export default function CheckoutPage() {
                   <span>No account needed</span>
                 </div>
 
-                <footer className="mt-8 border-t border-slate-200 pt-5 flex flex-wrap gap-4 text-[12px] text-orange-600">
+                <footer className="mt-8 border-t border-slate-200 pt-5 flex flex-wrap gap-4 text-[12px] text-teal-700">
                   <Link to="/returns" className="hover:underline">Refund policy</Link>
                   <Link to="/privacy" className="hover:underline">Privacy policy</Link>
                   <Link to="/terms" className="hover:underline">Terms of service</Link>
@@ -699,7 +699,7 @@ export default function CheckoutPage() {
 
 function Row({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
   return (
-    <div className={`flex justify-between ${accent ? "text-orange-600 font-semibold" : "text-slate-600"}`}>
+    <div className={`flex justify-between ${accent ? "text-teal-700 font-semibold" : "text-slate-600"}`}>
       <span>{label}</span>
       <span className={`font-mono tabular-nums ${accent ? "" : "text-slate-900"}`}>{value}</span>
     </div>
@@ -803,7 +803,7 @@ function ThankYou({
               <div>
                 <p className="text-sm text-slate-500">
                   Order <span className="font-semibold text-slate-700 select-all">{order.id}</span>
-                  <button onClick={onCopy} className="ml-2 text-xs font-bold text-orange-600 hover:underline">Copy</button>
+                  <button onClick={onCopy} className="ml-2 text-xs font-bold text-teal-700 hover:underline">Copy</button>
                 </p>
                 <h1 className="text-2xl font-bold text-slate-900 mt-0.5">Thank you, {meta.name.split(" ")[0] || "friend"}!</h1>
               </div>
@@ -846,7 +846,7 @@ function ThankYou({
                         {i < arr.length - 1 && <span className="w-px flex-1 bg-slate-200 my-0.5" />}
                       </div>
                       <div className={i < arr.length - 1 ? "pb-4" : ""}>
-                        <p className={`text-sm font-semibold leading-5 ${s.done ? "text-orange-600" : "text-slate-700"}`}>
+                        <p className={`text-sm font-semibold leading-5 ${s.done ? "text-teal-700" : "text-slate-700"}`}>
                           {s.label}
                         </p>
                         <p className="text-xs text-slate-400">{s.sub}</p>
@@ -932,7 +932,7 @@ function ThankYou({
 
             {/* one-click account upgrade — pre-filled with the details just used */}
             {showUpgrade && !acctDone && (
-              <div className="mt-5 rounded-lg border border-orange-200 bg-orange-50/60 p-5">
+              <div className="mt-5 rounded-lg ring-1 ring-teal-100 bg-teal-50/60 p-5">
                 <p className="font-semibold text-slate-900 text-sm">Save your details & track orders</p>
                 <p className="text-xs text-slate-500 mt-0.5 mb-3">
                   Create a password for <span className="font-semibold text-slate-700">{meta.email}</span> — your
@@ -947,7 +947,7 @@ function ThankYou({
                       onKeyDown={(e) => e.key === "Enter" && createAccount()}
                       placeholder="Choose a password (6+ characters)"
                       autoComplete="new-password"
-                      className="flex-1 rounded-md border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-orange-500 bg-white"
+                      className="flex-1 rounded-md border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-teal-500 bg-white"
                     />
                     <button
                       onClick={createAccount}
@@ -958,19 +958,19 @@ function ThankYou({
                     </button>
                   </div>
                 ) : (
-                  <button onClick={() => setPwOpen(true)} className="text-sm font-bold text-orange-600 hover:underline">
+                  <button onClick={() => setPwOpen(true)} className="text-sm font-bold text-teal-700 hover:underline">
                     Yes, save my details →
                   </button>
                 )}
               </div>
             )}
             {acctDone && (
-              <p className="mt-4 text-sm font-semibold text-orange-600">✓ Account created — your address is saved for next time.</p>
+              <p className="mt-4 text-sm font-semibold text-teal-700">✓ Account created — your address is saved for next time.</p>
             )}
 
             <p className="mt-6 text-sm text-slate-500">
               Need help?{" "}
-              <button onClick={onHome} className="text-orange-600 hover:underline">
+              <button onClick={onHome} className="text-teal-700 hover:underline">
                 Back to store
               </button>
             </p>

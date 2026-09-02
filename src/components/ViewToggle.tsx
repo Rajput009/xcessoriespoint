@@ -12,7 +12,7 @@ export default function ViewToggle({ view, onChange }: ViewToggleProps) {
     <div
       role="group"
       aria-label="Product view"
-      className="inline-flex shrink-0 items-center rounded-lg border border-slate-200 bg-white p-0.5"
+      className="inline-flex shrink-0 items-center rounded-full bg-slate-100 p-1 ring-1 ring-slate-200/70"
     >
       <button
         type="button"
@@ -20,8 +20,8 @@ export default function ViewToggle({ view, onChange }: ViewToggleProps) {
         aria-pressed={view === "grid"}
         aria-label="Grid view"
         title="Grid view"
-        className={`flex h-8 w-8 items-center justify-center rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 ${
-          view === "grid" ? "bg-slate-900 text-white" : "text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+        className={`flex h-8 w-8 items-center justify-center rounded-full transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 ${
+          view === "grid" ? "bg-slate-900 text-white shadow-sm" : "text-slate-500 hover:text-slate-900"
         }`}
       >
         <GridIcon size={16} />
@@ -32,8 +32,8 @@ export default function ViewToggle({ view, onChange }: ViewToggleProps) {
         aria-pressed={view === "list"}
         aria-label="List view"
         title="List view"
-        className={`flex h-8 w-8 items-center justify-center rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 ${
-          view === "list" ? "bg-slate-900 text-white" : "text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+        className={`flex h-8 w-8 items-center justify-center rounded-full transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 ${
+          view === "list" ? "bg-slate-900 text-white shadow-sm" : "text-slate-500 hover:text-slate-900"
         }`}
       >
         <ListIcon size={16} />

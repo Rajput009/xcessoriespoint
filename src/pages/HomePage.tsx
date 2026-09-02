@@ -19,48 +19,39 @@ import {
   StatsStrip,
 } from "../components/home/collections";
 
-/* Alternating, borderless background bands chunk the page into scannable zones.
- * The body canvas is slate-50; white bands break the monotony without cards. */
+/* A single warm ivory canvas with generous, consistent vertical rhythm.
+ * White cards (products, trust, brands, reviews) carry their own surfaces,
+ * so the page reads as one calm, editorial flow instead of stacked bands. */
 export default function HomePage() {
   return (
     <main id="main-content">
       <HeroSection />
 
-      <div className="bg-white/70">
-        <CategoryIcons />
-      </div>
+      <TrustStrip />
+
+      <CategoryIcons />
 
       <BestSelling />
 
-      <div className="bg-white/70">
-        <TrustStrip />
-        <StatsStrip />
-        <ReviewsSummary />
-      </div>
+      <StatsStrip />
+
+      <DealsOfDay />
 
       <ShopByBrand />
 
-      <div className="bg-white/70">
-        <DealsOfDay />
-      </div>
-
       <NewArrivalsCarousel />
 
-      <div className="bg-white/70">
-        <PopularCategoryShelves />
-      </div>
+      <ReviewsSummary />
 
       <ShopByDevice />
 
-      <div className="bg-white/70">
-        <ShopByNeed />
-      </div>
+      <PopularCategoryShelves />
+
+      <ShopByNeed />
 
       <VideoStrip />
 
-      <div className="bg-white/70">
-        <FaqSection />
-      </div>
+      <FaqSection />
     </main>
   );
 }

@@ -20,7 +20,7 @@ export default function RecentlyViewed({ excludeId }: { excludeId?: number }) {
   return (
     <section className="max-w-7xl mx-auto px-2.5 sm:px-6 py-10" key={path}>
       <Kicker>Pick up where you left off</Kicker>
-      <h2 className="text-2xl font-black text-slate-900 mb-6">Recently Viewed</h2>
+      <h2 className="text-2xl font-bold text-slate-900 mb-6">Recently Viewed</h2>
       <div className="grid grid-cols-2 gap-2 md:grid-cols-4 md:gap-4">
         {list.map((p) => (
           <ProductCard key={p.id} product={p} />

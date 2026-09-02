@@ -31,51 +31,58 @@ const REVIEWS = [
 export function ReviewsSummary() {
   const bars = [78, 15, 4, 2, 1];
   return (
-    <section id="reviews" className="max-w-7xl mx-auto px-6 py-7 md:py-9 scroll-mt-24">
-      <Kicker center>Social proof</Kicker>
-      <h2 className="text-3xl md:text-4xl font-black tracking-tight text-slate-900 mb-5 text-center">
-        What Customers Say
-      </h2>
-      <div className="grid lg:grid-cols-3 gap-x-10 gap-y-8">
+    <section id="reviews" className="max-w-7xl mx-auto px-6 py-10 md:py-14 scroll-mt-24">
+      <div className="mb-8 text-center">
+        <Kicker center>Social proof</Kicker>
+        <h2 className="text-3xl md:text-[2.6rem] font-bold tracking-tight text-slate-900 leading-tight">
+          What customers say
+        </h2>
+      </div>
+      <div className="grid gap-5 lg:grid-cols-3">
         {/* rating summary card */}
-        <div className="rounded-xl border border-slate-200/80 bg-white p-5 md:p-7 shadow-[0_1px_2px_rgba(15,23,42,0.05)] h-fit">
+        <div className="rounded-2xl bg-white p-6 ring-1 ring-slate-900/5 shadow-[0_1px_2px_rgba(16,42,36,0.04),0_12px_32px_-18px_rgba(16,42,36,0.22)] h-fit md:p-7">
           <div className="flex items-end gap-3 mb-5">
-            <span className="text-5xl font-black text-slate-900">4.7</span>
+            <span className="font-display text-5xl font-bold text-slate-900">4.7</span>
             <div className="pb-1">
               <Stars rating={5} />
               <p className="text-xs text-slate-500 mt-0.5">Based on 3,214 reviews</p>
             </div>
           </div>
           {bars.map((pct, i) => (
-            <div key={i} className="flex items-center gap-2 mb-1.5 text-xs">
+            <div key={i} className="flex items-center gap-2 mb-2 text-xs">
               <span className="flex w-6 items-center gap-0.5 text-slate-500">{5 - i}<StarIcon size={10} className="text-amber-400" /></span>
-              <div className="flex-1 h-1.5 rounded-full bg-slate-100 overflow-hidden">
-                <div className="h-full bg-amber-400" style={{ width: `${pct}%` }} />
+              <div className="flex-1 h-2 rounded-full bg-slate-100 overflow-hidden">
+                <div className="h-full rounded-full bg-teal-500" style={{ width: `${pct}%` }} />
               </div>
               <span className="w-8 text-right text-slate-400">{pct}%</span>
             </div>
           ))}
           <p className="mt-5 pt-4 border-t border-slate-100 text-xs text-slate-400 flex items-center gap-1.5">
-            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-slate-900 text-[11px] font-black text-white">G</span>
+            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-slate-900 text-[11px] font-bold text-white">G</span>
             Reviews synced from Google
           </p>
         </div>
-        {/* editorial quotes — no cards */}
+        {/* quote cards */}
         {REVIEWS.slice(0, 2).map((r) => (
-          <blockquote key={r.name} className="border-l-2 border-slate-300 pl-5">
+          <blockquote key={r.name} className="flex flex-col rounded-2xl bg-white p-6 ring-1 ring-slate-900/5 shadow-[0_1px_2px_rgba(16,42,36,0.04),0_12px_32px_-18px_rgba(16,42,36,0.22)] md:p-7">
             <div className="flex items-center gap-3 mb-3">
-              <div className="w-9 h-9 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center font-bold text-sm">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-teal-50 font-bold text-sm text-teal-700 ring-1 ring-teal-100">
                 {r.name.charAt(0)}
               </div>
               <div>
                 <p className="font-semibold text-slate-900 text-sm">{r.name}</p>
                 <p className="text-xs text-slate-400">{r.date}</p>
               </div>
-              <span className="ml-auto text-xs font-bold text-slate-500">G</span>
+              <span className="ml-auto flex h-6 w-6 items-center justify-center rounded-full bg-slate-900 text-[10px] font-bold text-white">G</span>
             </div>
             <Stars rating={r.rating} size="text-sm" />
-            <p className="text-sm text-slate-600 mt-2 leading-relaxed">{r.text}</p>
-            <p className="mt-3 text-xs text-slate-600 font-semibold">✓ Verified purchase</p>
+            <p className="text-sm text-slate-600 mt-3 leading-relaxed flex-1">“{r.text}”</p>
+            <p className="mt-4 inline-flex items-center gap-1.5 text-xs font-semibold text-teal-700">
+              <svg width="13" height="13" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+                <path d="M2.5 6.2 4.8 8.5 9.5 3.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              Verified purchase
+            </p>
           </blockquote>
         ))}
       </div>
@@ -105,62 +112,63 @@ export function NewArrivalsCarousel() {
   ];
 
   return (
-    <section className="max-w-7xl mx-auto px-6 py-7 md:py-9">
-      <div className="flex items-end justify-between gap-4 mb-5">
+    <section className="max-w-7xl mx-auto px-6 py-10 md:py-14">
+      <div className="flex items-end justify-between gap-4 mb-7">
         <div>
           <Kicker>Just landed</Kicker>
-          <h2 className="text-3xl md:text-4xl font-black uppercase tracking-tight text-slate-900">New Arrivals</h2>
-          <p className="text-sm text-slate-500 mt-1">Fresh additions to the store.</p>
+          <h2 className="text-3xl md:text-[2.6rem] font-bold tracking-tight leading-tight text-slate-900">New arrivals</h2>
+          <p className="text-sm text-slate-500 mt-1.5">Fresh additions to the store.</p>
         </div>
         <div className="flex items-center gap-2">
           <select
             value={sort}
             onChange={(e) => setSort(e.target.value)}
-            className="rounded-xl surface-muted px-3 py-2 text-sm outline-none"
+            className="rounded-full bg-white px-4 py-2 text-sm outline-none ring-1 ring-slate-200"
           >
             <option value="featured">Featured</option>
             <option value="price-asc">Price: Low → High</option>
             <option value="price-desc">Price: High → Low</option>
-            <option value="rating">Top Rated</option>
+            <option value="rating">Top rated</option>
           </select>
           <ViewToggle view={view} onChange={setView} />
         </div>
       </div>
 
       {/* mobile banner carousel */}
-      <div className="lg:hidden mb-5">
-        <div className="relative rounded-lg overflow-hidden h-40">
+      <div className="lg:hidden mb-6">
+        <div className="relative rounded-2xl overflow-hidden h-44 ring-1 ring-slate-900/5">
           <img src={banners[banner].img} alt="" className="w-full h-full object-cover" />
-          <div className="absolute inset-0 bg-slate-900/50 flex flex-col justify-center px-6 text-white">
-            <p className="text-xl font-black">{banners[banner].title}</p>
-            <p className="text-sm text-slate-200">{banners[banner].copy}</p>
+          <div className="absolute inset-0 bg-gradient-to-r from-slate-950/75 via-slate-950/30 to-transparent flex flex-col justify-center px-6 text-white">
+            <p className="text-xl font-bold">{banners[banner].title}</p>
+            <p className="text-sm text-slate-200 mt-1">{banners[banner].copy}</p>
           </div>
         </div>
-        <div className="flex justify-center gap-2 mt-2">
+        <div className="flex justify-center gap-2 mt-3">
           {banners.map((_, i) => (
             <button
               key={i}
               onClick={() => setBanner(i)}
-              className={`h-1.5 rounded-md transition-all ${i === banner ? "w-6 bg-slate-900" : "w-1.5 bg-slate-300"}`}
+              className={`h-2 rounded-full transition-all ${i === banner ? "w-7 bg-slate-900" : "w-2 bg-slate-300"}`}
               aria-label={`Banner ${i + 1}`}
             />
           ))}
         </div>
       </div>
 
-      <div className="grid lg:grid-cols-4 gap-5">
+      <div className="grid gap-5 lg:grid-cols-4">
         {/* desktop lifestyle image */}
-        <div className="hidden lg:block relative rounded-lg overflow-hidden">
+        <div className="hidden lg:block relative overflow-hidden rounded-2xl ring-1 ring-slate-900/5 shadow-[0_1px_2px_rgba(16,42,36,0.04),0_12px_32px_-18px_rgba(16,42,36,0.22)]">
           <img src="/img/lifestyle.jpg" alt="Lifestyle" className="absolute inset-0 w-full h-full object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-900/70 via-transparent flex flex-col justify-end p-6 text-white">
-            <p className="text-2xl font-black leading-tight">Your everyday carry, upgraded.</p>
-            <Link to="/shop" className="mt-3 text-sm font-bold text-orange-300 hover:text-orange-100">
-              Explore all →
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/10 to-transparent flex flex-col justify-end p-7 text-white">
+            <p className="font-display text-2xl font-bold leading-tight">Your everyday carry, upgraded.</p>
+            <Link to="/shop" className="group mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-teal-300 hover:text-teal-200">
+              Explore all
+              <span aria-hidden="true" className="transition-transform group-hover:translate-x-0.5">→</span>
             </Link>
           </div>
         </div>
         {/* 8-product grid / list */}
-        <div className={view === "list" ? "lg:col-span-3 grid grid-cols-1 gap-3" : "lg:col-span-3 grid grid-cols-2 gap-2 md:grid-cols-3 lg:grid-cols-4 md:gap-4"}>
+        <div className={view === "list" ? "lg:col-span-3 grid grid-cols-1 gap-3" : "lg:col-span-3 grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4 md:gap-4"}>
           {list.map((p) => (
             <ProductCard key={p.id} product={p} view={view} />
           ))}
@@ -181,50 +189,49 @@ export function VideoStrip() {
     { img: "/img/charger.jpg", label: "0→60% in 25 min" },
   ];
   return (
-    <section className="max-w-7xl mx-auto px-6 py-7 md:py-9">
-      <div className="flex items-end justify-between mb-5">
-        <div>
-          <Kicker>Watch & shop</Kicker>
-          <h2 className="text-2xl md:text-3xl font-black text-slate-900">See It in Action</h2>
-          <p className="text-sm text-slate-500 mt-1">Real products, real tests, real customers.</p>
-        </div>
+    <section className="max-w-7xl mx-auto px-6 py-10 md:py-14">
+      <div className="mb-7">
+        <Kicker>Watch &amp; shop</Kicker>
+        <h2 className="text-3xl md:text-[2.6rem] font-bold tracking-tight leading-tight text-slate-900">See it in action</h2>
+        <p className="text-sm text-slate-500 mt-1.5">Real products, real tests, real customers.</p>
       </div>
       <div className="flex gap-4 overflow-x-auto no-scrollbar snap-x pb-2">
         {/* brand tile */}
-        <div className="snap-start shrink-0 w-44 h-72 rounded-lg bg-slate-950 text-white p-5 flex flex-col justify-between">
-          <div>
-            <BoltMark size={30} className="mb-3 text-amber-300" />
-            <p className="font-display font-black text-lg leading-tight">
+        <div className="snap-start shrink-0 w-44 h-72 rounded-2xl bg-slate-950 text-white p-5 flex flex-col justify-between relative overflow-hidden">
+          <div aria-hidden="true" className="xp-pattern absolute inset-0 opacity-60" />
+          <div className="relative">
+            <BoltMark size={30} className="mb-3 text-teal-300" />
+            <p className="font-display font-bold text-lg leading-tight">
               Xccessories<br />Point
             </p>
           </div>
-          <div>
-            <p className="text-xs text-slate-300 mb-2">3,200+ five-star reviews</p>
+          <div className="relative">
+            <p className="text-xs text-slate-300 mb-3">3,200+ five-star reviews</p>
             <button
               onClick={() => navigate("/shop")}
-              className="w-full py-2 rounded-lg bg-white text-slate-900 text-sm font-bold hover:bg-slate-200 transition-colors"
+              className="w-full py-2.5 rounded-full bg-white text-slate-900 text-sm font-semibold hover:bg-teal-50 transition-colors"
             >
-              Shop
+              Shop now
             </button>
           </div>
         </div>
         {reels.map((r) => (
-          <div key={r.label} className="group snap-start shrink-0 w-44 h-72 rounded-lg overflow-hidden relative cursor-pointer">
-            <img src={r.img} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-            <div className="absolute inset-0 bg-gradient-to-t from-slate-900/70 via-transparent" />
+          <div key={r.label} className="group snap-start shrink-0 w-44 h-72 rounded-2xl overflow-hidden relative cursor-pointer ring-1 ring-slate-900/5 shadow-[0_1px_2px_rgba(16,42,36,0.04),0_12px_32px_-18px_rgba(16,42,36,0.25)]">
+            <img src={r.img} alt="" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/10 to-transparent" />
             <div className="absolute inset-0 flex items-center justify-center">
-              <span className="w-12 h-12 rounded-xl bg-white/90 flex items-center justify-center text-orange-600 text-lg shadow-lg group-hover:scale-110 transition">
-                ▶
+              <span className="flex h-12 w-12 items-center justify-center rounded-full bg-white/95 text-teal-700 shadow-lg transition-transform duration-300 group-hover:scale-110">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M5 3.5v9l8-4.5-8-4.5Z" /></svg>
               </span>
             </div>
-            <p className="absolute bottom-3 left-3 right-3 text-white text-xs font-semibold">{r.label}</p>
+            <p className="absolute bottom-3.5 left-3.5 right-3.5 text-white text-xs font-semibold leading-snug">{r.label}</p>
           </div>
         ))}
-        {/* review side tab — editorial, no box */}
-        <div className="snap-start shrink-0 w-44 h-72 flex flex-col p-3 border-l-2 border-slate-300">
+        {/* review side tab — editorial */}
+        <div className="snap-start shrink-0 w-44 h-72 flex flex-col justify-center p-5 rounded-2xl bg-white ring-1 ring-slate-900/5">
           <Stars rating={5} size="text-sm" />
-          <p className="text-xs text-slate-600 mt-2 leading-relaxed flex-1">
-            "Watched the ANC test reel, ordered the same day. It performs exactly like the video."
+          <p className="text-xs text-slate-600 mt-3 leading-relaxed flex-1 pt-1">
+            “Watched the ANC test reel, ordered the same day. It performs exactly like the video.”
           </p>
           <p className="text-xs font-bold text-slate-900">— Bilal A.</p>
           <p className="text-[11px] text-slate-400">Verified buyer</p>
@@ -247,44 +254,41 @@ const FAQS = [
 export function FaqSection() {
   const [open, setOpen] = useState<number | null>(0);
   return (
-    <section className="max-w-3xl mx-auto px-6 py-7 md:py-9">
-      <Kicker center>Good to know</Kicker>
-      <h2 className="text-2xl md:text-3xl font-black text-slate-900 mb-5 text-center">Frequently Asked Questions</h2>
-      <div className="divide-y divide-slate-200 border-y border-slate-200">
+    <section className="max-w-3xl mx-auto px-6 py-10 md:py-16">
+      <div className="mb-8 text-center">
+        <Kicker center>Good to know</Kicker>
+        <h2 className="text-3xl md:text-[2.6rem] font-bold tracking-tight leading-tight text-slate-900">Frequently asked questions</h2>
+      </div>
+      <div className="overflow-hidden rounded-2xl bg-white ring-1 ring-slate-900/5 shadow-[0_1px_2px_rgba(16,42,36,0.04),0_12px_32px_-18px_rgba(16,42,36,0.2)]">
         {FAQS.map((f, i) => (
-          <div key={i}>
+          <div key={i} className={i > 0 ? "border-t border-slate-100" : ""}>
             <button
               onClick={() => setOpen(open === i ? null : i)}
-              className="w-full flex items-center justify-between py-4 text-left"
+              className="w-full flex items-center justify-between gap-4 px-5 py-4 text-left transition-colors hover:bg-slate-50/60"
               aria-expanded={open === i}
             >
-              <span className="font-bold text-slate-900 text-sm">{f.q}</span>
-              <svg
-                width="12"
-                height="12"
-                viewBox="0 0 12 12"
-                fill="none"
+              <span className="font-semibold text-slate-900 text-[15px]">{f.q}</span>
+              <span
+                className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-500 transition-transform duration-300 ${open === i ? "rotate-45 bg-teal-600 text-white" : ""}`}
                 aria-hidden="true"
-                className={`shrink-0 text-slate-400 transition-transform duration-200 ${open === i ? "rotate-180" : ""}`}
               >
-                <path d="M2 4.2 6 8.2 10 4.2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                  <path d="M6 2v8M2 6h8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+                </svg>
+              </span>
             </button>
             {open === i && (
-              <p className="pb-4 text-sm text-slate-600 leading-relaxed fade-up">{f.a}</p>
+              <p className="px-5 pb-5 text-sm text-slate-600 leading-relaxed fade-up">{f.a}</p>
             )}
           </div>
         ))}
       </div>
       <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
-        <Link to="/shop" className="inline-flex items-center justify-center rounded-lg bg-slate-900 px-6 py-3 text-xs font-bold uppercase tracking-wider text-white hover:bg-slate-700 transition-colors">
-          Shop now
+        <Link to="/shop" className="btn-primary">
+          Shop now <span aria-hidden="true">→</span>
         </Link>
-        <Link
-          to="/faq"
-          className="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-6 py-3 text-xs font-bold uppercase tracking-wider text-slate-700 hover:border-slate-400 hover:bg-slate-50 transition-colors"
-        >
-          Delivery & payment FAQs
+        <Link to="/faq" className="btn-ghost">
+          Delivery &amp; payment FAQs
         </Link>
       </div>
     </section>
