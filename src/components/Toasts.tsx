@@ -17,7 +17,7 @@ export default function Toasts() {
               ? "bg-red-600/90 border-red-400/40 shadow-lg shadow-red-600/25"
               : t.type === "info"
               ? "bg-slate-900/85 border-white/15 shadow-lg shadow-slate-900/25"
-              : "bg-slate-900/90 border-orange-300/40 neon-glow"
+              : "bg-slate-900/95 border-teal-400/30 neon-glow"
           }`}
         >
           <span className="font-bold">{t.type === "error" ? "✕" : t.type === "info" ? "ℹ" : "✓"}</span>

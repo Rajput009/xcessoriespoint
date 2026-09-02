@@ -120,7 +120,7 @@ export default function PurchaseToast() {
           {item.productId ? (
             <Link
               to={`/product/${item.productId}`}
-              className="line-clamp-2 text-xs font-semibold leading-snug text-slate-800 transition-colors hover:text-orange-600"
+              className="line-clamp-2 text-xs font-semibold leading-snug text-slate-800 transition-colors hover:text-teal-700"
             >
               {item.product}
             </Link>

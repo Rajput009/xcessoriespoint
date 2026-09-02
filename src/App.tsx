@@ -68,12 +68,9 @@ function NotFound() {
       <div className="flex justify-center mb-4">
         <BoltMark size={88} sw={5.5} className="text-slate-300" />
       </div>
-        <h1 className="text-3xl font-black text-slate-900 mb-2">Page not found</h1>
+        <h1 className="font-display text-3xl font-bold tracking-tight text-slate-900 mb-2">Page not found</h1>
         <p className="text-sm text-slate-500 mb-6">The page you're looking for doesn't exist — but these do:</p>
-        <Link
-          to="/shop"
-          className="px-6 py-2.5 rounded-lg bg-slate-900 text-white font-semibold hover:bg-slate-800"
-        >
+        <Link to="/shop" className="btn-primary px-7 py-3">
           Browse the shop
         </Link>
       </div>

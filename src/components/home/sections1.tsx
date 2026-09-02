@@ -6,6 +6,10 @@ import { Stars } from "../ProductCard";
 import ProductCard from "../ProductCard";
 import ViewToggle, { type ProductView } from "../ViewToggle";
 import { BoltMark, Kicker } from "../brand";
+import { ChevronLeftIcon, ChevronRightIcon } from "../icons";
+import CategoryLogo from "../CategoryLogo";
+import { categoryArt, categoryGlyph } from "../../lib/categoryArt";
+import type { Category } from "../../types";
 
 /* ---------- countdown hook ---------- */
 export function useCountdown(target: number) {
@@ -53,41 +57,41 @@ function useDealDeadline(): number {
   return Number.isFinite(t) && t > Date.now() ? t : nextMidnight();
 }
 
-/* Flip-clock style countdown unit — split tile, hinge line, side notches,
-   digit flips each tick (key remount replays the animation). */
+/* Refined countdown unit — quiet light tile, mono digits; the digit still
+   flips each tick (key remount replays the animation) without the dark,
+   slot-machine hinge look. */
 function FlipUnit({ v, label }: { v: number; label: string }) {
   const text = String(v).padStart(2, "0");
   return (
-    <span className="flex min-w-[54px] flex-1 max-w-[72px] flex-col items-center gap-1.5">
-      <span className="relative block w-full overflow-hidden rounded-lg bg-gradient-to-b from-slate-700 to-slate-900 ring-1 ring-slate-700/80 shadow-lg shadow-slate-900/35">
-        {/* top-half highlight → split-card shading */}
-        <span aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 h-1/2 bg-white/10" />
+    <span className="flex min-w-[46px] flex-col items-center gap-1">
+      <span className="block w-full overflow-hidden rounded-lg bg-slate-50 ring-1 ring-slate-200">
         <span
           key={text}
-          className="flip-tick font-mono block px-1 py-2.5 text-center text-xl md:text-2xl font-black text-white tabular-nums leading-none"
+          className="flip-tick font-mono block px-1.5 py-2 text-center text-lg font-bold text-slate-900 tabular-nums leading-none"
         >
           {text}
         </span>
-        {/* hinge line + punched notches */}
-        <span aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-slate-950/70" />
-        <span aria-hidden="true" className="pointer-events-none absolute left-0 top-1/2 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white ring-1 ring-slate-900/40" />
-        <span aria-hidden="true" className="pointer-events-none absolute right-0 top-1/2 h-2.5 w-2.5 translate-x-1/2 -translate-y-1/2 rounded-full bg-white ring-1 ring-slate-900/40" />
       </span>
-      <span className="text-[9px] font-black uppercase tracking-wider text-orange-500">{label}</span>
+      <span className="text-[9px] font-bold uppercase tracking-[0.14em] text-slate-400">{label}</span>
     </span>
   );
 }
 
-function CountdownBoxes() {
+function CountdownPill() {
   const saleEnd = useSaleEnd();
   const { days, hours, mins, secs } = useCountdown(saleEnd ?? Date.now());
   if (saleEnd === null) return null;
+  const pad = (n: number) => String(n).padStart(2, "0");
   return (
-    <div className="flex gap-2 justify-center lg:justify-start">
-      <FlipUnit v={days} label="Days" />
-      <FlipUnit v={hours} label="Hours" />
-      <FlipUnit v={mins} label="Mins" />
-      <FlipUnit v={secs} label="Secs" />
+    <div className="inline-flex items-center gap-2.5 rounded-full bg-slate-900 py-1.5 pl-3.5 pr-4 text-white shadow-sm">
+      <span className="relative flex h-2 w-2">
+        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-orange-400 opacity-75" />
+        <span className="relative inline-flex h-2 w-2 rounded-full bg-orange-500" />
+      </span>
+      <span className="text-xs font-medium text-slate-300">Offer ends in</span>
+      <span className="font-mono text-sm font-bold tabular-nums tracking-wide">
+        {days > 0 ? `${pad(days)}d ` : ""}{pad(hours)}:{pad(mins)}:{pad(secs)}
+      </span>
     </div>
   );
 }
@@ -103,10 +107,10 @@ const SLIDES = [
     headline: "Smart accessories for everyday life",
     price: 4999,
     compareAt: 7999,
-    image: "/img/hero-store.png",
-    mobileImage: "/img/hero-store-mobile.png",
-    width: 2000,
-    height: 1117,
+    image: "/img/hero-store.webp",
+    mobileImage: "/img/hero-store-mobile.webp",
+    width: 1600,
+    height: 893,
     cat: "audio",
   },
 ];
@@ -140,25 +144,12 @@ function useSlides(): Slide[] {
 
 /* ---------- 1. Hero — clean promotional banner card ---------- */
 
-/* Per-slide pastel for the product stage circle */
-const STAGE_TINTS = [
-  { tile: "bg-teal-100", ring: "ring-teal-100" },
-  { tile: "bg-amber-100", ring: "ring-amber-100" },
-  { tile: "bg-emerald-100", ring: "ring-emerald-100" },
-];
-
-/* Organic blob (slide 1), arch/doorway (2), soft squircle (3) */
-const BLOB = "border-radius: 58% 42% 55% 45% / 52% 55% 45% 48%;";
-const ARCH = "border-radius: 999px 999px 1.75rem 1.75rem;";
-
-const HERO_TICKS = ["Free shipping over Rs 5,000", "COD nationwide", "7-day returns"];
+const HERO_TICKS = ["Free shipping over Rs 5,000", "Cash on delivery nationwide", "7-day easy returns"];
 
 export function HeroSection() {
   const slides = useSlides();
   const [slide, setSlide] = useState(0);
-  const saleEnd = useSaleEnd();
-  // only the visible slide (and the one queued next) is worth downloading — mounting all
-  // three <img src> at once pulled ~1.1 MB on first paint
+  // only the visible slide (and the one queued next) is worth downloading
   const [loaded, setLoaded] = useState<number[]>([0]);
   useEffect(() => {
     const next = (slide + 1) % slides.length;
@@ -172,34 +163,37 @@ export function HeroSection() {
   }, [slides.length]);
 
   return (
-    <section className="relative w-full pt-0 md:pt-[96px]">
-      <div className="relative min-h-[350px] overflow-hidden bg-white md:min-h-[440px]">
-        {/* barely-there soft shapes + signature bolt-X watermark */}
-        <BoltMark size={300} className="pointer-events-none absolute -top-16 -right-14 rotate-12 text-slate-900/[0.04]" />
-        <div aria-hidden="true" className="absolute -top-24 -right-16 h-80 w-80 rounded-full bg-teal-100/35 blur-3xl" />
-        <div aria-hidden="true" className="absolute -bottom-28 -left-12 h-80 w-80 rounded-full bg-amber-100/30 blur-3xl" />
-        {loaded.includes(slide) && (
-            <picture>
-              <source media="(max-width: 767px)" srcSet={slides[slide].mobileImage} />
-              <img
-                src={slides[slide].image}
-                alt=""
-                width={slides[slide].width}
-                height={slides[slide].height}
-                fetchPriority="high"
-                decoding="async"
-                className="absolute inset-0 h-full w-full object-cover object-top md:object-center"
-              />
-            </picture>
+    <section className="relative w-full overflow-hidden pt-14 md:pt-16">
+      <div className="relative min-h-[560px] overflow-hidden sm:min-h-[600px] md:min-h-[640px]">
+        {/* ---- background image (crossfades between slides) ---- */}
+        {slides.map((sl, i) =>
+          loaded.includes(i) ? (
+            <div key={i} aria-hidden="true" className={`absolute inset-0 transition-opacity duration-700 ease-out ${i === slide ? "opacity-100" : "opacity-0"}`}>
+              <picture>
+                <source media="(max-width: 767px)" srcSet={sl.mobileImage} />
+                <img
+                  src={sl.image}
+                  alt=""
+                  width={sl.width}
+                  height={sl.height}
+                  fetchPriority="high"
+                  decoding="async"
+                  className="h-full w-full object-cover object-[50%_15%] md:object-[82%_center]"
+                />
+              </picture>
+            </div>
+          ) : null
         )}
-        <div aria-hidden="true" className="absolute inset-0 pointer-events-none" />
 
-        <div className="relative mx-auto max-w-7xl px-4 py-3 md:px-6 md:py-5">
-          {/* all slides share one grid cell — hero height never jumps between slides (no CLS) */}
-          <div className="grid">
+        {/* legibility wash: opaque on the text side (desktop) / bottom (mobile),
+            fading to the page canvas so the banner blends edge-to-edge */}
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#f7f6f1] via-[#f7f6f1]/60 to-transparent md:bg-gradient-to-r md:from-[#f7f6f1] md:via-[#f7f6f1]/75 md:to-transparent" />
+
+        {/* ---- overlaid content ---- */}
+        <div className="relative mx-auto flex min-h-[560px] w-full max-w-7xl items-end px-4 pb-12 sm:min-h-[600px] md:min-h-[640px] md:items-center md:px-6 md:pb-0">
+          <div className="grid w-full">
             {slides.map((sl, i) => {
               const active = i === slide;
-              const tint = STAGE_TINTS[i % STAGE_TINTS.length];
               const discount =
                 sl.compareAt && sl.compareAt > sl.price
                   ? Math.round(((sl.compareAt - sl.price) / sl.compareAt) * 100)
@@ -209,111 +203,110 @@ export function HeroSection() {
                   key={i}
                   aria-hidden={!active}
                   inert={!active ? true : undefined}
-                  className={`col-start-1 row-start-1 relative flex min-h-[390px] items-end transition-opacity duration-700 ease-out md:min-h-[380px] md:items-center ${
-                    active ? "opacity-100" : "opacity-0 pointer-events-none"
+                  className={`col-start-1 row-start-1 w-full max-w-xl pb-2 transition-all duration-700 ease-out md:pb-0 ${
+                    active ? "opacity-100 translate-y-0" : "opacity-0 translate-y-3 pointer-events-none"
                   }`}
                 >
-                  {/* copy */}
-                  <div className="relative z-10 w-full max-w-[18rem] pb-3 text-left sm:max-w-xl sm:pb-0 lg:max-w-xl">
-                    <p className="mb-2 inline-flex items-center gap-1.5 rounded-full bg-white/90 px-3 py-1 text-[9px] font-black uppercase tracking-[0.12em] text-orange-600 ring-1 ring-orange-500/25 shadow-sm sm:mb-4 sm:gap-2 sm:px-4 sm:py-1.5 sm:text-[11px] sm:tracking-widest">
-                      <span className="h-1.5 w-1.5 rounded-full bg-orange-500" aria-hidden="true" />
-                      {sl.tag}
-                    </p>
+                  {/* eyebrow */}
+                  <p className="mb-4 inline-flex items-center gap-2 rounded-full bg-white/85 px-3.5 py-1.5 shadow-sm ring-1 ring-slate-900/5 backdrop-blur">
+                    <span className="h-1.5 w-1.5 rounded-full bg-teal-600" />
+                    <span className="text-[11px] font-bold uppercase tracking-[0.16em] text-teal-700">{sl.tag}</span>
+                  </p>
 
-                    <h1 className="text-2xl font-black tracking-tight text-slate-900 leading-[1.05] mb-2 sm:text-4xl sm:mb-4 md:text-5xl">
-                      {(() => {
-                        const words = sl.headline.split(" ");
-                        const last = words.pop();
-                        return (
-                          <>
-                            {words.join(" ")}{" "}
-                            <span className="relative inline-block whitespace-nowrap">
-                              <span aria-hidden="true" className="absolute inset-x-0 bottom-1 h-[0.32em] -rotate-1 rounded-sm bg-amber-300/80" />
-                              <span className="relative">{last}</span>
-                            </span>
-                          </>
-                        );
-                      })()}
-                    </h1>
+                  <h1 className="font-display text-[2.5rem] leading-[1.05] font-bold tracking-tight text-slate-900 sm:text-6xl lg:text-[4.2rem]">
+                    {(() => {
+                      const words = sl.headline.split(" ");
+                      const last = words.pop();
+                      return (
+                        <>
+                          {words.join(" ")}{" "}
+                          <span className="whitespace-nowrap text-teal-700">{last}</span>
+                        </>
+                      );
+                    })()}
+                  </h1>
 
-                    <div className="mb-2 flex flex-wrap items-baseline justify-start gap-x-2 gap-y-0.5 sm:mb-4 sm:justify-start sm:gap-x-3 sm:gap-y-1">
-                      <span className="font-mono text-2xl sm:text-3xl md:text-4xl font-black tabular-nums text-orange-600">{fmt(sl.price)}</span>
-                      <span className="text-lg text-slate-400 line-through font-medium">{fmt(sl.compareAt)}</span>
-                      {discount > 0 && (
-                        <span className="rounded-md bg-orange-500 px-2 py-0.5 text-xs font-black text-white">
-                          -{discount}% OFF
-                        </span>
-                      )}
-                    </div>
+                  <p className="mt-4 max-w-md text-base leading-relaxed text-slate-600 md:text-lg">
+                    Premium audio, charging, protection and wearables — genuine gear,
+                    honest prices, delivered nationwide with cash on delivery.
+                  </p>
 
-                    <ul className="mb-3 flex flex-wrap items-center justify-start gap-x-3 gap-y-1 sm:mb-5 sm:justify-start sm:gap-x-5 sm:gap-y-2">
-                      {HERO_TICKS.map((t) => (
-                        <li key={t} className="flex items-center gap-1.5 text-xs font-semibold text-slate-600">
-                          <span className="flex h-4 w-4 items-center justify-center rounded-full bg-emerald-100 text-[9px] text-emerald-700" aria-hidden="true">✓</span>
-                          {t}
-                        </li>
-                      ))}
-                    </ul>
-
-                    <div className="flex flex-wrap items-center justify-start gap-2 sm:gap-3">
-                      <button
-                        onClick={() => navigate(sl.productId ? `/product/${sl.productId}` : `/category/${sl.cat}`)}
-                        tabIndex={active ? 0 : -1}
-                        className="px-6 py-3 rounded-xl bg-slate-900 text-white text-sm font-black uppercase tracking-wide hover:bg-slate-800 hover:-translate-y-0.5 transition-all shadow-xl shadow-slate-900/25 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 sm:px-9 sm:py-4"
-                      >
-                        Shop Now →
-                      </button>
-                      <button
-                        onClick={() => navigate("/shop")}
-                        tabIndex={active ? 0 : -1}
-                        className="px-5 py-3 rounded-xl bg-white text-slate-800 text-sm font-black uppercase tracking-wide ring-1 ring-slate-200 hover:ring-slate-400 hover:-translate-y-0.5 transition-all shadow-sm sm:px-7 sm:py-4"
-                      >
-                        Browse Deals
-                      </button>
-                    </div>
-
-                    {saleEnd !== null && (
-                      <div className="mt-5 flex flex-wrap items-center justify-center lg:justify-start gap-3">
-                        <span className="text-[11px] font-black uppercase tracking-widest text-slate-400">Offer ends in</span>
-                        <CountdownBoxes />
-                      </div>
+                  {/* price row */}
+                  <div className="mt-4 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                    <span className="text-sm font-semibold text-slate-500">From</span>
+                    <span className="font-mono text-3xl md:text-4xl font-bold tabular-nums text-slate-900">{fmt(sl.price)}</span>
+                    {sl.compareAt && sl.compareAt > sl.price && (
+                      <span className="text-base font-medium text-slate-400 line-through">{fmt(sl.compareAt)}</span>
+                    )}
+                    {discount > 0 && (
+                      <span className="rounded-full bg-orange-500 px-2.5 py-1 text-xs font-bold text-white shadow-sm">
+                        Save {discount}%
+                      </span>
                     )}
                   </div>
 
-                  {/* background image covers the full hero card */}
+                  {/* CTAs */}
+                  <div className="mt-6 flex flex-wrap items-center gap-3">
+                    <button
+                      onClick={() => navigate(sl.productId ? `/product/${sl.productId}` : `/category/${sl.cat}`)}
+                      tabIndex={active ? 0 : -1}
+                      className="btn-primary px-7 py-3.5 text-sm"
+                    >
+                      Shop the collection
+                      <span aria-hidden="true">→</span>
+                    </button>
+                    <button
+                      onClick={() => navigate("/shop")}
+                      tabIndex={active ? 0 : -1}
+                      className="btn-ghost px-6 py-3.5 text-sm bg-white/85 backdrop-blur"
+                    >
+                      Browse all deals
+                    </button>
+                  </div>
+
+                  {/* trust ticks */}
+                  <ul className="mt-7 hidden flex-wrap items-center gap-x-6 gap-y-2.5 sm:flex">
+                    {HERO_TICKS.map((t) => (
+                      <li key={t} className="flex items-center gap-2 text-sm font-medium text-slate-700">
+                        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-teal-600 text-white">
+                          <svg width="10" height="10" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+                            <path d="M2.5 6.2 4.8 8.5 9.5 3.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        </span>
+                        {t}
+                      </li>
+                    ))}
+                  </ul>
+
+                  {/* countdown */}
+                  {active && <div className="mt-6"><CountdownPill /></div>}
                 </div>
               );
             })}
           </div>
+        </div>
 
-          {/* dots */}
-          <div className="flex justify-center gap-2 mt-3">
+        {/* dots — only meaningful with more than one slide */}
+        {slides.length > 1 && (
+          <div className="absolute bottom-4 left-1/2 z-10 flex -translate-x-1/2 gap-2">
             {slides.map((_, i) => (
               <button
                 key={i}
                 onClick={() => setSlide(i)}
                 aria-label={`Slide ${i + 1}`}
-                className={`h-2 rounded-full transition-all ${
-                  i === slide ? "w-8 bg-slate-900" : "w-2 bg-slate-300 hover:bg-slate-400"
+                className={`h-2 rounded-full transition-all duration-300 ${
+                  i === slide ? "w-7 bg-slate-900" : "w-2 bg-slate-400/70 hover:bg-slate-500"
                 }`}
               />
             ))}
           </div>
-        </div>
+        )}
       </div>
     </section>
   );
 }
 
 /* ---------- 2. CategoryIcons (compact scrollable image tiles) ---------- */
-const CAT_IMG: Record<string, { img: string; count: string; tint: string }> = {
-  audio: { img: "/img/cat-audio.webp", count: "Earbuds & headphones", tint: "bg-teal-200" },
-  wearables: { img: "/img/cat-wearables.webp", count: "Watches & bands", tint: "bg-amber-200" },
-  power: { img: "/img/cat-power.webp", count: "Banks & chargers", tint: "bg-teal-100" },
-  cases: { img: "/img/cat-cases.webp", count: "Covers & protection", tint: "bg-emerald-200" },
-  cables: { img: "/img/cat-cables.webp", count: "Cables & hubs", tint: "bg-rose-200" },
-};
-
 export function CategoryIcons() {
   const { categories, products } = useProducts();
   const scrollerRef = useRef<HTMLDivElement>(null);
@@ -344,26 +337,26 @@ export function CategoryIcons() {
     scrollerRef.current?.scrollTo({ left: i * pageWidth(), behavior: "smooth" });
 
   return (
-    <section className="max-w-7xl mx-auto px-6 pt-12 pb-8">
-      <div className="flex items-end justify-between mb-5">
+    <section className="max-w-7xl mx-auto px-6 pt-14 pb-10 md:pt-20">
+      <div className="flex items-end justify-between mb-7">
         <div>
           <Kicker>Browse the range</Kicker>
-          <h2 className="text-3xl md:text-4xl font-black tracking-tight text-slate-900">Shop by Category</h2>
+          <h2 className="text-3xl md:text-[2.6rem] font-bold tracking-tight text-slate-900 leading-tight">Shop by category</h2>
         </div>
-        <div className="hidden md:flex gap-2">
+        <div className="hidden md:flex gap-2.5">
           <button
             onClick={() => scrollBy(-1)}
-            className="w-9 h-9 rounded-lg surface-muted text-slate-600 hover:text-slate-900 hover:shadow-md flex items-center justify-center transition-all"
+            className="flex h-11 w-11 items-center justify-center rounded-full bg-white text-slate-600 ring-1 ring-slate-200 shadow-sm transition-all hover:-translate-y-0.5 hover:text-slate-900 hover:shadow-md"
             aria-label="Scroll left"
           >
-            ‹
+            <ChevronLeftIcon size={18} />
           </button>
           <button
             onClick={() => scrollBy(1)}
-            className="w-9 h-9 rounded-lg border border-slate-200 bg-white text-slate-500 hover:border-slate-400 hover:text-slate-900 flex items-center justify-center transition-colors"
+            className="flex h-11 w-11 items-center justify-center rounded-full bg-white text-slate-600 ring-1 ring-slate-200 shadow-sm transition-all hover:-translate-y-0.5 hover:text-slate-900 hover:shadow-md"
             aria-label="Scroll right"
           >
-            ›
+            <ChevronRightIcon size={18} />
           </button>
         </div>
       </div>
@@ -373,16 +366,15 @@ export function CategoryIcons() {
         className="flex gap-4 md:gap-5 overflow-x-auto no-scrollbar snap-x snap-mandatory pb-2 -mx-6 px-6"
       >
         {categories.map((c) => {
-          const meta = CAT_IMG[c.id];
           // admin-set tile image wins, then the built-in art, else we render the emoji
-          const tile = c.image || meta?.img;
+          const tile = categoryArt(c);
           return (
             <Link
               key={c.id}
               to={`/category/${c.id}`}
-              className="group snap-start shrink-0 w-40 sm:w-48 md:w-[224px] rounded-xl border border-slate-200 bg-white px-4 pt-5 pb-4 text-center shadow-[0_1px_2px_rgba(15,23,42,0.05)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_16px_36px_rgba(15,23,42,0.12)]"
+              className="group snap-start shrink-0 w-40 sm:w-48 md:w-[224px] overflow-hidden rounded-2xl bg-white ring-1 ring-slate-900/5 shadow-[0_1px_2px_rgba(16,42,36,0.04),0_10px_28px_-16px_rgba(16,42,36,0.18)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_2px_6px_rgba(16,42,36,0.05),0_22px_44px_-18px_rgba(16,42,36,0.28)]"
             >
-              <span className="flex aspect-[4/3] items-center justify-center overflow-hidden">
+              <span className="flex aspect-[4/3] items-center justify-center overflow-hidden bg-gradient-to-b from-slate-50 to-white p-5">
                 {tile ? (
                   <img
                     src={tile}
@@ -391,18 +383,19 @@ export function CategoryIcons() {
                     height={440}
                     loading="lazy"
                     decoding="async"
-                    className={`max-h-full w-auto transition-transform duration-500 group-hover:scale-110 ${
-                      c.image && !meta ? "rounded-lg object-cover w-full h-full" : "object-contain"
+                    className={`max-h-full w-auto transition-transform duration-500 group-hover:scale-[1.08] ${
+                      c.image ? "rounded-lg object-cover w-full h-full" : "object-contain"
                     }`}
                   />
                 ) : (
                   <span className="text-5xl transition-transform duration-500 group-hover:scale-110">
-                    {c.icon || "🗂"}
+                    {categoryGlyph(c)}
                   </span>
                 )}
               </span>
-              <span className="mt-3 block text-sm md:text-base font-black uppercase tracking-[0.08em] text-slate-900 transition-colors group-hover:text-orange-600">
+              <span className="flex items-center justify-center gap-1.5 border-t border-slate-100 px-4 py-3.5 text-sm md:text-[15px] font-semibold text-slate-900 transition-colors group-hover:text-teal-700">
                 {c.name}
+                <ChevronRightIcon size={15} className="text-slate-300 transition-all group-hover:translate-x-0.5 group-hover:text-teal-600" />
               </span>
             </Link>
           );
@@ -410,34 +403,35 @@ export function CategoryIcons() {
         {/* view-all — same card language */}
         <Link
           to="/shop"
-          className="group snap-start shrink-0 w-40 sm:w-48 md:w-[224px] rounded-xl border border-slate-200 bg-white px-4 pt-5 pb-4 text-center shadow-[0_1px_2px_rgba(15,23,42,0.05)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_16px_36px_rgba(15,23,42,0.12)]"
+          className="group snap-start shrink-0 w-40 sm:w-48 md:w-[224px] overflow-hidden rounded-2xl bg-slate-900 shadow-[0_1px_2px_rgba(16,42,36,0.04),0_10px_28px_-16px_rgba(16,42,36,0.18)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_2px_6px_rgba(16,42,36,0.05),0_22px_44px_-18px_rgba(16,42,36,0.28)]"
         >
-          <span className="flex aspect-[4/3] items-center justify-center">
-            <span className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-900 text-2xl text-white shadow-lg shadow-slate-900/25 transition-transform duration-300 group-hover:scale-110">
-              →
-            </span>
+          <span className="flex aspect-[4/3] items-center justify-center bg-gradient-to-br from-slate-800 to-slate-900">
+            <BoltMark size={56} className="text-teal-300/90 transition-transform duration-300 group-hover:scale-110" />
           </span>
-          <span className="mt-3 block text-sm md:text-base font-black uppercase tracking-[0.08em] text-slate-900 transition-colors group-hover:text-orange-600">
-            View All
+          <span className="flex items-center justify-center gap-1.5 px-4 py-3.5 text-sm md:text-[15px] font-semibold text-white">
+            View all
+            <ChevronRightIcon size={15} className="text-slate-400 transition-all group-hover:translate-x-0.5 group-hover:text-teal-300" />
           </span>
         </Link>
       </div>
 
-      {/* dot pagination — active orange, inactive dark */}
-      <div className="mt-6 flex justify-center gap-2" aria-label="Category pages">
-        {Array.from({ length: pages }).map((_, i) => (
-          <button
-            key={i}
-            type="button"
-            onClick={() => scrollToPage(i)}
-            aria-label={`Go to category page ${i + 1}`}
-            aria-current={i === page}
-            className={`h-2 rounded-full transition-all duration-300 ${
-              i === page ? "w-6 bg-orange-500" : "w-2 bg-slate-800 hover:bg-slate-500"
-            }`}
-          />
-        ))}
-      </div>
+      {/* dot pagination */}
+      {pages > 1 && (
+        <div className="mt-7 flex justify-center gap-2" aria-label="Category pages">
+          {Array.from({ length: pages }).map((_, i) => (
+            <button
+              key={i}
+              type="button"
+              onClick={() => scrollToPage(i)}
+              aria-label={`Go to category page ${i + 1}`}
+              aria-current={i === page}
+              className={`h-2 rounded-full transition-all duration-300 ${
+                i === page ? "w-7 bg-teal-600" : "w-2 bg-slate-300 hover:bg-slate-400"
+              }`}
+            />
+          ))}
+        </div>
+      )}
     </section>
   );
 }
@@ -455,25 +449,33 @@ export function BestSelling() {
   }, [products, tab]);
 
   return (
-    <section className="max-w-7xl mx-auto px-6 py-7 md:py-9">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-5">
+    <section className="max-w-7xl mx-auto px-6 py-10 md:py-14">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between mb-6">
         <div className="shrink-0">
           <Kicker>Customer favourites</Kicker>
-          <h2 className="text-3xl md:text-4xl font-black tracking-tight text-slate-900">Best Selling</h2>
+          <h2 className="text-3xl md:text-[2.6rem] font-bold tracking-tight text-slate-900 leading-tight">Best sellers</h2>
         </div>
         <div className="flex min-w-0 items-center justify-between gap-3 sm:justify-end sm:flex-1">
-          {/* desktop tabs */}
-          <div className="hidden md:flex flex-wrap justify-end gap-2 min-w-0">
+          {/* desktop tabs — pill segmented control */}
+          <div className="hidden md:flex flex-wrap justify-end gap-1.5 min-w-0 rounded-full bg-slate-100/80 p-1 ring-1 ring-slate-200/70">
             {[{ id: "all", name: "All" }, ...categories].map((c) => (
               <button
                 key={c.id}
                 onClick={() => setTab(c.id)}
-                className={`px-4 py-2 rounded-lg text-sm font-semibold transition ${
+                className={`inline-flex items-center gap-1.5 rounded-full py-1.5 pl-2 pr-4 text-sm font-semibold transition-all ${
                   tab === c.id
-                    ? "bg-slate-900 text-white shadow-md shadow-slate-900/25"
-                    : "surface-muted text-slate-600 hover:text-slate-900"
+                    ? "bg-slate-900 text-white shadow-sm"
+                    : "text-slate-500 hover:text-slate-900"
                 }`}
               >
+                {c.id !== "all" && (
+                  <CategoryLogo
+                    category={c as Category}
+                    size={20}
+                    variant="plain"
+                    active={tab === c.id}
+                  />
+                )}
                 {c.name}
               </button>
             ))}
@@ -482,28 +484,29 @@ export function BestSelling() {
           <select
             value={tab}
             onChange={(e) => setTab(e.target.value)}
-            className="md:hidden min-w-0 flex-1 sm:flex-none sm:w-48 rounded-xl surface-muted px-3 py-2 text-sm outline-none"
+            className="md:hidden min-w-0 flex-1 sm:flex-none sm:w-48 rounded-full bg-white px-4 py-2 text-sm outline-none ring-1 ring-slate-200"
           >
             <option value="all">All categories</option>
             {categories.map((c) => (
-              <option key={c.id} value={c.id}>{c.name}</option>
+              <option key={c.id} value={c.id}>{categoryGlyph(c)} {c.name}</option>
             ))}
           </select>
           <ViewToggle view={view} onChange={setView} />
         </div>
       </div>
-      <div className="flex items-center justify-between mb-3">
+      <div className="flex items-center justify-between mb-4">
         <p className="text-xs text-slate-400">
           {list.length > 0 ? "Showing top picks" : "No matching best sellers"}
         </p>
-        <Link to="/shop" className="text-xs font-bold uppercase tracking-wider text-orange-600 hover:text-orange-700 transition-colors">
-          View all products →
+        <Link to="/shop" className="group inline-flex items-center gap-1 text-sm font-semibold text-teal-700 transition-colors hover:text-teal-800">
+          View all products
+          <span aria-hidden="true" className="transition-transform group-hover:translate-x-0.5">→</span>
         </Link>
       </div>
       {list.length === 0 ? (
         <p className="text-sm text-slate-500 py-10 text-center">No matching best sellers.</p>
       ) : (
-        <div className={view === "list" ? "grid grid-cols-1 gap-3" : "grid grid-cols-2 gap-2 md:grid-cols-3 lg:grid-cols-5 md:gap-4"}>
+        <div className={view === "list" ? "grid grid-cols-1 gap-3" : "grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-5 md:gap-5"}>
           {list.map((p) => (
             <ProductCard key={p.id} product={p} view={view} />
           ))}
@@ -565,26 +568,31 @@ function DealCard({ id }: { id: number }) {
   };
 
   return (
-    <article className="relative grid sm:grid-cols-[1.05fr_1fr] rounded-xl border border-slate-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.05)] transition-shadow duration-300 hover:shadow-[0_12px_32px_rgba(15,23,42,0.12)]">
+    <article className="relative grid sm:grid-cols-[1.05fr_1fr] rounded-2xl bg-white ring-1 ring-slate-900/5 shadow-[0_1px_2px_rgba(16,42,36,0.04),0_12px_32px_-18px_rgba(16,42,36,0.22)] transition-shadow duration-300 hover:shadow-[0_2px_6px_rgba(16,42,36,0.05),0_22px_48px_-20px_rgba(16,42,36,0.3)]">
       {/* ---------- left half: big image + identity ---------- */}
-      <div className="flex flex-col p-3.5 md:p-4">
+      <div className="flex flex-col p-4 md:p-5">
         <Link to={`/product/${p.id}`} className="group relative block">
-          <span className="block aspect-[4/3] w-full overflow-hidden rounded-lg bg-white">
+          <span className="block aspect-[4/3] w-full overflow-hidden rounded-xl bg-slate-50 ring-1 ring-slate-100">
             <img
               src={p.image}
               alt={p.name}
               loading="lazy"
               decoding="async"
-              className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105"
+              className="w-full h-full object-contain p-2 transition-transform duration-300 group-hover:scale-[1.04]"
             />
           </span>
+          {discount > 0 && (
+            <span className="absolute left-2.5 top-2.5 rounded-full bg-orange-500 px-2.5 py-1 text-[11px] font-bold text-white shadow-sm">
+              -{discount}%
+            </span>
+          )}
         </Link>
 
-        <p className="mt-2.5 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">
+        <p className="mt-3 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">
           {p.category}
         </p>
         <Link to={`/product/${p.id}`}>
-          <h3 className="mt-0.5 line-clamp-2 text-sm md:text-[15px] font-bold uppercase leading-snug text-slate-900 hover:text-orange-600 transition-colors">
+          <h3 className="mt-0.5 line-clamp-2 text-sm md:text-[15px] font-semibold leading-snug text-slate-900 transition-colors group-hover:text-teal-700">
             {p.name}
           </h3>
         </Link>
@@ -596,39 +604,36 @@ function DealCard({ id }: { id: number }) {
           </span>
         )}
 
-        <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
-          <span className="text-xl font-black text-orange-600 font-mono tabular-nums">{fmt(p.price)}</span>
+        <div className="mt-2 flex flex-wrap items-baseline gap-x-2 gap-y-1">
+          <span className="font-mono text-2xl font-bold tabular-nums text-slate-900">{fmt(p.price)}</span>
           {p.compareAt && p.compareAt > p.price && (
             <span className="text-xs text-slate-400 line-through">{fmt(p.compareAt)}</span>
-          )}
-          {discount > 0 && (
-            <span className="rounded-[4px] bg-orange-500 px-1.5 py-0.5 text-[11px] font-black text-white">
-              -{discount}%
-            </span>
           )}
         </div>
       </div>
 
       {/* ---------- right half: offer details ---------- */}
-      <div className="flex flex-col justify-between gap-2.5 border-t sm:border-t-0 sm:border-l border-slate-100 p-3.5 md:p-4">
-        <p className={`flex items-center gap-2 text-xs font-bold ${soldOut ? "text-slate-500" : "text-emerald-700"}`}>
-          <span className={`flex h-5 w-5 items-center justify-center rounded-full border text-[10px] ${soldOut ? "border-slate-200 bg-slate-100" : "border-emerald-200 bg-emerald-50"}`} aria-hidden="true">
+      <div className="flex flex-col justify-between gap-3 border-t border-slate-100 p-4 sm:border-l sm:border-t-0 md:p-5">
+        <p className={`flex items-center gap-2 text-xs font-semibold ${soldOut ? "text-slate-500" : "text-teal-700"}`}>
+          <span className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] ${soldOut ? "bg-slate-100 text-slate-400" : "bg-teal-50 ring-1 ring-teal-100"}`} aria-hidden="true">
             {soldOut ? "×" : "✓"}
           </span>
-          {soldOut ? "Out of stock" : `${p.stock} ${p.stock === 1 ? "Product" : "Products"} in stock`}
+          {soldOut ? "Out of stock" : `${p.stock} in stock`}
         </p>
 
-        <ul className="space-y-1">
+        <ul className="space-y-1.5">
           {DEAL_CHECKS.map((c) => (
             <li key={c} className="flex items-center gap-2 text-[11px] md:text-xs font-medium text-slate-600">
-              <span className="text-slate-900" aria-hidden="true">✓</span>
+              <svg width="13" height="13" viewBox="0 0 12 12" fill="none" aria-hidden="true" className="shrink-0 text-teal-600">
+                <path d="M2.5 6.2 4.8 8.5 9.5 3.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
               {c}
             </li>
           ))}
         </ul>
 
         {!soldOut && (
-          <div className="flex gap-2" aria-label="Deal ends soon">
+          <div className="flex gap-1.5" aria-label="Deal ends soon">
             <FlipUnit v={days} label="Days" />
             <FlipUnit v={hours} label="Hours" />
             <FlipUnit v={mins} label="Mins" />
@@ -640,19 +645,19 @@ function DealCard({ id }: { id: number }) {
           <div>
             {soldPct > 0 ? (
               <>
-                <div className="h-1 rounded-full bg-slate-100 overflow-hidden">
+                <div className="h-1.5 rounded-full bg-slate-100 overflow-hidden">
                   <div
-                    className="h-full rounded-full bg-gradient-to-r from-amber-400 to-orange-500 transition-[width] duration-700"
+                    className="h-full rounded-full bg-gradient-to-r from-teal-500 to-teal-600 transition-[width] duration-700"
                     style={{ width: `${soldPct}%` }}
                   />
                 </div>
-                <p className="mt-1 text-[10px] font-bold uppercase tracking-wide text-slate-500">
-                  {soldPct}% sold — available {p.stock}
+                <p className="mt-1.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+                  {soldPct}% sold — {p.stock} left
                 </p>
               </>
             ) : (
-              <p className="text-[10px] font-black uppercase tracking-wide text-orange-600">
-                🔥 Fresh deal — just dropped
+              <p className="inline-flex items-center gap-1.5 rounded-full bg-orange-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-orange-600 ring-1 ring-orange-100">
+                Fresh deal — just dropped
               </p>
             )}
           </div>
@@ -664,27 +669,27 @@ function DealCard({ id }: { id: number }) {
             type="button"
             onClick={handleAdd}
             disabled={soldOut}
-            className={`flex w-full items-center justify-center rounded-lg py-3 text-xs font-black uppercase tracking-wide transition-all focus:outline-none focus:ring-2 focus:ring-orange-500 ${
+            className={`flex w-full items-center justify-center rounded-full py-3 text-sm font-semibold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2 ${
               soldOut
                 ? "cursor-not-allowed bg-slate-100 text-slate-400"
                 : added
-                ? "bg-emerald-600 text-white"
-                : "bg-slate-900 text-white hover:bg-slate-800 hover:shadow-lg hover:shadow-slate-900/25"
+                ? "bg-teal-600 text-white"
+                : "bg-slate-900 text-white hover:-translate-y-0.5 hover:bg-slate-800 hover:shadow-lg hover:shadow-slate-900/25"
             }`}
           >
-            {soldOut ? "Sold out" : added ? "Added ✓" : hasVariants ? "Choose options" : `Add to Cart — ${fmt(p.price)}`}
+            {soldOut ? "Sold out" : added ? "Added ✓" : hasVariants ? "Choose options" : `Add to cart · ${fmt(p.price)}`}
           </button>
 
-          <div className="mt-2 flex items-center gap-5">
+          <div className="mt-2.5 flex items-center gap-5">
             <Link
               to={`/product/${p.id}`}
-              className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-500 hover:text-orange-600 transition-colors"
+              className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-500 transition-colors hover:text-teal-700"
             >
               <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
                 <path d="M1 8s2.7-5 7-5 7 5 7 5-2.7 5-7 5-7-5-7-5Z" />
                 <circle cx="8" cy="8" r="2" />
               </svg>
-              Quick View
+              Quick view
             </Link>
             <button
               type="button"
@@ -695,7 +700,7 @@ function DealCard({ id }: { id: number }) {
               }`}
             >
               <span className="text-sm leading-none" aria-hidden="true">{has(p.id) ? "♥" : "♡"}</span>
-              Add To Wishlist
+              Wishlist
             </button>
           </div>
         </div>
@@ -717,51 +722,53 @@ export function DealsOfDay() {
   const pad2 = (n: number) => String(n).padStart(2, "0");
 
   return (
-    <section className="max-w-7xl mx-auto px-6 py-6 md:py-8">
-      <div className="flex flex-wrap items-end justify-between gap-4 mb-5">
+    <section className="max-w-7xl mx-auto px-6 py-10 md:py-14">
+      <div className="flex flex-wrap items-end justify-between gap-4 mb-7">
         <div>
           <Kicker>Limited-stock offers</Kicker>
-          <h2 className="text-3xl md:text-4xl font-black uppercase tracking-tight text-slate-900">
-            Deals <span className="text-orange-600">of the Day</span>
+          <h2 className="text-3xl md:text-[2.6rem] font-bold tracking-tight leading-tight text-slate-900">
+            Deals <span className="text-teal-700">of the day</span>
           </h2>
         </div>
         <div className="flex items-center gap-4">
-          <span className="inline-flex items-center gap-2 rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-black text-white tabular-nums shadow-md shadow-slate-900/30">
-            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-orange-500" aria-hidden="true" />
-            <span className="uppercase tracking-wide text-slate-300">Ends in</span>
-            <span className="text-orange-400 font-mono tabular-nums">{pad2(hours)}:{pad2(mins)}:{pad2(secs)}</span>
+          <span className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-sm">
+            <span className="relative flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-orange-400 opacity-75" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-orange-500" />
+            </span>
+            <span className="text-slate-300">Ends in</span>
+            <span className="font-mono font-bold tabular-nums text-orange-300">{pad2(hours)}:{pad2(mins)}:{pad2(secs)}</span>
           </span>
-          <Link to="/shop" className="text-xs font-bold uppercase tracking-wider text-slate-900 hover:text-slate-600 transition-colors">
-            See More →
+          <Link to="/shop" className="group hidden sm:inline-flex items-center gap-1 text-sm font-semibold text-teal-700 hover:text-teal-800">
+            See more
+            <span aria-hidden="true" className="transition-transform group-hover:translate-x-0.5">→</span>
           </Link>
         </div>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-[240px_minmax(0,1fr)_minmax(0,1fr)]">
+      <div className="grid gap-4 lg:grid-cols-[260px_minmax(0,1fr)_minmax(0,1fr)] md:gap-5">
         {/* promo poster tile */}
-        <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-teal-600 via-slate-900 to-slate-950 p-5 flex flex-col justify-between text-white">
-          <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10 blur-2xl" aria-hidden="true" />
-          <div className="absolute -left-8 bottom-0 h-32 w-32 rounded-full bg-amber-400/20 blur-2xl" aria-hidden="true" />
-          {/* pixel-X echo */}
-          <BoltMark size={240} className="pointer-events-none absolute -bottom-16 -right-14 text-white/10" />
+        <div className="relative overflow-hidden rounded-2xl bg-slate-950 p-6 flex flex-col justify-between text-white min-h-[260px]">
+          <div aria-hidden="true" className="xp-pattern absolute inset-0 opacity-60" />
+          <div className="absolute -right-12 -top-12 h-44 w-44 rounded-full bg-teal-500/25 blur-3xl" aria-hidden="true" />
+          <div className="absolute -left-10 bottom-6 h-36 w-36 rounded-full bg-amber-400/15 blur-3xl" aria-hidden="true" />
+          <BoltMark size={220} className="pointer-events-none absolute -bottom-14 -right-12 text-white/[0.07]" />
           <div className="relative">
-            <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.3em] text-amber-200">End of Season</p>
-            <p
-              className="mt-2 font-display text-4xl font-black uppercase leading-[0.95] tracking-tight"
-              style={{ textShadow: "0 0 26px rgba(231,181,46,0.45), 0 0 64px rgba(231,181,46,0.22)" }}
-            >
-              Mega<br />Deals
+            <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-teal-300">End of season</p>
+            <p className="mt-3 font-display text-5xl font-bold leading-[0.98] tracking-tight text-white">
+              Mega<br />deals
             </p>
-            <span className="mt-3 inline-flex rounded-md bg-amber-300 px-2 py-1 text-[11px] font-black uppercase tracking-wide text-slate-900 shadow shadow-amber-300/40">
+            <span className="mt-4 inline-flex rounded-full bg-white px-3 py-1.5 text-xs font-bold text-slate-900 shadow">
               Up to 40% off
             </span>
           </div>
           <button
             type="button"
             onClick={() => navigate("/shop")}
-            className="relative self-start mt-6 rounded-lg bg-white/15 border border-white/25 px-4 py-2 text-xs font-bold text-white backdrop-blur transition hover:bg-white hover:text-teal-800"
+            className="relative self-start mt-6 inline-flex items-center gap-1.5 rounded-full bg-teal-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-teal-500"
           >
-            View all offers →
+            View all offers
+            <span aria-hidden="true">→</span>
           </button>
         </div>
 

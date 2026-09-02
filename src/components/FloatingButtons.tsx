@@ -34,15 +34,15 @@ export default function FloatingButtons() {
 
   return (
     <>
-      {/* Our Reviews — vertical side tab, like the PK competitor stores */}
+      {/* Reviews — vertical side tab */}
       <button
         type="button"
         onClick={goReviews}
         aria-label="Read customer reviews"
-        className="fixed right-0 top-1/2 z-40 hidden -translate-y-1/2 flex-col items-center gap-1 rounded-l-md bg-slate-900 px-1.5 py-3 text-white shadow-lg transition-colors hover:bg-slate-700 md:flex [writing-mode:vertical-rl]"
+        className="fixed right-0 top-1/2 z-40 hidden -translate-y-1/2 flex-col items-center gap-1.5 rounded-l-2xl bg-teal-600 px-2 py-4 text-white shadow-lg transition-colors hover:bg-teal-700 md:flex [writing-mode:vertical-rl]"
       >
-        <StarIcon size={13} className="text-amber-400" />
-        <span className="text-[11px] font-bold tracking-wide">Our Reviews</span>
+        <StarIcon size={13} className="text-amber-300" />
+        <span className="text-[11px] font-semibold tracking-wide">Our reviews</span>
       </button>
 
       {/* WhatsApp — always available, like the PK competitor stores */}

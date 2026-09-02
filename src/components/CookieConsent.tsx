@@ -44,7 +44,7 @@ export default function CookieConsent() {
               We use essential cookies to run the store (cart, login, checkout). With your
               permission we'd also like to use privacy-aware analytics to improve the shop.
               No payment data is ever stored in cookies.{" "}
-              <a href="/privacy" className="text-orange-600 font-semibold underline decoration-dotted">
+              <a href="/privacy" className="text-teal-300 font-semibold underline decoration-dotted">
                 Privacy & cookie policy
               </a>
             </p>
@@ -54,7 +54,7 @@ export default function CookieConsent() {
         {customize && (
           <div className="mb-4 space-y-2 border-t border-slate-100 pt-3">
             <label className="flex items-center gap-3 text-sm">
-              <input type="checkbox" checked disabled className="accent-orange-500" />
+              <input type="checkbox" checked disabled className="accent-teal-600" />
               <span>
                 <span className="font-semibold text-slate-900">Essential</span>{" "}
                 <span className="text-slate-500">— login, cart, checkout, security (always on)</span>
@@ -65,7 +65,7 @@ export default function CookieConsent() {
                 type="checkbox"
                 checked={analytics}
                 onChange={(e) => setAnalytics(e.target.checked)}
-                className="accent-orange-500"
+                className="accent-teal-600"
               />
               <span>
                 <span className="font-semibold text-slate-900">Analytics</span>{" "}
@@ -77,7 +77,7 @@ export default function CookieConsent() {
                 type="checkbox"
                 checked={marketing}
                 onChange={(e) => setMarketing(e.target.checked)}
-                className="accent-orange-500"
+                className="accent-teal-600"
               />
               <span>
                 <span className="font-semibold text-slate-900">Marketing</span>{" "}
@@ -90,27 +90,27 @@ export default function CookieConsent() {
         <div className="flex flex-wrap gap-2">
           <button
             onClick={() => finish({ essential: true, analytics: true, marketing: true })}
-            className="px-5 py-2.5 rounded-lg bg-slate-900 text-white text-sm font-bold hover:bg-slate-800"
+            className="btn-primary px-5 py-2.5 text-sm hover:bg-slate-800"
           >
             Accept all
           </button>
           <button
             onClick={() => finish({ essential: true, analytics: false, marketing: false })}
-            className="px-5 py-2.5 rounded-lg border border-slate-300 text-sm font-semibold hover:bg-slate-50"
+            className="btn-ghost px-5 py-2.5 text-sm hover:bg-slate-50"
           >
             Essential only
           </button>
           {customize ? (
             <button
               onClick={() => finish({ essential: true, analytics, marketing })}
-              className="px-5 py-2.5 rounded-lg bg-slate-900 text-white text-sm font-semibold hover:bg-slate-700"
+              className="btn-primary px-5 py-2.5 text-sm hover:bg-slate-700"
             >
               Save preferences
             </button>
           ) : (
             <button
               onClick={() => setCustomize(true)}
-              className="px-5 py-2.5 rounded-lg text-sm font-semibold text-orange-600 hover:underline"
+              className="px-5 py-2.5 rounded-lg text-sm font-semibold text-teal-300 hover:underline"
             >
               Customize
             </button>

@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
-import { SlidersIcon, StarIcon } from "../components/icons";
-import { Link, useRouter } from "../router";
+import { useRouter } from "../router";
 import { useProducts, useUI } from "../context/store";
 import ProductCard from "../components/ProductCard";
+import CategoryLogo from "../components/CategoryLogo";
 import ViewToggle, { type ProductView } from "../components/ViewToggle";
 import RecentlyViewed from "../components/RecentlyViewed";
 import { BoltMark, Kicker } from "../components/brand";
+import { SlidersIcon } from "../components/icons";
 import { smartSearch, didYouMean } from "../lib/fuzzy";
 import { track } from "../lib/tracking";
 import { pixelTrack } from "../lib/pixel";
@@ -20,21 +21,12 @@ const SORTS = [
 ];
 
 const PRICE_BANDS = [
-  { id: "all", label: "Any price", min: 0, max: Infinity },
-  { id: "u2", label: "Under Rs 2,000", min: 0, max: 1999 },
-  { id: "2-5", label: "Rs 2,000–5,000", min: 2000, max: 5000 },
-  { id: "5-10", label: "Rs 5,000–10,000", min: 5001, max: 10000 },
-  { id: "10p", label: "Over Rs 10,000", min: 10001, max: Infinity },
+  { id: "all", label: "Any price", short: "Any price", min: 0, max: Infinity },
+  { id: "u2", label: "Under Rs 2,000", short: "Under 2k", min: 0, max: 1999 },
+  { id: "2-5", label: "Rs 2,000–5,000", short: "2k–5k", min: 2000, max: 5000 },
+  { id: "5-10", label: "Rs 5,000–10,000", short: "5k–10k", min: 5001, max: 10000 },
+  { id: "10p", label: "Over Rs 10,000", short: "Over 10k", min: 10001, max: Infinity },
 ];
-
-const SHORT_SORTS: Record<string, string> = {
-  featured: "Featured",
-  "price-asc": "Price low",
-  "price-desc": "Price high",
-  rating: "Top rated",
-  discount: "Discount",
-  name: "A–Z",
-};
 
 function Skeleton() {
   return (
@@ -136,7 +128,7 @@ export default function ShopPage() {
       <div className="mb-3 flex items-end justify-between gap-3">
         <div>
           <p className="mb-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.22em] text-teal-700">The everyday edit</p>
-          <h1 className="text-2xl font-black tracking-tight text-slate-900 sm:text-4xl">Shop all products</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-4xl">Shop all products</h1>
           <p className="mt-0.5 text-sm leading-5 text-slate-500 sm:max-w-xl">
             Curated gear, clear prices, and COD across Pakistan.
             {offline && <span className="ml-2 font-semibold text-amber-600">Offline catalog</span>}
@@ -145,78 +137,254 @@ export default function ShopPage() {
         <p className="hidden shrink-0 font-mono text-xs font-semibold text-slate-400 sm:block">{loading ? "Loading" : `${list.length} items`}</p>
       </div>
 
-      <div className="lg:grid lg:grid-cols-[220px_1fr] lg:gap-8">
-        {/* sidebar (desktop) */}
-        <aside className="hidden lg:block">
-          <label className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-400" htmlFor="sidebar-category-select">Category</label>
-          <select
-            id="sidebar-category-select"
-            value={cat}
-            onChange={(e) => setCat(e.target.value)}
-            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm font-semibold text-slate-700 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/15"
+      {/* search — one clear full-width field */}
+      <div className="mb-3">
+        <input
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Search products…"
+          className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-teal-500 focus:ring-2 focus:ring-teal-500/15"
+        />
+      </div>
+
+      {/* mobile — a single Filter button (opens the sheet), sort, and view */}
+      <div className="mb-4 flex items-center gap-2 sm:hidden">
+        <button
+          type="button"
+          onClick={() => setFilterOpen(true)}
+          className={`flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded-xl border px-3 py-2.5 text-sm font-bold ${
+            activeFilterCount || cat !== "all"
+              ? "border-teal-700 bg-teal-50 text-teal-800"
+              : "border-slate-200 bg-white text-slate-700"
+          }`}
+        >
+          <SlidersIcon size={16} />
+          <span className="truncate">Filter</span>
+          {(activeFilterCount > 0 || cat !== "all") && (
+            <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-teal-700 px-1.5 text-[11px] font-bold text-white">
+              {activeFilterCount + (cat !== "all" ? 1 : 0)}
+            </span>
+          )}
+        </button>
+        <select
+          aria-label="Sort products"
+          value={sort}
+          onChange={(e) => setSort(e.target.value)}
+          className="shrink-0 rounded-xl border border-slate-200 bg-white py-2.5 pl-3 pr-8 text-sm font-semibold text-slate-700 outline-none focus:border-teal-500"
+        >
+          {SORTS.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}
+        </select>
+        <ViewToggle view={view} onChange={setView} />
+      </div>
+
+      {/* desktop — easy filters, all visible as one-tap pills */}
+      <div className="mb-5 hidden space-y-2.5 rounded-2xl bg-white p-4 ring-1 ring-slate-900/5 shadow-[0_1px_2px_rgba(16,42,36,0.04),0_12px_32px_-20px_rgba(16,42,36,0.25)] sm:block">
+        {/* categories — logos so each section is obvious; All first */}
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar -mx-1 px-1 pb-0.5">
+          <button
+            type="button"
+            aria-pressed={cat === "all"}
+            onClick={() => setCat("all")}
+            className={`flex shrink-0 items-center gap-1.5 rounded-full py-1.5 pl-2.5 pr-4 text-sm font-semibold transition-colors ${
+              cat === "all"
+                ? "bg-slate-900 text-white"
+                : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+            }`}
           >
-            <option value="all">All products</option>
-            {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+            All
+          </button>
+          {categories.map((c) => {
+            const on = cat === c.id;
+            return (
+              <button
+                key={c.id}
+                type="button"
+                aria-pressed={on}
+                onClick={() => setCat(on ? "all" : c.id)}
+                className={`flex shrink-0 items-center gap-1.5 rounded-full py-1.5 pl-1.5 pr-4 text-sm font-semibold transition-colors ${
+                  on ? "bg-teal-600 text-white" : "bg-slate-100 text-slate-700 hover:bg-teal-50 hover:text-teal-800"
+                }`}
+              >
+                <CategoryLogo category={c} size={24} variant="plain" active={on} />
+                {c.name}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* price, quick toggles, sort, view */}
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar -mx-1 px-1 pb-0.5">
+          {PRICE_BANDS.map((b) => {
+            const on = priceBand === b.id;
+            return (
+              <button
+                key={b.id}
+                type="button"
+                aria-pressed={on}
+                title={b.label}
+                onClick={() => setPriceBand(on ? "all" : b.id)}
+                className={`shrink-0 rounded-full px-3.5 py-1.5 text-sm font-semibold transition-colors ${
+                  on ? "bg-teal-600 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                }`}
+              >
+                {b.short}
+              </button>
+            );
+          })}
+
+          <span className="h-5 w-px shrink-0 bg-slate-200" aria-hidden="true" />
+
+          <button
+            type="button"
+            aria-pressed={inStockOnly}
+            onClick={() => setInStockOnly((v) => !v)}
+            className={`shrink-0 rounded-full px-3.5 py-1.5 text-sm font-semibold transition-colors ${
+              inStockOnly ? "bg-teal-600 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+            }`}
+          >
+            {inStockOnly ? "✓ In stock" : "In stock"}
+          </button>
+          <button
+            type="button"
+            aria-pressed={topRatedOnly}
+            onClick={() => setTopRatedOnly((v) => !v)}
+            className={`shrink-0 rounded-full px-3.5 py-1.5 text-sm font-semibold transition-colors ${
+              topRatedOnly ? "bg-teal-600 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+            }`}
+          >
+            {topRatedOnly ? "✓ 4★ & up" : "4★ & up"}
+          </button>
+
+          <span className="flex-1" aria-hidden="true" />
+
+          {(activeFilterCount > 0 || cat !== "all" || sort !== "featured") && (
+            <button
+              type="button"
+              onClick={clear}
+              className="shrink-0 rounded-full px-3 py-1.5 text-sm font-bold text-slate-500 underline decoration-dotted underline-offset-2 hover:text-teal-700"
+            >
+              Reset
+            </button>
+          )}
+
+          <select
+            aria-label="Sort products"
+            value={sort}
+            onChange={(e) => setSort(e.target.value)}
+            className="shrink-0 rounded-full border border-slate-200 bg-white py-1.5 pl-3.5 pr-8 text-sm font-semibold text-slate-700 outline-none focus:border-teal-500"
+          >
+            {SORTS.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}
           </select>
-        </aside>
+          <ViewToggle view={view} onChange={setView} />
+        </div>
+      </div>
 
-        <div>
-          {/* search */}
-          <div className="mb-2">
-            <input
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search products…"
-              className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-teal-500 focus:ring-2 focus:ring-teal-500/15"
-            />
+      {/* mobile filter sheet */}
+      {filterOpen && (
+        <div className="fixed inset-0 z-[60] sm:hidden" role="dialog" aria-modal="true" aria-label="Filter products">
+          <button type="button" aria-label="Close filters" onClick={() => setFilterOpen(false)} className="absolute inset-0 bg-slate-950/40" />
+          <div className="absolute inset-x-0 bottom-0 flex max-h-[88vh] flex-col rounded-t-3xl bg-white shadow-2xl">
+            <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
+              <h2 className="text-base font-bold text-slate-900">
+                Filters
+                {(activeFilterCount > 0 || cat !== "all") && (
+                  <span className="ml-2 rounded-full bg-teal-100 px-2 py-0.5 text-xs font-bold text-teal-800">
+                    {activeFilterCount + (cat !== "all" ? 1 : 0)}
+                  </span>
+                )}
+              </h2>
+              <button type="button" onClick={() => setFilterOpen(false)} className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-2xl leading-none text-slate-500" aria-label="Close filters">×</button>
+            </div>
+
+            <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-5 py-4">
+              <fieldset>
+                <legend className="mb-2 text-xs font-bold uppercase tracking-wide text-slate-400">Category</legend>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setCat("all")}
+                    className={`rounded-full px-3.5 py-1.5 text-sm font-semibold transition-colors ${
+                      cat === "all" ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-700"
+                    }`}
+                  >
+                    All
+                  </button>
+                  {categories.map((c) => {
+                    const on = cat === c.id;
+                    return (
+                      <button
+                        key={c.id}
+                        type="button"
+                        onClick={() => setCat(on ? "all" : c.id)}
+                        className={`flex items-center gap-1.5 rounded-full py-1.5 pl-1.5 pr-3.5 text-sm font-semibold transition-colors ${
+                          on ? "bg-teal-600 text-white" : "bg-slate-100 text-slate-700"
+                        }`}
+                      >
+                        <CategoryLogo category={c} size={22} variant="plain" active={on} />
+                        {c.name}
+                      </button>
+                    );
+                  })}
+                </div>
+              </fieldset>
+
+              <fieldset>
+                <legend className="mb-2 text-xs font-bold uppercase tracking-wide text-slate-400">Price</legend>
+                <div className="flex flex-wrap gap-2">
+                  {PRICE_BANDS.map((b) => {
+                    const on = priceBand === b.id;
+                    return (
+                      <button
+                        key={b.id}
+                        type="button"
+                        onClick={() => setPriceBand(on ? "all" : b.id)}
+                        className={`rounded-full px-3.5 py-1.5 text-sm font-semibold transition-colors ${
+                          on ? "bg-teal-600 text-white" : "bg-slate-100 text-slate-600"
+                        }`}
+                      >
+                        {b.short}
+                      </button>
+                    );
+                  })}
+                </div>
+              </fieldset>
+
+              <fieldset>
+                <legend className="mb-2 text-xs font-bold uppercase tracking-wide text-slate-400">Availability</legend>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setInStockOnly((v) => !v)}
+                    className={`rounded-full px-3.5 py-1.5 text-sm font-semibold transition-colors ${
+                      inStockOnly ? "bg-teal-600 text-white" : "bg-slate-100 text-slate-600"
+                    }`}
+                  >
+                    {inStockOnly ? "✓ In stock" : "In stock"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTopRatedOnly((v) => !v)}
+                    className={`rounded-full px-3.5 py-1.5 text-sm font-semibold transition-colors ${
+                      topRatedOnly ? "bg-teal-600 text-white" : "bg-slate-100 text-slate-600"
+                    }`}
+                  >
+                    {topRatedOnly ? "✓ 4★ & up" : "4★ & up"}
+                  </button>
+                </div>
+              </fieldset>
+            </div>
+
+            <div className="flex gap-2 border-t border-slate-100 px-5 py-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
+              <button type="button" onClick={clear} className="flex-1 rounded-xl border border-slate-200 px-4 py-3 text-sm font-bold text-slate-700">Reset</button>
+              <button type="button" onClick={() => setFilterOpen(false)} className="flex-[1.6] rounded-xl bg-slate-900 px-4 py-3 text-sm font-bold text-white">
+                Show {list.length} products
+              </button>
+            </div>
           </div>
+        </div>
+      )}
 
-          {/* compact mobile controls: filters, sort, and view stay together */}
-          <div className="mb-3 flex items-center gap-1.5 sm:hidden">
-            <button
-              type="button"
-              onClick={() => setFilterOpen(true)}
-              className={`flex min-w-0 flex-1 items-center justify-center gap-1 rounded-xl border px-2 py-2 text-sm font-bold ${activeFilterCount ? "border-teal-700 bg-teal-50 text-teal-800" : "border-slate-200 bg-white text-slate-700"}`}
-            >
-              <SlidersIcon size={15} /> Filters {activeFilterCount > 0 && <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-teal-700 px-1.5 text-[11px] text-white">{activeFilterCount}</span>}
-            </button>
-            <button
-              type="button"
-              onClick={() => setFilterOpen(true)}
-              className="flex min-w-0 flex-1 items-center justify-center rounded-xl border border-slate-200 bg-white px-2 py-2 text-sm font-bold text-slate-700"
-            >
-              Sort · {SHORT_SORTS[sort] ?? "Featured"}
-            </button>
-            <ViewToggle view={view} onChange={setView} />
-          </div>
-
-          {/* desktop sort and view controls */}
-          <div className="mb-4 hidden items-center justify-end gap-2 sm:flex">
-            <select
-              value={sort}
-              onChange={(e) => setSort(e.target.value)}
-              className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none"
-            >
-              {SORTS.map((s) => (
-                <option key={s.id} value={s.id}>{s.label}</option>
-              ))}
-            </select>
-            <ViewToggle view={view} onChange={setView} />
-          </div>
-
-          <div className="mb-5 hidden sm:block">
-            <label className="sr-only" htmlFor="category-select">Category</label>
-            <select
-              id="category-select"
-              value={cat}
-              onChange={(e) => setCat(e.target.value)}
-              className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/15"
-            >
-              <option value="all">All products</option>
-              {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-            </select>
-          </div>
-
+      <div>
           {/* synonym interpretation notice (Urdu / Roman-Urdu / market terms) */}
           {searchQuery.trim() && !fuzzyUsed && interpretedAs && list.length > 0 && (
             <div className="surface-muted rounded-lg px-4 py-2.5 mb-4 text-sm text-slate-600">
@@ -286,13 +454,13 @@ export default function ShopPage() {
                 )}
                 <button
                   onClick={clear}
-                  className="px-6 py-2.5 rounded-lg bg-slate-900 text-white font-semibold hover:bg-slate-700 transition"
+                  className="btn-primary px-6 py-3"
                 >
                   Clear filters
                 </button>
               </div>
               <Kicker center className="text-amber-600">Meanwhile</Kicker>
-              <h3 className="text-lg font-black text-slate-900 mb-4">Customers are loving these</h3>
+              <h3 className="text-lg font-bold text-slate-900 mb-4">Customers are loving these</h3>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {products.filter((p) => p.bestSeller).slice(0, 4).map((p) => (
                   <ProductCard key={p.id} product={p} />
@@ -318,7 +486,7 @@ export default function ShopPage() {
                 <div className="text-center mt-8">
                   <button
                     onClick={() => setVisible((v) => v + 12)}
-                    className="px-8 py-3 rounded-lg bg-slate-900 text-white font-bold text-sm hover:bg-slate-700 transition-all"
+                    className="btn-primary px-8 py-3.5 text-sm"
                   >
                     Load more ({list.length - visible} remaining)
                   </button>
@@ -326,43 +494,7 @@ export default function ShopPage() {
               )}
             </>
           )}
-        </div>
       </div>
-
-      {filterOpen && (
-        <div className="fixed inset-0 z-[60] sm:hidden" role="dialog" aria-modal="true" aria-label="Product filters">
-          <button type="button" aria-label="Close filters" onClick={() => setFilterOpen(false)} className="absolute inset-0 bg-slate-950/35" />
-          <div className="absolute inset-y-0 right-0 flex w-[min(88vw,380px)] flex-col bg-white p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] shadow-2xl">
-            <div className="mb-5 flex items-center justify-between">
-              <div>
-                <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-teal-700">Refine results</p>
-                <h2 className="mt-1 text-xl font-black text-slate-900">Filters</h2>
-              </div>
-              <button type="button" onClick={() => setFilterOpen(false)} className="rounded-lg px-2 py-1 text-2xl leading-none text-slate-400" aria-label="Close filters">×</button>
-            </div>
-            <div className="min-h-0 flex-1 space-y-5 overflow-y-auto">
-              <label className="block text-sm font-bold text-slate-900">Sort by
-                <select value={sort} onChange={(e) => setSort(e.target.value)} className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium outline-none">
-                  {SORTS.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}
-                </select>
-              </label>
-              <label className="block text-sm font-bold text-slate-900">Price range
-                <select value={priceBand} onChange={(e) => setPriceBand(e.target.value)} className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium outline-none">
-                  {PRICE_BANDS.map((b) => <option key={b.id} value={b.id}>{b.label}</option>)}
-                </select>
-              </label>
-              <div className="grid grid-cols-2 gap-2">
-                <button type="button" onClick={() => setInStockOnly((v) => !v)} className={`rounded-xl border px-3 py-3 text-sm font-bold ${inStockOnly ? "border-teal-700 bg-teal-50 text-teal-800" : "border-slate-200 bg-white text-slate-700"}`}>{inStockOnly ? "✓ In stock" : "In stock"}</button>
-                <button type="button" onClick={() => setTopRatedOnly((v) => !v)} className={`rounded-xl border px-3 py-3 text-sm font-bold ${topRatedOnly ? "border-teal-700 bg-teal-50 text-teal-800" : "border-slate-200 bg-white text-slate-700"}`}>{topRatedOnly ? "✓ 4+ rated" : "4+ rated"}</button>
-              </div>
-            </div>
-            <div className="mt-6 flex gap-2 border-t border-slate-100 pt-4">
-              <button type="button" onClick={clear} className="flex-1 rounded-xl border border-slate-200 px-4 py-3 text-sm font-bold text-slate-700">Clear all</button>
-              <button type="button" onClick={() => setFilterOpen(false)} className="flex-[1.5] rounded-xl bg-slate-900 px-4 py-3 text-sm font-bold text-white">Show {list.length} products</button>
-            </div>
-          </div>
-        </div>
-      )}
 
       <RecentlyViewed />
     </main>

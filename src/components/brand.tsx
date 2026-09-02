@@ -74,7 +74,7 @@ export function Logo({
   );
 }
 
-/** Section kicker — mono micro-label with the charge-ring hairline motif. */
+/** Section kicker — editorial eyebrow: small dot + spaced-out sans label. */
 export function Kicker({
   children,
   center = false,
@@ -84,16 +84,12 @@ export function Kicker({
   center?: boolean;
   className?: string;
 }) {
-  const rule = "inline-block h-px w-5 bg-current opacity-50";
   return (
     <p
-      className={`mb-1 flex items-center gap-2 font-mono text-[10px] font-semibold uppercase tracking-[0.28em] text-teal-600 ${
-        center ? "justify-center" : ""
-      } ${className}`}
+      className={`eyebrow mb-2.5 ${center ? "justify-center" : ""} ${className}`}
     >
-      {!center && <span className={rule} aria-hidden="true" />}
+      <span className="h-1.5 w-1.5 rounded-full bg-teal-600" aria-hidden="true" />
       {children}
-      {center && <span className={rule} aria-hidden="true" />}
     </p>
   );
 }
