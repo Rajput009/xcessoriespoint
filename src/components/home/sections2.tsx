@@ -4,6 +4,7 @@ import { useProducts } from "../../context/store";
 import ProductCard, { Stars } from "../ProductCard";
 import { StarIcon } from "../icons";
 import ViewToggle, { type ProductView } from "../ViewToggle";
+import { BoltMark, Kicker } from "../brand";
 
 /* ---------- 6. ReviewsSummary ---------- */
 const REVIEWS = [
@@ -31,13 +32,13 @@ export function ReviewsSummary() {
   const bars = [78, 15, 4, 2, 1];
   return (
     <section id="reviews" className="max-w-7xl mx-auto px-6 py-7 md:py-9 scroll-mt-24">
-      <p className="text-[11px] font-black uppercase tracking-[0.2em] text-orange-500 mb-1 text-center">Social proof</p>
-      <h2 className="text-3xl md:text-4xl font-black uppercase tracking-tight text-slate-900 mb-5 text-center">
+      <Kicker center>Social proof</Kicker>
+      <h2 className="text-3xl md:text-4xl font-black tracking-tight text-slate-900 mb-5 text-center">
         What Customers Say
       </h2>
       <div className="grid lg:grid-cols-3 gap-x-10 gap-y-8">
         {/* rating summary card */}
-        <div className="rounded-2xl border border-slate-200/80 bg-gradient-to-br from-sky-50 via-white to-violet-50 p-5 md:p-7 shadow-[0_1px_2px_rgba(15,23,42,0.05)] ring-1 ring-white/60 h-fit">
+        <div className="rounded-xl border border-slate-200/80 bg-white p-5 md:p-7 shadow-[0_1px_2px_rgba(15,23,42,0.05)] h-fit">
           <div className="flex items-end gap-3 mb-5">
             <span className="text-5xl font-black text-slate-900">4.7</span>
             <div className="pb-1">
@@ -107,7 +108,7 @@ export function NewArrivalsCarousel() {
     <section className="max-w-7xl mx-auto px-6 py-7 md:py-9">
       <div className="flex items-end justify-between gap-4 mb-5">
         <div>
-          <p className="text-[11px] font-black uppercase tracking-[0.2em] text-orange-500 mb-1">Just landed</p>
+          <Kicker>Just landed</Kicker>
           <h2 className="text-3xl md:text-4xl font-black uppercase tracking-tight text-slate-900">New Arrivals</h2>
           <p className="text-sm text-slate-500 mt-1">Fresh additions to the store.</p>
         </div>
@@ -159,7 +160,7 @@ export function NewArrivalsCarousel() {
           </div>
         </div>
         {/* 8-product grid / list */}
-        <div className={view === "list" ? "lg:col-span-3 grid grid-cols-1 gap-3" : "lg:col-span-3 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"}>
+        <div className={view === "list" ? "lg:col-span-3 grid grid-cols-1 gap-3" : "lg:col-span-3 grid grid-cols-2 gap-2 md:grid-cols-3 lg:grid-cols-4 md:gap-4"}>
           {list.map((p) => (
             <ProductCard key={p.id} product={p} view={view} />
           ))}
@@ -183,7 +184,7 @@ export function VideoStrip() {
     <section className="max-w-7xl mx-auto px-6 py-7 md:py-9">
       <div className="flex items-end justify-between mb-5">
         <div>
-          <p className="text-[11px] font-black uppercase tracking-[0.2em] text-orange-500 mb-1">Watch & shop</p>
+          <Kicker>Watch & shop</Kicker>
           <h2 className="text-2xl md:text-3xl font-black text-slate-900">See It in Action</h2>
           <p className="text-sm text-slate-500 mt-1">Real products, real tests, real customers.</p>
         </div>
@@ -191,9 +192,12 @@ export function VideoStrip() {
       <div className="flex gap-4 overflow-x-auto no-scrollbar snap-x pb-2">
         {/* brand tile */}
         <div className="snap-start shrink-0 w-44 h-72 rounded-lg bg-slate-950 text-white p-5 flex flex-col justify-between">
-          <p className="font-black text-lg leading-tight">
-            Xccessories<br />Point
-          </p>
+          <div>
+            <BoltMark size={30} className="mb-3 text-amber-300" />
+            <p className="font-display font-black text-lg leading-tight">
+              Xccessories<br />Point
+            </p>
+          </div>
           <div>
             <p className="text-xs text-slate-300 mb-2">3,200+ five-star reviews</p>
             <button
@@ -244,7 +248,7 @@ export function FaqSection() {
   const [open, setOpen] = useState<number | null>(0);
   return (
     <section className="max-w-3xl mx-auto px-6 py-7 md:py-9">
-      <p className="text-[11px] font-black uppercase tracking-[0.2em] text-orange-500 mb-1 text-center">Good to know</p>
+      <Kicker center>Good to know</Kicker>
       <h2 className="text-2xl md:text-3xl font-black text-slate-900 mb-5 text-center">Frequently Asked Questions</h2>
       <div className="divide-y divide-slate-200 border-y border-slate-200">
         {FAQS.map((f, i) => (

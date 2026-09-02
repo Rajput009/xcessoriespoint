@@ -6,6 +6,7 @@ import {
   MenuIcon, ZapIcon, TruckIcon,
 } from "./icons";
 import { smartSearch } from "../lib/fuzzy";
+import { Logo } from "./brand";
 
 const ANNOUNCEMENTS = [
   { icon: <ZapIcon size={14} />, text: "Use code WELCOME10 for 10% off your first order" },
@@ -321,20 +322,13 @@ export default function Header() {
           <div className="max-w-7xl mx-auto px-4 md:px-6">
             {/* desktop: one clear shopping row */}
             <div className={`hidden md:flex items-center gap-4 ${scrolled ? "h-14" : "h-16"}`}>
-              {/* brand */}
+              {/* brand — bolt-X mark + wordmark */}
               <Link
                 to="/"
                 aria-label="XccessoriesPoint — home"
-                className="shrink-0 flex items-center gap-2.5 group"
+                className="shrink-0 flex items-center group"
               >
-                <span
-                  className="w-9 h-9 rounded-xl flex items-center justify-center font-black text-xl leading-none transition-transform group-hover:scale-105 bg-gradient-to-br from-slate-900 to-slate-700 text-white shadow-md shadow-slate-900/30"
-                >
-                  X
-                </span>
-                <span className="hidden sm:block text-lg font-black tracking-tight whitespace-nowrap text-slate-900">
-                  Xccessories<span className="text-orange-600">Point</span>
-                </span>
+                <Logo markSize={36} className="transition-transform duration-300 group-hover:scale-[1.02]" />
               </Link>
 
               <button
@@ -421,14 +415,9 @@ export default function Header() {
                 <Link
                   to="/"
                   aria-label="XccessoriesPoint — home"
-                  className="flex-1 min-w-0 flex items-center justify-center gap-1.5"
+                  className="flex-1 min-w-0 flex items-center justify-center"
                 >
-                  <span className="w-7 h-7 rounded-lg flex items-center justify-center font-black text-base leading-none shrink-0 bg-gradient-to-br from-slate-900 to-slate-700 text-white">
-                    X
-                  </span>
-                  <span className="text-[15px] font-black tracking-tight truncate text-slate-900">
-                    Xccessories<span className="text-orange-600">Point</span>
-                  </span>
+                  <Logo markSize={26} compact className="gap-2" />
                 </Link>
                 <button onClick={() => openModal("cart")} className={mobileIconBtn} aria-label="Cart">
                   <CartIcon size={20} />

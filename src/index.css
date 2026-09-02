@@ -1,11 +1,77 @@
 @import "tailwindcss";
-@import "@fontsource-variable/inter";
-@import "@fontsource-variable/outfit";
+@import "@fontsource-variable/space-grotesk";
+@import "@fontsource-variable/plus-jakarta-sans";
+@import "@fontsource-variable/jetbrains-mono";
 
 @theme {
   /* Self-hosted variable fonts — bundled locally, no runtime CDN dependency */
-  --font-sans: "Inter Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  --font-display: "Outfit Variable", "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Plus Jakarta Sans Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-display: "Space Grotesk Variable", "Plus Jakarta Sans Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono Variable", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* ---- Brand neutrals: warm teal-ink (replaces stock cold blue-slate).
+     Every existing slate-xxx class keeps working — it just reads as brand now. ---- */
+  --color-slate-50: #f4f8f6;
+  --color-slate-100: #e9f0ed;
+  --color-slate-200: #d6e2dd;
+  --color-slate-300: #b4c9c1;
+  --color-slate-400: #8aa69c;
+  --color-slate-500: #64847a;
+  --color-slate-600: #47665c;
+  --color-slate-700: #334f47;
+  --color-slate-800: #203a33;
+  --color-slate-900: #122822;
+  --color-slate-950: #0a1714;
+
+  /* ---- Signal orange — sale & price only (secondary accent) ---- */
+  --color-orange-50: #fff6ee;
+  --color-orange-100: #ffe9d8;
+  --color-orange-200: #ffd0ac;
+  --color-orange-300: #ffae74;
+  --color-orange-400: #ff8a40;
+  --color-orange-500: #f4651e;
+  --color-orange-600: #db4c12;
+  --color-orange-700: #b53a0f;
+  --color-orange-800: #922f11;
+  --color-orange-900: #78290f;
+
+  /* ---- Gold — ratings & trust ---- */
+  --color-amber-50: #fdf8e9;
+  --color-amber-100: #faedc6;
+  --color-amber-200: #f4dd8f;
+  --color-amber-300: #edc95a;
+  --color-amber-400: #e7b52e;
+  --color-amber-500: #d99e14;
+  --color-amber-600: #bb7d0d;
+  --color-amber-700: #955c0f;
+  --color-amber-800: #7b4812;
+  --color-amber-900: #693b13;
+
+  /* ---- Teal — the load-bearing brand hue.
+     blue-* is remapped to the same scale so legacy blue classes become brand. ---- */
+  --color-teal-50: #eff8f5;
+  --color-teal-100: #ddefea;
+  --color-teal-200: #bddfd6;
+  --color-teal-300: #92c8ba;
+  --color-teal-400: #5eab9a;
+  --color-teal-500: #2f8f7e;
+  --color-teal-600: #147564;
+  --color-teal-700: #115e52;
+  --color-teal-800: #104c43;
+  --color-teal-900: #0f3f38;
+  --color-teal-950: #07241f;
+
+  --color-blue-50: #eff8f5;
+  --color-blue-100: #ddefea;
+  --color-blue-200: #bddfd6;
+  --color-blue-300: #92c8ba;
+  --color-blue-400: #5eab9a;
+  --color-blue-500: #2f8f7e;
+  --color-blue-600: #147564;
+  --color-blue-700: #115e52;
+  --color-blue-800: #104c43;
+  --color-blue-900: #0f3f38;
+  --color-blue-950: #07241f;
 }
 
 html { scroll-behavior: smooth; }
@@ -13,13 +79,12 @@ html { scroll-behavior: smooth; }
 body {
   @apply font-sans text-slate-800 antialiased;
   font-feature-settings: "cv11", "ss01";
-  /* Soft tinted canvas — a whisper of the hero's sky→violet gradient.
-     White cards and bands pop slightly more than on flat white. */
-  background-color: #fafbfd;
+  /* Warm ivory canvas — the paper under the teal-ink brand */
+  background-color: #fbfaf6;
 }
 
 /* Fixed gradient wash behind the whole page (viewport-sized, never scrolls,
-   doesn't re-render on scroll). Corner glows echo the hero card's tints. */
+   doesn't re-render on scroll). Corner glows echo the brand: teal + gold. */
 body::before {
   content: "";
   position: fixed;
@@ -27,19 +92,19 @@ body::before {
   z-index: -1;
   pointer-events: none;
   background:
-    radial-gradient(60rem 40rem at 85% -10%, rgba(224, 231, 255, 0.55), transparent 60%),
-    radial-gradient(50rem 36rem at -10% 30%, rgba(204, 219, 252, 0.40), transparent 60%),
-    radial-gradient(55rem 40rem at 50% 120%, rgba(233, 213, 255, 0.35), transparent 60%),
-    linear-gradient(180deg, #fbfcfe 0%, #f7f9fd 100%);
+    radial-gradient(52rem 32rem at 90% -10%, rgba(47, 143, 126, 0.07), transparent 62%),
+    radial-gradient(44rem 30rem at -10% 35%, rgba(20, 117, 100, 0.05), transparent 62%),
+    linear-gradient(180deg, #fdfcf9 0%, #f8f7f2 100%);
 }
 
-/* Headlines & section titles use the display face; body copy stays Inter */
+/* Headlines & section titles use the display face; body copy stays sans */
 h1, h2, h3, h4 {
   font-family: var(--font-display);
   letter-spacing: -0.015em;
 }
 
 .font-display { font-family: var(--font-display); }
+.font-mono { font-family: var(--font-mono); }
 
 /* ---- professional storefront surfaces ---- */
 /* Shared retail surfaces keep cards clean, solid and easy to scan. */
@@ -54,12 +119,17 @@ h1, h2, h3, h4 {
   box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
 }
 .surface-dark {
-  background: #0f172a;
-  border: 1px solid #1e293b;
-  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.12);
+  background: #0a1714;
+  border: 1px solid #203a33;
+  box-shadow: 0 4px 16px rgba(10, 23, 20, 0.14);
 }
-.neon-glow { box-shadow: 0 6px 18px rgba(37, 99, 235, 0.18); }
-.neon-glow-soft { box-shadow: 0 4px 12px rgba(37, 99, 235, 0.14); }
+.neon-glow { box-shadow: 0 6px 18px rgba(20, 117, 100, 0.20); }
+.neon-glow-soft { box-shadow: 0 4px 12px rgba(20, 117, 100, 0.15); }
+
+/* ---- signature motif: repeating pixel-X whisper pattern (footer, posters) ---- */
+.xp-pattern {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='88' height='88' viewBox='0 0 44 44'%3E%3Cg fill='%23ffffff' fill-opacity='0.055'%3E%3Crect x='6' y='6' width='6' height='6' rx='1.8'/%3E%3Crect x='19' y='19' width='6' height='6' rx='1.8'/%3E%3Crect x='32' y='32' width='6' height='6' rx='1.8'/%3E%3Crect x='32' y='6' width='6' height='6' rx='1.8'/%3E%3Crect x='6' y='32' width='6' height='6' rx='1.8'/%3E%3C/g%3E%3C/svg%3E");
+}
 
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }

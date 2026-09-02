@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactNode, type FormEvent } from "react";
 import { Link, useRouter } from "../router";
 import { swatchFor, swatchStyle } from "../lib/swatch";
+import { BoltMark } from "./brand";
 import {
   useAuth,
   useCart,
@@ -170,7 +171,7 @@ function CartDrawer({ onClose }: { onClose: () => void }) {
     <Drawer title={`Your Cart${items.length ? ` (${items.reduce((s2, i) => s2 + i.qty, 0)})` : ""}`} onClose={onClose}>
       {items.length === 0 ? (
         <div className="flex-1 flex flex-col items-center justify-center text-center p-8">
-          <div className="text-5xl mb-3">🛒</div>
+          <BoltMark size={56} sw={5} className="mb-4 text-slate-200" />
           <p className="font-semibold text-slate-900 mb-1">Your cart is empty</p>
           <p className="text-sm text-slate-500 mb-5">Find something you'll love.</p>
           <button

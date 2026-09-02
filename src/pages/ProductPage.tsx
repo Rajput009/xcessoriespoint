@@ -5,6 +5,7 @@ import ProductCard, { Stars } from "../components/ProductCard";
 import { HeartIcon, TruckIcon, StarIcon } from "../components/icons";
 import RecentlyViewed from "../components/RecentlyViewed";
 import { swatchFor, allColorVariants, swatchStyle } from "../lib/swatch";
+import { BoltMark, Kicker } from "../components/brand";
 import { track } from "../lib/tracking";
 import { pixelTrack } from "../lib/pixel";
 import { setMeta } from "../lib/seo";
@@ -303,7 +304,9 @@ export default function ProductPage({ id }: { id: number }) {
   if (!product)
     return (
       <main id="main-content" className="pt-20 md:pt-44 max-w-7xl mx-auto px-6 pb-16 text-center">
-        <div className="text-5xl mb-4">🔎</div>
+        <div className="flex justify-center mb-4">
+          <BoltMark size={72} sw={5} className="text-slate-200" />
+        </div>
         <h1 className="text-2xl font-black text-slate-900 mb-2">Product not found</h1>
         <Link to="/shop" className="text-orange-600 font-semibold hover:underline">← Back to shop</Link>
       </main>
@@ -477,7 +480,7 @@ export default function ProductPage({ id }: { id: number }) {
             <Link to={`/category/${product.category}`} className="text-xs font-bold uppercase tracking-widest text-orange-600 hover:underline">
             {catName}
           </Link>
-          <h1 className="text-2xl md:text-4xl font-black uppercase text-slate-900 mt-2 mb-3">
+          <h1 className="text-2xl md:text-4xl font-black text-slate-900 mt-2 mb-3">
             {product.name}
             {productSku && <span className="text-slate-500"> | {productSku}</span>}
           </h1>
@@ -490,7 +493,7 @@ export default function ProductPage({ id }: { id: number }) {
           </div>
           <p className="text-sm text-slate-600 leading-relaxed mb-4">{summary}</p>
           <div className="flex items-baseline gap-3 mb-1.5 flex-wrap">
-            <span className="text-3xl font-black text-orange-600">{fmt(unitPrice)}</span>
+            <span className="font-mono text-3xl font-black tabular-nums text-orange-600">{fmt(unitPrice)}</span>
             {comparePrice && (
               <span className="text-lg text-slate-400 line-through">{fmt(comparePrice)}</span>
             )}
@@ -500,7 +503,7 @@ export default function ProductPage({ id }: { id: number }) {
           </div>
 
           {/* stock */}
-          <p className={`text-sm font-semibold mb-5 ${out ? "text-red-600" : low ? "text-amber-600" : "text-orange-600"}`}>
+          <p className={`text-sm font-semibold mb-5 ${out ? "text-red-600" : low ? "text-amber-600" : "text-emerald-600"}`}>
             {out ? "✕ Out of stock" : low ? `⚠ Only ${availableStock} left — order soon` : "✓ In stock, ready to ship"}
           </p>
 
@@ -666,7 +669,7 @@ export default function ProductPage({ id }: { id: number }) {
               onClick={() => add(product, qty, variantId)}
               className="flex-1 py-3.5 rounded-xl bg-slate-900 text-white font-bold hover:bg-slate-900 hover:shadow-lg hover:shadow-orange-500/40 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
             >
-              Add to Cart · {fmt(unitPrice * qty)}
+              Add to Cart
             </button>
             <button
               onClick={() => toggle(product.id)}
@@ -683,7 +686,7 @@ export default function ProductPage({ id }: { id: number }) {
           <button
             disabled={out}
             onClick={() => { add(product, qty, variantId); navigate("/checkout"); }}
-            className="w-full py-3 rounded-xl bg-gradient-to-r from-slate-900 to-indigo-600 text-white font-bold hover:from-slate-800 hover:to-indigo-700 neon-glow-soft transition-all mb-3 disabled:opacity-40"
+            className="w-full py-3 rounded-xl bg-slate-900 text-white font-bold hover:bg-slate-800 transition-all mb-3 disabled:opacity-40"
           >
             Buy Now →
           </button>
@@ -836,10 +839,10 @@ export default function ProductPage({ id }: { id: number }) {
       {related.length > 0 && (
         <section className="mt-16 border-t border-slate-200 pt-10">
           <div className="text-center mb-6">
-            <p className="text-[11px] font-black uppercase tracking-[0.2em] text-orange-600 mb-1">You might also like</p>
+            <Kicker center>You might also like</Kicker>
             <h2 className="text-2xl font-black text-slate-900">Related Products</h2>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 gap-2 md:grid-cols-4 md:gap-4">
             {related.map((p) => (
               <ProductCard key={p.id} product={p} compact />
             ))}

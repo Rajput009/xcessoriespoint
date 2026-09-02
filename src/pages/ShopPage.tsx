@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
-import { StarIcon } from "../components/icons";
+import { SlidersIcon, StarIcon } from "../components/icons";
 import { Link, useRouter } from "../router";
 import { useProducts, useUI } from "../context/store";
 import ProductCard from "../components/ProductCard";
 import ViewToggle, { type ProductView } from "../components/ViewToggle";
 import RecentlyViewed from "../components/RecentlyViewed";
+import { BoltMark, Kicker } from "../components/brand";
 import { smartSearch, didYouMean } from "../lib/fuzzy";
 import { track } from "../lib/tracking";
 import { pixelTrack } from "../lib/pixel";
@@ -25,6 +26,15 @@ const PRICE_BANDS = [
   { id: "5-10", label: "Rs 5,000–10,000", min: 5001, max: 10000 },
   { id: "10p", label: "Over Rs 10,000", min: 10001, max: Infinity },
 ];
+
+const SHORT_SORTS: Record<string, string> = {
+  featured: "Featured",
+  "price-asc": "Price low",
+  "price-desc": "Price high",
+  rating: "Top rated",
+  discount: "Discount",
+  name: "A–Z",
+};
 
 function Skeleton() {
   return (
@@ -51,6 +61,7 @@ export default function ShopPage() {
   const [priceBand, setPriceBand] = useState("all");
   const [inStockOnly, setInStockOnly] = useState(false);
   const [topRatedOnly, setTopRatedOnly] = useState(false);
+  const [filterOpen, setFilterOpen] = useState(false);
 
   // sync from URL (?cat= & ?q=)
   useEffect(() => {
@@ -108,6 +119,8 @@ export default function ShopPage() {
 
   useEffect(() => setVisible(12), [cat, searchQuery, sort, priceBand, inStockOnly, topRatedOnly]);
 
+  const activeFilterCount = [priceBand !== "all", inStockOnly, topRatedOnly].filter(Boolean).length;
+
   const clear = () => {
     setCat("all");
     setSearchQuery("");
@@ -115,102 +128,93 @@ export default function ShopPage() {
     setPriceBand("all");
     setInStockOnly(false);
     setTopRatedOnly(false);
+    setFilterOpen(false);
   };
 
-  const catBtn = (id: string, name: string) => (
-    <button
-      key={id}
-      onClick={() => setCat(id)}
-      className={`text-left px-4 py-2.5 rounded-lg text-sm font-medium transition whitespace-nowrap ${
-        cat === id
-          ? "bg-slate-900 text-white"
-          : "surface-muted text-slate-600 hover:text-slate-900 lg:bg-transparent lg:border-transparent lg:hover:bg-white/50"
-      }`}
-    >
-      {name}
-    </button>
-  );
-
   return (
-    <main id="main-content" className="pt-[120px] md:pt-44 max-w-7xl mx-auto px-6 pb-10">
-      {/* breadcrumb */}
-      <nav className="text-xs text-slate-400 mb-3">
-        <Link to="/" className="hover:text-slate-900">Home</Link>
-        <span className="mx-1.5">/</span>
-        <span className="text-slate-600 font-medium">Shop</span>
-      </nav>
-      <h1 className="text-3xl font-black text-slate-900">Shop All Products</h1>
-      <p className="text-sm text-slate-500 mt-1 mb-6">
-        Every accessory, one place. Filter, sort, and find your fit.
-        {offline && <span className="ml-2 text-amber-600 font-semibold">⚠ Offline mode — showing local catalog</span>}
-      </p>
+    <main id="main-content" className="mx-auto max-w-7xl px-2.5 pb-10 pt-[76px] sm:px-6 md:pt-44">
+      <div className="mb-3 flex items-end justify-between gap-3">
+        <div>
+          <p className="mb-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.22em] text-teal-700">The everyday edit</p>
+          <h1 className="text-2xl font-black tracking-tight text-slate-900 sm:text-4xl">Shop all products</h1>
+          <p className="mt-0.5 text-sm leading-5 text-slate-500 sm:max-w-xl">
+            Curated gear, clear prices, and COD across Pakistan.
+            {offline && <span className="ml-2 font-semibold text-amber-600">Offline catalog</span>}
+          </p>
+        </div>
+        <p className="hidden shrink-0 font-mono text-xs font-semibold text-slate-400 sm:block">{loading ? "Loading" : `${list.length} items`}</p>
+      </div>
 
       <div className="lg:grid lg:grid-cols-[220px_1fr] lg:gap-8">
         {/* sidebar (desktop) */}
         <aside className="hidden lg:block">
-          <p className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-2">Categories</p>
-          <div className="flex flex-col gap-1">
-            {catBtn("all", "All Products")}
-            {categories.map((c) => catBtn(c.id, `${c.icon} ${c.name}`))}
-          </div>
+          <label className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-400" htmlFor="sidebar-category-select">Category</label>
+          <select
+            id="sidebar-category-select"
+            value={cat}
+            onChange={(e) => setCat(e.target.value)}
+            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm font-semibold text-slate-700 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/15"
+          >
+            <option value="all">All products</option>
+            {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+          </select>
         </aside>
 
         <div>
-          {/* chip row (mobile) */}
-          <div className="lg:hidden flex gap-2 overflow-x-auto no-scrollbar pb-3 -mx-1 px-1">
-            {catBtn("all", "All")}
-            {categories.map((c) => catBtn(c.id, c.name))}
-          </div>
-
-          {/* search + sort + view toggle */}
-          <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
+          {/* search */}
+          <div className="mb-2">
             <input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search in shop…"
-              className="flex-1 rounded-lg surface-muted px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-slate-300/80"
+              placeholder="Search products…"
+              className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-teal-500 focus:ring-2 focus:ring-teal-500/15"
             />
+          </div>
+
+          {/* compact mobile controls: filters, sort, and view stay together */}
+          <div className="mb-3 flex items-center gap-1.5 sm:hidden">
+            <button
+              type="button"
+              onClick={() => setFilterOpen(true)}
+              className={`flex min-w-0 flex-1 items-center justify-center gap-1 rounded-xl border px-2 py-2 text-sm font-bold ${activeFilterCount ? "border-teal-700 bg-teal-50 text-teal-800" : "border-slate-200 bg-white text-slate-700"}`}
+            >
+              <SlidersIcon size={15} /> Filters {activeFilterCount > 0 && <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-teal-700 px-1.5 text-[11px] text-white">{activeFilterCount}</span>}
+            </button>
+            <button
+              type="button"
+              onClick={() => setFilterOpen(true)}
+              className="flex min-w-0 flex-1 items-center justify-center rounded-xl border border-slate-200 bg-white px-2 py-2 text-sm font-bold text-slate-700"
+            >
+              Sort · {SHORT_SORTS[sort] ?? "Featured"}
+            </button>
+            <ViewToggle view={view} onChange={setView} />
+          </div>
+
+          {/* desktop sort and view controls */}
+          <div className="mb-4 hidden items-center justify-end gap-2 sm:flex">
             <select
               value={sort}
               onChange={(e) => setSort(e.target.value)}
-              className="rounded-lg surface-muted px-3 py-2.5 text-sm outline-none"
+              className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none"
             >
               {SORTS.map((s) => (
                 <option key={s.id} value={s.id}>{s.label}</option>
               ))}
             </select>
-            <div className="flex items-center justify-between gap-3 sm:justify-end">
-              <ViewToggle view={view} onChange={setView} />
-            </div>
+            <ViewToggle view={view} onChange={setView} />
           </div>
 
-          {/* refinement chips */}
-          <div className="flex gap-2 flex-wrap mb-4">
+          <div className="mb-5 hidden sm:block">
+            <label className="sr-only" htmlFor="category-select">Category</label>
             <select
-              value={priceBand}
-              onChange={(e) => setPriceBand(e.target.value)}
-              className="rounded-lg surface-muted px-3 py-1.5 text-xs font-semibold outline-none"
+              id="category-select"
+              value={cat}
+              onChange={(e) => setCat(e.target.value)}
+              className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/15"
             >
-              {PRICE_BANDS.map((b) => (
-                <option key={b.id} value={b.id}>{b.label}</option>
-              ))}
+              <option value="all">All products</option>
+              {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
-            <button
-              onClick={() => setInStockOnly((v) => !v)}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition ${
-                inStockOnly ? "bg-slate-900 text-white" : "surface-muted text-slate-600 hover:text-slate-900"
-              }`}
-            >
-              ✓ In stock
-            </button>
-            <button
-              onClick={() => setTopRatedOnly((v) => !v)}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition ${
-                topRatedOnly ? "bg-slate-900 text-white" : "surface-muted text-slate-600 hover:text-slate-900"
-              }`}
-            >
-              <span className="inline-flex items-center gap-1"><StarIcon size={12} className="text-amber-400" /> 4+ rated</span>
-            </button>
           </div>
 
           {/* synonym interpretation notice (Urdu / Roman-Urdu / market terms) */}
@@ -260,7 +264,9 @@ export default function ShopPage() {
           ) : list.length === 0 ? (
             <div className="py-12">
               <div className="text-center mb-8">
-                <div className="text-5xl mb-4">🔎</div>
+              <div className="flex justify-center mb-4">
+                <BoltMark size={72} sw={5} className="text-slate-200" />
+              </div>
                 <p className="font-bold text-slate-900 mb-1">
                   No products found{searchQuery.trim() ? ` for "${searchQuery}"` : ""}
                 </p>
@@ -285,7 +291,7 @@ export default function ShopPage() {
                   Clear filters
                 </button>
               </div>
-              <p className="text-[11px] font-black uppercase tracking-[0.2em] text-amber-600 mb-1">Meanwhile</p>
+              <Kicker center className="text-amber-600">Meanwhile</Kicker>
               <h3 className="text-lg font-black text-slate-900 mb-4">Customers are loving these</h3>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {products.filter((p) => p.bestSeller).slice(0, 4).map((p) => (
@@ -302,7 +308,7 @@ export default function ShopPage() {
                   ))}
                 </div>
               ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 md:gap-4">
                   {list.slice(0, visible).map((p) => (
                     <ProductCard key={p.id} product={p} />
                   ))}
@@ -322,6 +328,42 @@ export default function ShopPage() {
           )}
         </div>
       </div>
+
+      {filterOpen && (
+        <div className="fixed inset-0 z-[60] sm:hidden" role="dialog" aria-modal="true" aria-label="Product filters">
+          <button type="button" aria-label="Close filters" onClick={() => setFilterOpen(false)} className="absolute inset-0 bg-slate-950/35" />
+          <div className="absolute inset-y-0 right-0 flex w-[min(88vw,380px)] flex-col bg-white p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] shadow-2xl">
+            <div className="mb-5 flex items-center justify-between">
+              <div>
+                <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-teal-700">Refine results</p>
+                <h2 className="mt-1 text-xl font-black text-slate-900">Filters</h2>
+              </div>
+              <button type="button" onClick={() => setFilterOpen(false)} className="rounded-lg px-2 py-1 text-2xl leading-none text-slate-400" aria-label="Close filters">×</button>
+            </div>
+            <div className="min-h-0 flex-1 space-y-5 overflow-y-auto">
+              <label className="block text-sm font-bold text-slate-900">Sort by
+                <select value={sort} onChange={(e) => setSort(e.target.value)} className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium outline-none">
+                  {SORTS.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}
+                </select>
+              </label>
+              <label className="block text-sm font-bold text-slate-900">Price range
+                <select value={priceBand} onChange={(e) => setPriceBand(e.target.value)} className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium outline-none">
+                  {PRICE_BANDS.map((b) => <option key={b.id} value={b.id}>{b.label}</option>)}
+                </select>
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                <button type="button" onClick={() => setInStockOnly((v) => !v)} className={`rounded-xl border px-3 py-3 text-sm font-bold ${inStockOnly ? "border-teal-700 bg-teal-50 text-teal-800" : "border-slate-200 bg-white text-slate-700"}`}>{inStockOnly ? "✓ In stock" : "In stock"}</button>
+                <button type="button" onClick={() => setTopRatedOnly((v) => !v)} className={`rounded-xl border px-3 py-3 text-sm font-bold ${topRatedOnly ? "border-teal-700 bg-teal-50 text-teal-800" : "border-slate-200 bg-white text-slate-700"}`}>{topRatedOnly ? "✓ 4+ rated" : "4+ rated"}</button>
+              </div>
+            </div>
+            <div className="mt-6 flex gap-2 border-t border-slate-100 pt-4">
+              <button type="button" onClick={clear} className="flex-1 rounded-xl border border-slate-200 px-4 py-3 text-sm font-bold text-slate-700">Clear all</button>
+              <button type="button" onClick={() => setFilterOpen(false)} className="flex-[1.5] rounded-xl bg-slate-900 px-4 py-3 text-sm font-bold text-white">Show {list.length} products</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <RecentlyViewed />
     </main>
   );

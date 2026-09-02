@@ -3,6 +3,7 @@ import { Link } from "../router";
 import { useToast, useUI } from "../context/store";
 import { openConsentManager } from "../lib/tracking";
 import { pixelTrack } from "../lib/pixel";
+import { Logo } from "./brand";
 
 export default function Footer() {
   const { push } = useToast();
@@ -10,15 +11,15 @@ export default function Footer() {
   const [email, setEmail] = useState("");
 
   return (
-    <footer className="bg-gradient-to-b from-slate-900 via-slate-950 to-slate-950 text-slate-300 mt-20 pb-20 md:pb-0">
-      <div className="max-w-7xl mx-auto px-6 py-14 grid gap-10 sm:grid-cols-2 lg:grid-cols-5">
+    <footer className="relative overflow-hidden bg-gradient-to-b from-slate-900 via-slate-950 to-slate-950 text-slate-300 mt-20 pb-20 md:pb-0">
+      {/* signature bolt-X whisper pattern */}
+      <div aria-hidden="true" className="xp-pattern pointer-events-none absolute inset-x-0 top-0 h-80" />
+      <div className="relative max-w-7xl mx-auto px-6 py-14 grid gap-10 sm:grid-cols-2 lg:grid-cols-5">
         <div>
-          <p className="text-xl font-black text-white mb-3">
-            Xccessories<span className="text-orange-500">Point</span>
-          </p>
+          <Logo tone="dark" markSize={38} className="mb-4" />
           <p className="text-sm text-slate-400 leading-relaxed">
-            Premium tech accessories at honest prices. Earbuds, wearables, power
-            and protection — delivered across Pakistan.
+            Everyday tech, chosen with care. Honest prices, nationwide COD, and support when you need it.
+            <span className="block mt-2 text-slate-500">Curated in Pakistan for the way you actually use your gear.</span>
           </p>
         </div>
         <div>

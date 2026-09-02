@@ -31,22 +31,32 @@ export function Stars({ rating, size = "text-sm" }: { rating: number; size?: str
 function StarSquares({ rating, reviews }: { rating: number; reviews?: number }) {
   const rounded = Math.max(0, Math.min(5, Math.round(rating)));
   return (
-    <span className="flex items-center gap-1.5" role="img" aria-label={`${rating} out of 5 stars`}>
-      <span className="flex gap-1">
+    <span className="flex min-w-0 items-center gap-1 sm:gap-1.5" role="img" aria-label={`${rating} out of 5 stars`}>
+      <span className="flex shrink-0 gap-0.5 sm:gap-1">
         {Array.from({ length: 5 }).map((_, i) => (
           <span
             key={i}
-            className={`flex h-[18px] w-5 items-center justify-center rounded-[4px] ${
+            className={`flex h-4 w-[18px] items-center justify-center rounded-[4px] sm:h-[18px] sm:w-5 ${
               i < rounded ? "bg-amber-400" : "bg-slate-200"
             }`}
           >
-            <StarIcon size={11} className="text-white" />
+            <StarIcon size={10} className="text-white sm:[width:11px] sm:[height:11px]" />
           </span>
         ))}
       </span>
       {reviews != null && reviews > 0 && (
-        <span className="text-[11px] font-medium text-slate-400">({reviews.toLocaleString("en-PK")})</span>
+        <span className="max-w-[48px] truncate text-[10px] font-medium text-slate-400 sm:max-w-none sm:text-[11px]">({reviews.toLocaleString("en-PK")})</span>
       )}
+    </span>
+  );
+}
+
+/** Compact rating used in narrow product cards. */
+function MobileRating({ rating }: { rating: number }) {
+  return (
+    <span className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-500" role="img" aria-label={`${rating} out of 5 stars`}>
+      <StarIcon size={12} className="text-amber-400" />
+      {rating.toFixed(1)}
     </span>
   );
 }
@@ -115,8 +125,8 @@ export default function ProductCard({
 
   return (
     <article
-      className={`group min-w-0 rounded-xl border border-slate-200/80 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.05)] transition-shadow duration-300 hover:shadow-[0_12px_32px_rgba(15,23,42,0.12)] ${
-        listView ? "flex items-stretch gap-3 p-2.5" : "flex flex-col p-3"
+      className={`group h-fit min-w-0 rounded-xl border border-slate-200/80 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.05)] transition-[box-shadow,border-color,transform] duration-300 hover:-translate-y-0.5 hover:border-teal-200 hover:shadow-[0_12px_32px_rgba(15,23,42,0.10)] ${
+        listView ? "flex items-stretch gap-3 p-2.5" : "flex flex-col p-1.5 sm:p-3"
       }`}
     >
       {/* ---------- image stage — tall and airy like Amaze ---------- */}
@@ -150,22 +160,18 @@ export default function ProductCard({
               className="absolute inset-0 h-full w-full object-cover opacity-0 transition-all duration-300 group-hover:scale-[1.04] group-hover:opacity-100"
             />
           )}
-          {(product.badge || product.newArrival || product.bestSeller || soldOut) && (
-            <span className="absolute left-3 top-3">
+          {(product.newArrival || product.bestSeller || soldOut) && (
+            <span className="absolute left-0 top-0 whitespace-nowrap">
               {soldOut ? (
-                <span className="inline-flex rounded-md bg-slate-800 px-2.5 py-1 text-[11px] font-bold text-white">
+                <span className="inline-flex rounded-md bg-slate-800 px-2 py-1 text-[10px] font-bold text-white sm:px-2.5 sm:text-[11px]">
                   SOLD OUT
                 </span>
               ) : product.bestSeller ? (
-                <span className="inline-flex rounded-md bg-amber-400 px-2.5 py-1 text-[11px] font-black uppercase tracking-wide text-slate-900 shadow-sm">
+                <span className="inline-flex rounded-md bg-amber-400 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wide text-slate-900 shadow-sm sm:px-2.5 sm:py-1 sm:text-[11px]">
                   Best Seller
                 </span>
-              ) : product.badge ? (
-                <span className="inline-flex rounded-md bg-slate-800 px-2.5 py-1 text-[11px] font-bold text-white">
-                  {product.badge}
-                </span>
               ) : (
-                <span className="inline-flex rounded-md bg-slate-900 px-2.5 py-1 text-[11px] font-black tracking-wide text-white">
+                <span className="inline-flex rounded-md bg-slate-900 px-2 py-1 text-[10px] font-black tracking-wide text-white sm:px-2.5 sm:text-[11px]">
                   NEW
                 </span>
               )}
@@ -179,7 +185,7 @@ export default function ProductCard({
           onClick={() => toggle(product.id)}
           aria-pressed={wished}
           aria-label={wished ? `Remove ${product.name} from wishlist` : `Add ${product.name} to wishlist`}
-          className={`absolute right-2.5 top-2.5 flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-base shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-orange-500 md:opacity-0 md:group-hover:opacity-100 ${
+          className={`absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 bg-white text-base shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-orange-500 sm:right-2.5 sm:top-2.5 sm:h-8 sm:w-8 md:opacity-0 md:group-hover:opacity-100 ${
             wished ? "text-orange-600" : "text-slate-400 hover:text-orange-600"
           }`}
         >
@@ -188,36 +194,68 @@ export default function ProductCard({
       </div>
 
       {/* ---------- content ---------- */}
-      <div className={`flex min-w-0 flex-1 flex-col ${listView ? "py-1 pr-1" : "pt-2.5"}`}>
-        <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-400">{catName}</span>
+      <div className={`flex min-w-0 flex-1 flex-col ${listView ? "py-1 pr-1" : "pt-2.5 sm:pt-3"}`}>
+        <div className="flex min-w-0 items-center justify-between gap-2">
+          <span className="truncate font-mono text-[9px] font-semibold uppercase tracking-[0.12em] text-slate-400 sm:text-[10px]">{catName}</span>
+          {hasVariants && (
+            <span className="flex shrink-0 items-center gap-1 sm:hidden" aria-label={`${variants.length} available options`}>
+              {colorVariants ? (
+                variants.slice(0, 5).map((v) => {
+                  const color = swatchFor(v);
+                  const out = v.stock <= 0;
+                  const active = effectiveSelectedId === v.id;
+                  return color ? (
+                    <button
+                      key={v.id}
+                      type="button"
+                      disabled={out}
+                      onClick={() => setSelectedId(v.id)}
+                      aria-label={`${v.label}${out ? " sold out" : ""}${active ? " selected" : ""}`}
+                      aria-pressed={active}
+                      className={`h-3 w-3 rounded-full border border-black/10 focus:outline-none focus:ring-1 focus:ring-orange-500 ${out ? "opacity-30" : active ? "ring-1 ring-slate-900 ring-offset-1" : ""}`}
+                      style={swatchStyle(color)}
+                    />
+                  ) : null;
+                })
+              ) : (
+                <span className="inline-flex items-center gap-1 text-[9px] font-bold text-slate-400" title={`${variants.length} options`}>
+                  <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
+                  {variants.length}
+                </span>
+              )}
+              {colorVariants && variants.length > 5 && <span className="text-[9px] font-bold text-slate-400">+{variants.length - 5}</span>}
+            </span>
+          )}
+        </div>
 
-        <Link to={`/product/${product.id}`} className="mt-1">
+        <Link to={`/product/${product.id}`} className="mt-0.5 sm:mt-1">
           <h3 className={`font-bold leading-snug text-slate-900 transition-colors group-hover:text-orange-600 ${
-            listView ? "line-clamp-2 text-[15px]" : "line-clamp-2 text-[15px] md:text-base"
+            listView ? "line-clamp-2 text-[15px]" : "line-clamp-2 text-[14px] sm:text-[15px] md:text-base"
           }`}>
             {product.name}
           </h3>
         </Link>
 
         {!compact && product.reviews > 0 && (
-          <span className="mt-2">
-            <StarSquares rating={product.rating} reviews={product.reviews} />
+          <span className="mt-1.5 sm:mt-2">
+            <span className="sm:hidden"><MobileRating rating={product.rating} /></span>
+            <span className="hidden sm:inline"><StarSquares rating={product.rating} reviews={product.reviews} /></span>
           </span>
         )}
 
-        <div className="mt-1.5 flex flex-nowrap items-center gap-x-1.5 min-w-0">
-          <span className="shrink-0 text-lg font-black text-red-600">{fmt(effPrice)}</span>
+        <div className="mt-1.5 flex min-w-0 flex-nowrap items-center gap-x-1 sm:gap-x-1.5">
+          <span className="shrink-0 text-base font-black text-orange-600 font-mono tabular-nums sm:text-lg">{fmt(effPrice)}</span>
           {product.compareAt && product.compareAt > effPrice && (
             <span className="min-w-0 truncate text-xs text-slate-400 line-through">{fmt(product.compareAt)}</span>
           )}
           {discount > 0 && <span className="shrink-0"><DiscountArrow discount={discount} /></span>}
         </div>
 
-        {lowStock && <p className="mt-1.5 text-[11px] font-bold text-red-500">Hurry! Only {product.stock} left</p>}
+        {lowStock && <p className="mt-1.5 text-[11px] font-bold text-orange-600">Hurry! Only {product.stock} left</p>}
 
-        {/* ---------- inline variant selection ---------- */}
+        {/* ---------- desktop variant selection ---------- */}
         {!compact && hasVariants && (
-          <div className="mt-2 mb-3">
+          <div className="mt-2 mb-2.5 hidden sm:block sm:mt-2.5 sm:mb-3">
             {colorVariants ? (
               <div className="flex flex-wrap items-center gap-1.5">
                 {variants.map((v) => {
@@ -233,25 +271,15 @@ export default function ProductCard({
                       aria-label={`${v.label}${out ? " sold out" : ""}${active ? " (selected)" : ""}`}
                       aria-pressed={active}
                       onClick={() => setSelectedId(v.id)}
-                      className={`relative h-7 w-7 rounded-md transition-all focus:outline-none focus:ring-2 focus:ring-orange-500 ${
-                        out
-                          ? "cursor-not-allowed opacity-35"
-                          : active
-                          ? "ring-2 ring-slate-900 ring-offset-1"
-                          : "ring-1 ring-slate-200 hover:ring-2 hover:ring-orange-400"
-                      }`}
+                      className={`relative h-7 w-7 rounded-md transition-all focus:outline-none focus:ring-2 focus:ring-orange-500 ${out ? "cursor-not-allowed opacity-35" : active ? "ring-2 ring-slate-900 ring-offset-1" : "ring-1 ring-slate-200 hover:ring-2 hover:ring-orange-400"}`}
                       style={color ? swatchStyle(color) : undefined}
                     >
                       <span className="absolute inset-0 rounded-md border border-black/10" />
-                      {out && (
-                        <span className="absolute left-1/2 top-1/2 h-[2px] w-[130%] -translate-x-1/2 -translate-y-1/2 rotate-45 bg-red-400" />
-                      )}
+                      {out && <span className="absolute left-1/2 top-1/2 h-[2px] w-[130%] -translate-x-1/2 -translate-y-1/2 rotate-45 bg-red-400" />}
                     </button>
                   );
                 })}
-                {selected && (
-                  <span className="ml-1 text-[11px] font-semibold text-slate-500">{selected.label}</span>
-                )}
+                {selected && <span className="ml-1 hidden truncate text-[11px] font-semibold text-slate-500 sm:inline">{selected.label}</span>}
               </div>
             ) : (
               <div className="flex flex-wrap gap-1.5">
@@ -265,21 +293,10 @@ export default function ProductCard({
                       disabled={out}
                       onClick={() => setSelectedId(v.id)}
                       aria-pressed={active}
-                      className={`rounded-md border px-2 py-1 text-[11px] font-bold transition focus:outline-none focus:ring-2 focus:ring-orange-500 ${
-                        out
-                          ? "cursor-not-allowed border-slate-200 text-slate-300 line-through"
-                          : active
-                          ? "border-slate-900 bg-slate-900 text-white"
-                          : "border-slate-200 text-slate-700 hover:border-orange-400 hover:text-orange-600"
-                      }`}
+                      className={`rounded-md border px-2 py-1 text-[11px] font-bold transition focus:outline-none focus:ring-2 focus:ring-orange-500 ${out ? "cursor-not-allowed border-slate-200 text-slate-300 line-through" : active ? "border-slate-900 bg-slate-900 text-white" : "border-slate-200 text-slate-700 hover:border-orange-400 hover:text-orange-600"}`}
                     >
                       {v.label}
-                      {v.priceDelta !== 0 && (
-                        <span className="ml-1 opacity-70">
-                          {v.priceDelta > 0 ? "+" : "−"}
-                          {Math.abs(v.priceDelta)}
-                        </span>
-                      )}
+                      {v.priceDelta !== 0 && <span className="ml-0.5 opacity-70">{v.priceDelta > 0 ? "+" : "−"}{Math.abs(v.priceDelta)}</span>}
                     </button>
                   );
                 })}
@@ -295,7 +312,7 @@ export default function ProductCard({
             onClick={handleAdd}
             disabled={addBlocked}
             aria-label={soldOut ? `${product.name} is sold out` : `Add ${product.name} to cart`}
-            className={`mt-auto flex w-full items-center justify-center gap-2 rounded-lg py-2.5 text-xs font-black uppercase tracking-wide transition-all focus:outline-none focus:ring-2 focus:ring-orange-500 ${
+            className={`mt-auto flex w-full items-center justify-center gap-1.5 rounded-lg py-2 text-[11px] font-black uppercase tracking-wide transition-all focus:outline-none focus:ring-2 focus:ring-orange-500 sm:gap-2 sm:py-2.5 sm:text-xs ${
               addBlocked
                 ? "cursor-not-allowed bg-slate-100 text-slate-400"
                 : added
@@ -304,7 +321,8 @@ export default function ProductCard({
             }`}
           >
             <CartIcon size={14} />
-            {soldOut
+            <span className="sm:hidden">{soldOut ? "Sold out" : added ? "Added" : hasVariants ? "Choose" : "Add"}</span>
+            <span className="hidden sm:inline">{soldOut
               ? "Sold out"
               : added
               ? "Added ✓"
@@ -314,7 +332,7 @@ export default function ProductCard({
                   ? "Sold out"
                   : `Add — ${effectiveSelected.label}`
                 : "Choose option"
-              : "Add to Cart"}
+              : "Add to Cart"}</span>
           </button>
         )}
 

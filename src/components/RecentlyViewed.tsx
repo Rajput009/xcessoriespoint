@@ -1,6 +1,7 @@
 import { useProducts } from "../context/store";
 import { useRouter } from "../router";
 import ProductCard from "./ProductCard";
+import { Kicker } from "./brand";
 
 /** "Pick up where you left off" — driven by localStorage (functional storage, no consent needed). */
 export default function RecentlyViewed({ excludeId }: { excludeId?: number }) {
@@ -17,12 +18,10 @@ export default function RecentlyViewed({ excludeId }: { excludeId?: number }) {
     .slice(0, 4);
   if (list.length < 2) return null;
   return (
-    <section className="max-w-7xl mx-auto px-6 py-10" key={path}>
-      <p className="text-[11px] font-black uppercase tracking-[0.2em] text-cyan-600 mb-1">
-        Pick up where you left off
-      </p>
+    <section className="max-w-7xl mx-auto px-2.5 sm:px-6 py-10" key={path}>
+      <Kicker>Pick up where you left off</Kicker>
       <h2 className="text-2xl font-black text-slate-900 mb-6">Recently Viewed</h2>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 gap-2 md:grid-cols-4 md:gap-4">
         {list.map((p) => (
           <ProductCard key={p.id} product={p} />
         ))}
