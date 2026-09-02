@@ -18,8 +18,8 @@ export default function Footer() {
         <div>
           <Logo tone="dark" markSize={38} className="mb-4" />
           <p className="text-sm text-slate-400 leading-relaxed">
-            Premium tech accessories at honest prices. Earbuds, wearables, power
-            and protection — delivered across Pakistan.
+            Everyday tech, chosen with care. Honest prices, nationwide COD, and support when you need it.
+            <span className="block mt-2 text-slate-500">Curated in Pakistan for the way you actually use your gear.</span>
           </p>
         </div>
         <div>

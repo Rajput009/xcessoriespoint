@@ -480,7 +480,7 @@ export default function ProductPage({ id }: { id: number }) {
             <Link to={`/category/${product.category}`} className="text-xs font-bold uppercase tracking-widest text-orange-600 hover:underline">
             {catName}
           </Link>
-          <h1 className="text-2xl md:text-4xl font-black uppercase text-slate-900 mt-2 mb-3">
+          <h1 className="text-2xl md:text-4xl font-black text-slate-900 mt-2 mb-3">
             {product.name}
             {productSku && <span className="text-slate-500"> | {productSku}</span>}
           </h1>
@@ -669,7 +669,7 @@ export default function ProductPage({ id }: { id: number }) {
               onClick={() => add(product, qty, variantId)}
               className="flex-1 py-3.5 rounded-xl bg-slate-900 text-white font-bold hover:bg-slate-900 hover:shadow-lg hover:shadow-orange-500/40 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
             >
-              Add to Cart · {fmt(unitPrice * qty)}
+              Add to Cart
             </button>
             <button
               onClick={() => toggle(product.id)}
@@ -686,7 +686,7 @@ export default function ProductPage({ id }: { id: number }) {
           <button
             disabled={out}
             onClick={() => { add(product, qty, variantId); navigate("/checkout"); }}
-            className="w-full py-3 rounded-xl bg-gradient-to-r from-slate-900 to-teal-600 text-white font-bold hover:from-slate-800 hover:to-teal-700 neon-glow-soft transition-all mb-3 disabled:opacity-40"
+            className="w-full py-3 rounded-xl bg-slate-900 text-white font-bold hover:bg-slate-800 transition-all mb-3 disabled:opacity-40"
           >
             Buy Now →
           </button>
@@ -842,7 +842,7 @@ export default function ProductPage({ id }: { id: number }) {
             <Kicker center>You might also like</Kicker>
             <h2 className="text-2xl font-black text-slate-900">Related Products</h2>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 gap-2 md:grid-cols-4 md:gap-4">
             {related.map((p) => (
               <ProductCard key={p.id} product={p} compact />
             ))}

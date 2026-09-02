@@ -39,7 +39,7 @@ export default function FloatingButtons() {
         type="button"
         onClick={goReviews}
         aria-label="Read customer reviews"
-        className="fixed right-0 top-1/2 z-40 -translate-y-1/2 flex flex-col items-center gap-1 rounded-l-lg bg-slate-900 px-1.5 py-3 text-white shadow-lg transition-colors hover:bg-slate-700 [writing-mode:vertical-rl]"
+        className="fixed right-0 top-1/2 z-40 hidden -translate-y-1/2 flex-col items-center gap-1 rounded-l-md bg-slate-900 px-1.5 py-3 text-white shadow-lg transition-colors hover:bg-slate-700 md:flex [writing-mode:vertical-rl]"
       >
         <StarIcon size={13} className="text-amber-400" />
         <span className="text-[11px] font-bold tracking-wide">Our Reviews</span>
@@ -52,7 +52,7 @@ export default function FloatingButtons() {
         rel="noopener noreferrer"
         aria-label="Chat on WhatsApp"
         title={`WhatsApp ${WHATSAPP_NUMBER}`}
-        className="fixed bottom-20 md:bottom-6 right-4 z-40 w-[52px] h-[52px] md:w-12 md:h-12 rounded-xl bg-[#25D366] text-white shadow-lg hover:bg-[#1fb959] transition-colors flex items-center justify-center fade-up"
+        className="fixed bottom-20 md:bottom-6 right-4 z-40 w-[52px] h-[52px] md:w-12 md:h-12 rounded-full bg-[#25D366] text-white shadow-lg hover:bg-[#1fb959] transition-colors flex items-center justify-center fade-up"
         onClick={(e) => {
           e.preventDefault();
           openWhatsApp("Hi! I need help with an order on XccessoriesPoint.");
@@ -63,7 +63,7 @@ export default function FloatingButtons() {
       {visible && (
         <button
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-          className="fixed bottom-36 md:bottom-[5.5rem] right-4 z-30 w-12 h-12 rounded-xl bg-slate-900 text-white shadow-lg hover:bg-slate-700 transition-colors flex items-center justify-center fade-up"
+          className="fixed bottom-36 right-4 z-30 hidden h-12 w-12 items-center justify-center rounded-full bg-slate-900 text-white shadow-lg transition-colors hover:bg-slate-700 fade-up md:flex md:bottom-[5.5rem]"
           aria-label="Back to top"
         >
           <ArrowUpIcon size={20} />

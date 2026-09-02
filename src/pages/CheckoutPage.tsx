@@ -7,7 +7,7 @@ import { swatchFor, swatchStyle } from "../lib/swatch";
 import { pixelTrack } from "../lib/pixel";
 import { useStoreConfig, cfgNum } from "../lib/config";
 import { buildOrderMessage, openWhatsApp, paymentLabel, WHATSAPP_NUMBER } from "../lib/whatsapp";
-import { Logo } from "../components/brand";
+import { BoltMark, Logo } from "../components/brand";
 
 const CITIES = ["Lahore", "Karachi", "Islamabad", "Rawalpindi", "Faisalabad", "Multan", "Peshawar", "Quetta", "Sialkot", "Gujranwala", "Hyderabad", "Other"];
 
@@ -652,7 +652,7 @@ export default function CheckoutPage() {
                 </section>
 
                 <div className="mb-4 rounded-md border border-orange-200 bg-orange-50 px-4 py-3">
-                  <p className="text-sm font-bold text-orange-700">💵 Cash on Delivery across Pakistan</p>
+                  <p className="text-sm font-bold text-orange-700">Cash on Delivery across Pakistan</p>
                   <p className="mt-1 text-xs leading-relaxed text-orange-700">We’ll call to confirm your order before dispatch. Pay the courier only after you receive the parcel.</p>
                 </div>
 
@@ -677,10 +677,10 @@ export default function CheckoutPage() {
                 </button>
 
                 <div className="mt-4 flex flex-wrap items-center justify-center gap-4 text-[11px] text-slate-400">
-                  <span>🔒 Secure checkout</span>
-                  <span>↩ 7-day returns</span>
-                  <span>💵 Pay on delivery</span>
-                  <span>✓ No account needed</span>
+                  <span>Secure checkout</span>
+                  <span>7-day returns</span>
+                  <span>Pay on delivery</span>
+                  <span>No account needed</span>
                 </div>
 
                 <footer className="mt-8 border-t border-slate-200 pt-5 flex flex-wrap gap-4 text-[12px] text-orange-600">

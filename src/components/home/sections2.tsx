@@ -33,12 +33,12 @@ export function ReviewsSummary() {
   return (
     <section id="reviews" className="max-w-7xl mx-auto px-6 py-7 md:py-9 scroll-mt-24">
       <Kicker center>Social proof</Kicker>
-      <h2 className="text-3xl md:text-4xl font-black uppercase tracking-tight text-slate-900 mb-5 text-center">
+      <h2 className="text-3xl md:text-4xl font-black tracking-tight text-slate-900 mb-5 text-center">
         What Customers Say
       </h2>
       <div className="grid lg:grid-cols-3 gap-x-10 gap-y-8">
         {/* rating summary card */}
-        <div className="rounded-2xl border border-slate-200/80 bg-gradient-to-br from-teal-50 via-white to-amber-50 p-5 md:p-7 shadow-[0_1px_2px_rgba(15,23,42,0.05)] ring-1 ring-white/60 h-fit">
+        <div className="rounded-xl border border-slate-200/80 bg-white p-5 md:p-7 shadow-[0_1px_2px_rgba(15,23,42,0.05)] h-fit">
           <div className="flex items-end gap-3 mb-5">
             <span className="text-5xl font-black text-slate-900">4.7</span>
             <div className="pb-1">
@@ -160,7 +160,7 @@ export function NewArrivalsCarousel() {
           </div>
         </div>
         {/* 8-product grid / list */}
-        <div className={view === "list" ? "lg:col-span-3 grid grid-cols-1 gap-3" : "lg:col-span-3 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"}>
+        <div className={view === "list" ? "lg:col-span-3 grid grid-cols-1 gap-3" : "lg:col-span-3 grid grid-cols-2 gap-2 md:grid-cols-3 lg:grid-cols-4 md:gap-4"}>
           {list.map((p) => (
             <ProductCard key={p.id} product={p} view={view} />
           ))}

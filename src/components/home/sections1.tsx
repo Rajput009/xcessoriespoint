@@ -99,34 +99,15 @@ function CountdownBoxes() {
  * catalog instead — the homepage can never advertise a stale price or a dead deal. */
 const SLIDES = [
   {
-    tag: "Limited-time flash sale",
-    headline: "AeroBuds Pro — Silence the Noise",
+    tag: "Everything you need, in one place",
+    headline: "Smart accessories for everyday life",
     price: 4999,
     compareAt: 7999,
-    image: "/img/hero-1.webp",
-    width: 800,
-    height: 523,
+    image: "/img/hero-store.png",
+    mobileImage: "/img/hero-store-mobile.png",
+    width: 2000,
+    height: 1117,
     cat: "audio",
-  },
-  {
-    tag: "New season, new look",
-    headline: "VitaFit S2 — Your Health, On Your Wrist",
-    price: 6499,
-    compareAt: 9499,
-    image: "/img/hero-2.webp",
-    width: 752,
-    height: 800,
-    cat: "wearables",
-  },
-  {
-    tag: "Power that travels",
-    headline: "VoltCore 20K — Never Hit 0% Again",
-    price: 3499,
-    compareAt: 4999,
-    image: "/img/hero-3.webp",
-    width: 567,
-    height: 800,
-    cat: "power",
   },
 ];
 
@@ -191,15 +172,29 @@ export function HeroSection() {
   }, [slides.length]);
 
   return (
-    <section className="relative max-w-7xl mx-auto px-4 md:px-6 pt-[84px] md:pt-[148px] pb-6">
-      {/* the banner card */}
-      <div className="relative overflow-hidden rounded-[2rem] border border-slate-200/70 bg-gradient-to-br from-teal-50 via-white to-amber-50 shadow-sm">
+    <section className="relative w-full pt-0 md:pt-[96px]">
+      <div className="relative min-h-[350px] overflow-hidden bg-white md:min-h-[440px]">
         {/* barely-there soft shapes + signature bolt-X watermark */}
         <BoltMark size={300} className="pointer-events-none absolute -top-16 -right-14 rotate-12 text-slate-900/[0.04]" />
-        <div aria-hidden="true" className="absolute -top-24 -right-16 h-80 w-80 rounded-full bg-teal-100/70 blur-3xl" />
-        <div aria-hidden="true" className="absolute -bottom-28 -left-12 h-80 w-80 rounded-full bg-amber-100/70 blur-3xl" />
+        <div aria-hidden="true" className="absolute -top-24 -right-16 h-80 w-80 rounded-full bg-teal-100/35 blur-3xl" />
+        <div aria-hidden="true" className="absolute -bottom-28 -left-12 h-80 w-80 rounded-full bg-amber-100/30 blur-3xl" />
+        {loaded.includes(slide) && (
+            <picture>
+              <source media="(max-width: 767px)" srcSet={slides[slide].mobileImage} />
+              <img
+                src={slides[slide].image}
+                alt=""
+                width={slides[slide].width}
+                height={slides[slide].height}
+                fetchPriority="high"
+                decoding="async"
+                className="absolute inset-0 h-full w-full object-cover object-top md:object-center"
+              />
+            </picture>
+        )}
+        <div aria-hidden="true" className="absolute inset-0 pointer-events-none" />
 
-        <div className="relative px-6 md:px-10 lg:px-14 pt-8 md:pt-10 pb-6 md:pb-8">
+        <div className="relative mx-auto max-w-7xl px-4 py-3 md:px-6 md:py-5">
           {/* all slides share one grid cell — hero height never jumps between slides (no CLS) */}
           <div className="grid">
             {slides.map((sl, i) => {
@@ -214,18 +209,18 @@ export function HeroSection() {
                   key={i}
                   aria-hidden={!active}
                   inert={!active ? true : undefined}
-                  className={`col-start-1 row-start-1 grid lg:grid-cols-2 gap-6 lg:gap-10 items-center transition-opacity duration-700 ease-out ${
+                  className={`col-start-1 row-start-1 relative flex min-h-[390px] items-end transition-opacity duration-700 ease-out md:min-h-[380px] md:items-center ${
                     active ? "opacity-100" : "opacity-0 pointer-events-none"
                   }`}
                 >
                   {/* copy */}
-                  <div className="relative z-10 order-2 lg:order-1 text-center lg:text-left">
-                    <p className="mb-4 inline-flex items-center gap-2 rounded-full bg-white px-4 py-1.5 text-[11px] font-black uppercase tracking-widest text-orange-600 ring-1 ring-orange-500/25 shadow-sm">
+                  <div className="relative z-10 w-full max-w-[18rem] pb-3 text-left sm:max-w-xl sm:pb-0 lg:max-w-xl">
+                    <p className="mb-2 inline-flex items-center gap-1.5 rounded-full bg-white/90 px-3 py-1 text-[9px] font-black uppercase tracking-[0.12em] text-orange-600 ring-1 ring-orange-500/25 shadow-sm sm:mb-4 sm:gap-2 sm:px-4 sm:py-1.5 sm:text-[11px] sm:tracking-widest">
                       <span className="h-1.5 w-1.5 rounded-full bg-orange-500" aria-hidden="true" />
                       {sl.tag}
                     </p>
 
-                    <h1 className="text-4xl md:text-6xl font-black tracking-tight text-slate-900 leading-[1.05] mb-4">
+                    <h1 className="text-2xl font-black tracking-tight text-slate-900 leading-[1.05] mb-2 sm:text-4xl sm:mb-4 md:text-5xl">
                       {(() => {
                         const words = sl.headline.split(" ");
                         const last = words.pop();
@@ -241,8 +236,8 @@ export function HeroSection() {
                       })()}
                     </h1>
 
-                    <div className="mb-4 flex flex-wrap items-baseline justify-center lg:justify-start gap-x-3 gap-y-1">
-                      <span className="font-mono text-3xl md:text-4xl font-black tabular-nums text-orange-600">{fmt(sl.price)}</span>
+                    <div className="mb-2 flex flex-wrap items-baseline justify-start gap-x-2 gap-y-0.5 sm:mb-4 sm:justify-start sm:gap-x-3 sm:gap-y-1">
+                      <span className="font-mono text-2xl sm:text-3xl md:text-4xl font-black tabular-nums text-orange-600">{fmt(sl.price)}</span>
                       <span className="text-lg text-slate-400 line-through font-medium">{fmt(sl.compareAt)}</span>
                       {discount > 0 && (
                         <span className="rounded-md bg-orange-500 px-2 py-0.5 text-xs font-black text-white">
@@ -251,7 +246,7 @@ export function HeroSection() {
                       )}
                     </div>
 
-                    <ul className="mb-5 flex flex-wrap items-center justify-center lg:justify-start gap-x-5 gap-y-2">
+                    <ul className="mb-3 flex flex-wrap items-center justify-start gap-x-3 gap-y-1 sm:mb-5 sm:justify-start sm:gap-x-5 sm:gap-y-2">
                       {HERO_TICKS.map((t) => (
                         <li key={t} className="flex items-center gap-1.5 text-xs font-semibold text-slate-600">
                           <span className="flex h-4 w-4 items-center justify-center rounded-full bg-emerald-100 text-[9px] text-emerald-700" aria-hidden="true">✓</span>
@@ -260,18 +255,18 @@ export function HeroSection() {
                       ))}
                     </ul>
 
-                    <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3">
+                    <div className="flex flex-wrap items-center justify-start gap-2 sm:gap-3">
                       <button
                         onClick={() => navigate(sl.productId ? `/product/${sl.productId}` : `/category/${sl.cat}`)}
                         tabIndex={active ? 0 : -1}
-                        className="px-9 py-4 rounded-xl bg-slate-900 text-white text-sm font-black uppercase tracking-wide hover:bg-slate-800 hover:-translate-y-0.5 transition-all shadow-xl shadow-slate-900/25 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
+                        className="px-6 py-3 rounded-xl bg-slate-900 text-white text-sm font-black uppercase tracking-wide hover:bg-slate-800 hover:-translate-y-0.5 transition-all shadow-xl shadow-slate-900/25 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 sm:px-9 sm:py-4"
                       >
                         Shop Now →
                       </button>
                       <button
                         onClick={() => navigate("/shop")}
                         tabIndex={active ? 0 : -1}
-                        className="px-7 py-4 rounded-xl bg-white text-slate-800 text-sm font-black uppercase tracking-wide ring-1 ring-slate-200 hover:ring-slate-400 hover:-translate-y-0.5 transition-all shadow-sm"
+                        className="px-5 py-3 rounded-xl bg-white text-slate-800 text-sm font-black uppercase tracking-wide ring-1 ring-slate-200 hover:ring-slate-400 hover:-translate-y-0.5 transition-all shadow-sm sm:px-7 sm:py-4"
                       >
                         Browse Deals
                       </button>
@@ -285,53 +280,14 @@ export function HeroSection() {
                     )}
                   </div>
 
-                  {/* product stage — floating cutout on a per-slide shape */}
-                  <div className="relative z-0 order-1 lg:order-2 flex justify-center items-center min-h-[240px] md:min-h-[340px]">
-                    <div
-                      aria-hidden="true"
-                      style={i % 3 === 0 ? undefined : { borderRadius: i % 3 === 1 ? ARCH : "2.5rem" }}
-                      className={`absolute h-[240px] w-[240px] md:h-[330px] md:w-[330px] ${tint.tile} ring-[10px] ring-white shadow-[0_24px_60px_rgba(15,23,42,0.10)] ${
-                        i % 3 === 0 ? "" : i % 3 === 2 ? "rotate-3" : ""
-                      }`}
-                    />
-                    {/* outline echo of the stage shape — quiet depth, no confetti */}
-                    <div
-                      aria-hidden="true"
-                      style={i % 3 === 0 ? { borderRadius: "58% 42% 55% 45% / 52% 55% 45% 48%" } : { borderRadius: i % 3 === 1 ? "999px 999px 1.75rem 1.75rem" : "2.5rem" }}
-                      className={`absolute h-[240px] w-[240px] md:h-[330px] md:w-[330px] border-2 border-dashed border-slate-900/10 ${
-                        i % 3 === 2 ? "-rotate-2" : ""
-                      }`}
-                    />
-                    {loaded.includes(i) && (
-                      <img
-                        src={sl.image}
-                        alt={active ? sl.headline : ""}
-                        width={sl.width}
-                        height={sl.height}
-                        fetchPriority={i === 0 ? "high" : "low"}
-                        decoding="async"
-                        className="hero-product float-slow relative object-contain drop-shadow-[0_30px_40px_rgba(15,23,42,0.22)]"
-                      />
-                    )}
-                    {discount > 0 && (
-                      <div
-                        aria-hidden="true"
-                        className={`absolute top-3 right-[14%] md:right-[18%] flex h-16 w-16 md:h-20 md:w-20 rotate-6 flex-col items-center justify-center rounded-2xl bg-orange-500 text-white shadow-lg shadow-orange-500/40 transition-opacity duration-700 ${
-                          active ? "opacity-100" : "opacity-0"
-                        }`}
-                      >
-                        <span className="text-base md:text-lg font-black leading-none">-{discount}%</span>
-                        <span className="text-[9px] font-bold uppercase tracking-wider opacity-90">Today</span>
-                      </div>
-                    )}
-                  </div>
+                  {/* background image covers the full hero card */}
                 </div>
               );
             })}
           </div>
 
           {/* dots */}
-          <div className="flex justify-center gap-2 mt-6">
+          <div className="flex justify-center gap-2 mt-3">
             {slides.map((_, i) => (
               <button
                 key={i}
@@ -392,7 +348,7 @@ export function CategoryIcons() {
       <div className="flex items-end justify-between mb-5">
         <div>
           <Kicker>Browse the range</Kicker>
-          <h2 className="text-3xl md:text-4xl font-black uppercase tracking-tight text-slate-900">Shop by Category</h2>
+          <h2 className="text-3xl md:text-4xl font-black tracking-tight text-slate-900">Shop by Category</h2>
         </div>
         <div className="hidden md:flex gap-2">
           <button
@@ -503,7 +459,7 @@ export function BestSelling() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-5">
         <div className="shrink-0">
           <Kicker>Customer favourites</Kicker>
-          <h2 className="text-3xl md:text-4xl font-black uppercase tracking-tight text-slate-900">Best Selling</h2>
+          <h2 className="text-3xl md:text-4xl font-black tracking-tight text-slate-900">Best Selling</h2>
         </div>
         <div className="flex min-w-0 items-center justify-between gap-3 sm:justify-end sm:flex-1">
           {/* desktop tabs */}
@@ -547,7 +503,7 @@ export function BestSelling() {
       {list.length === 0 ? (
         <p className="text-sm text-slate-500 py-10 text-center">No matching best sellers.</p>
       ) : (
-        <div className={view === "list" ? "grid grid-cols-1 gap-3" : "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4"}>
+        <div className={view === "list" ? "grid grid-cols-1 gap-3" : "grid grid-cols-2 gap-2 md:grid-cols-3 lg:grid-cols-5 md:gap-4"}>
           {list.map((p) => (
             <ProductCard key={p.id} product={p} view={view} />
           ))}
